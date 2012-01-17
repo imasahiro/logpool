@@ -5,6 +5,10 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct logctx;
 struct ltrace;
 struct lstate;
@@ -117,5 +121,9 @@ static inline sizeinfo_t sizeinfo_create(short s1, short s2)
 
 #define __UNUSED__ __attribute__((unused))
 #define cast(T, V) ((T)(V))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* end of include guard */

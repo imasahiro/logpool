@@ -1,6 +1,10 @@
 #ifndef LOGPOOL_STRING_H_
 #define LOGPOOL_STRING_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct buffer {
     char *buf;
     void *unused;
@@ -106,5 +110,9 @@ static inline short get_l2(sizeinfo_t info)
 {
     return (short)info;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* end of include guard */
