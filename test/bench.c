@@ -267,13 +267,6 @@ uint64_t konoha_ntrace1(CTX ctx)
 #undef LOG_END
 #include "logpool.h"
 
-static inline uint64_t getTimeMilliSecond(void)
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-}
-
 uint64_t logpool_ntrace1(ltrace_t *ltrace)
 {
     int pid  = 0x10;
