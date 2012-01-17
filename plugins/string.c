@@ -9,7 +9,6 @@ void *logpool_string_init(logctx ctx __UNUSED__, void **args)
     uintptr_t size = cast(uintptr_t, args[0]);
     buf = cast(buffer_t *, malloc(sizeof(*buf) + size - 1));
     buf->buf  = buf->base;
-    buf->ebuf = buf->buf + size;
     return cast(void *, buf);
 }
 
@@ -34,7 +33,7 @@ void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     intptr_t i = cast(intptr_t, v);
     put_string(buf, key, get_l2(info));
     put_char(buf, ':');
-    buf->buf = write_i(buf->buf, buf->ebuf, i);
+    buf->buf = write_i(buf->buf, i);
 }
 
 void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -46,7 +45,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     }
     put_char(buf, '0');
     put_char(buf, 'x');
-    buf->buf = write_h(buf->buf, buf->ebuf, v);
+    buf->buf = write_h(buf->buf, v);
 }
 
 void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -55,7 +54,7 @@ void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t in
     double f = u2f(v);
     put_string(buf, key, get_l2(info));
     put_char(buf, ':');
-    buf->buf = write_f(buf->buf, buf->ebuf, f);
+    buf->buf = write_f(buf->buf, f);
 }
 
 void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -108,7 +107,11 @@ static void logpool_string_flush__(logctx ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
-    fwrite(buf->base, buf->buf - buf->base - 1, 1, stderr);
+    assert(buf->buf[-1] == '\0');
+    buf->buf[-1] = '\n';
+    buf->buf[ 0] = '\0';
+    fwrite(buf->base, buf->buf - buf->base, 1, stderr);
+    buf->buf = buf->base;
 }
 
 struct logapi STRING_API = {

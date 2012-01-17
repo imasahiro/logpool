@@ -4,7 +4,6 @@
 
 typedef struct flog {
     char *buf;
-    char *ebuf;
     FILE *fp;
     char base[1];
 } flog_t;
