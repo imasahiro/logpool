@@ -2,8 +2,8 @@
 #
 
 CC ?= gcc
-CFLAGS ?= -O2 -g -Wall -W -fPIC -I. -I..
-#CFLAGS ?= -g3 -O0 -Wall -fPIC -I. -I..
+#CFLAGS ?= -O2 -g -Wall -W -fPIC -I. -I..
+CFLAGS ?= -g3 -O0 -Wall -fPIC -I. -I..
 LDLIBS = -lmemcached
 
 logpool=logpool
@@ -17,7 +17,7 @@ objs = \
 	$(dir)/memcache.o\
 
 .PHONY: all
-all: $(dir)/test_string $(dir)/test_memcache $(dir)/test_syslog
+all: $(dir)/test_string $(dir)/test_memcache $(dir)/test_syslog $(dir)/bench
 
 $(dir)/test_string : test/logtest.c $(dir)/lib$(logpool).dylib
 	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_STRING_API
@@ -27,6 +27,9 @@ $(dir)/test_memcache : test/logtest.c $(dir)/lib$(logpool).dylib
 
 $(dir)/test_syslog : test/logtest.c $(dir)/lib$(logpool).dylib
 	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_SYSLOG_API
+
+$(dir)/bench : test/bench.c $(dir)/lib$(logpool).dylib
+	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool)
 
 $(dir)/lib$(logpool).dylib : $(objs)
 	$(CC) $(CFLAGS) -dynamiclib $(LIBVER) -o $@ $^ $(LDLIBS)
