@@ -27,8 +27,9 @@ void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t inf
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     const char *s = (v != 0)?"true":"false";
+    size_t len = (v != 0)? 4 : 5;
     put_string(buf, key, get_l2(info));
-    put_string(buf, s, strlen(s));
+    put_string(buf, s, len);
 }
 
 void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
