@@ -47,5 +47,5 @@ $(dir)/memcache.o : ./plugins/memcache.c
 ## clean
 .PHONY: clean
 clean:
-	$(RM) -rf $(dir)/*.dylib $(dir)/*.o $(dir)/$(test)
+	$(RM) -rf $(dir)/*
 
