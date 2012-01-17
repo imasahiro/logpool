@@ -20,13 +20,13 @@ void logpool_string_null(logctx ctx, const char *key, uint64_t v __UNUSED__, siz
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_string(buf, key, get_l2(info));
-    put_string(buf, ":null", 5);
+    put_string(buf, "null", 5);
 }
 
 void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    const char *s = (v != 0)?":true":":false";
+    const char *s = (v != 0)?"true":"false";
     put_string(buf, key, get_l2(info));
     put_string(buf, s, strlen(s));
 }
@@ -36,7 +36,6 @@ void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     intptr_t i = cast(intptr_t, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
     buf->buf = write_i(buf->buf, i);
 }
 
@@ -44,7 +43,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_string(buf, key, get_l2(info));
-    put_char3(buf, ':', '0', 'x');
+    put_char2(buf, '0', 'x');
     buf->buf = write_d(buf->buf, v, 16);
 }
 
@@ -53,7 +52,6 @@ void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t in
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     double f = u2f(v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
     buf->buf = write_f(buf->buf, f);
 }
 
@@ -62,7 +60,6 @@ void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t inf
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     long c = cast(long, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
     put_char(buf, (char)c);
 }
 
@@ -71,7 +68,6 @@ void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t i
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
     put_char(buf, '\'');
     put_string(buf, s, get_l1(info));
     put_char(buf, '\'');
@@ -82,7 +78,6 @@ void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
     put_string(buf, s, get_l1(info));
 }
 
