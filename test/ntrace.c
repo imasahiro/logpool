@@ -232,19 +232,7 @@ static void ntrace(CTX ctx, const char *event, int pe, const knh_ldata2_t *d)
 } while (0)
 
 #define N 10000000
-uint64_t konoha_ntrace1(CTX ctx)
-{
-    int pid  = 0x10;
-    int pgid = 0x20;
-    void *p  = (void*) 0xdeadbeaf;
-    int i;
-    kuint64_t s = knh_getTimeMilliSecond();
-    for (i = 0; i < N; ++i) {
-        NTRACE(ctx, "setpgid", K_OK, KNH_LDATA(LOG_i("pid", pid), LOG_i("pgid", pgid), LOG_p("ptr", p)));
-    }
-    kuint64_t e = knh_getTimeMilliSecond();
-    return e - s;
-}
+
 uint64_t konoha_ntrace0(CTX ctx)
 {
     int i;
@@ -256,17 +244,37 @@ uint64_t konoha_ntrace0(CTX ctx)
     return e - s;
 }
 
+uint64_t konoha_ntrace1(CTX ctx)
+{
+    int pid  = 0x10;
+    int pgid = 0x20;
+    void *p  = (void*) 0xdeadbeaf;
+    int i;
+    kuint64_t s = knh_getTimeMilliSecond();
+    for (i = 0; i < N; ++i) {
+        NTRACE(ctx, "setpgid", K_OK, KNH_LDATA(LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p)));
+    }
+    kuint64_t e = knh_getTimeMilliSecond();
+    return e - s;
+}
+
 int main(int argc, const char *argv[])
 {
+    uint64_t s = knh_getTimeMilliSecond();
     konoha_ginit(argc, argv);
     konoha_t konoha = konoha_open();
     devnull = fopen("/dev/null", "w");
     CTX ctx = konoha;
-    uint64_t t1 = konoha_ntrace0(ctx);
-    uint64_t t2 = konoha_ntrace1(ctx);
-    fprintf(stderr, "ntrace0:%lld\n", t1);
-    fprintf(stderr, "ntrace1:%lld\n", t1);
+    int i;
+    for (i = 0; i < 4; ++i) {
+        uint64_t t1 = konoha_ntrace0(ctx);
+        uint64_t t2 = konoha_ntrace1(ctx);
+        fprintf(stderr, "%d:ntrace0:%lld\n", i, t1);
+        fprintf(stderr, "%d:ntrace1:%lld\n", i, t1);
+    }
     fclose(devnull);
+    uint64_t e = knh_getTimeMilliSecond();
+    fprintf(stderr, "fin:%lld\n", e - s);
     konoha_close(konoha);
     return 0;
 }
