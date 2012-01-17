@@ -16,13 +16,17 @@ objs = \
 	$(dir)/syslog.o\
 	$(dir)/memcache.o\
 
-test = logtest
-
 .PHONY: all
-all: $(dir)/$(test)
+all: $(dir)/test_string $(dir)/test_memcache $(dir)/test_syslog
 
-$(dir)/$(test) : test/logtest.c $(dir)/lib$(logpool).dylib
-	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool)
+$(dir)/test_string : test/logtest.c $(dir)/lib$(logpool).dylib
+	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_STRING_API
+
+$(dir)/test_memcache : test/logtest.c $(dir)/lib$(logpool).dylib
+	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_MEMCACHE_API
+
+$(dir)/test_syslog : test/logtest.c $(dir)/lib$(logpool).dylib
+	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_SYSLOG_API
 
 $(dir)/lib$(logpool).dylib : $(objs)
 	$(CC) $(CFLAGS) -dynamiclib $(LIBVER) -o $@ $^ $(LDLIBS)

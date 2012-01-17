@@ -1,23 +1,40 @@
 #include "logpool.h"
 #include <stdbool.h>
 
-//#define LOGAPI STRING_API
-//#define LOGAPI FILE_API
-//#define LOGAPI SYSLOG_API
-#define LOGAPI MEMCACHE_API
-//static void *STRING_API_PARAM = (void*) 1024;
-//static void *SYSLOG_API_PARAM = (void*) 1024;
-//static void *FILE_API_PARAM[] =  (void*) "LOG";
+#ifndef LOGAPI_TEST
+#define LOGTEST_STRING_API
+#endif
+
+#ifdef LOGTEST_STRING_API
+static void *STRING_API_PARAM = (void*) 1024;
+#define LOGAPI_PARAM STRING_API_PARAM
+#define LOGAPI STRING_API
+#endif
+#ifdef LOGTEST_SYSLOG_API
+static void *SYSLOG_API_PARAM = (void*) 1024;
+#define LOGAPI_PARAM SYSLOG_API_PARAM
+#define LOGAPI SYSLOG_API
+#endif
+#ifdef LOGTEST_FILE_API
+static void *FILE_API_PARAM[] =  (void*) "LOG";
+#define LOGAPI_PARAM FILE_API_PARAM
+#define LOGAPI FILE_API
+#endif
+
+#ifdef LOGTEST_MEMCACHE_API
 static void *MEMCACHE_API_PARAM_[] = {
     (void*) 1024,
     (void*) "localhost",
     (void*) 11211L
 };
 static void *MEMCACHE_API_PARAM = (void*) MEMCACHE_API_PARAM_;
-
 #define LOGAPI_PARAM MEMCACHE_API_PARAM
+#define LOGAPI MEMCACHE_API
+#endif
+
 extern logapi_t LOGAPI;
 
+/* test case */
 static void logpool_test_write(void)
 {
 #if 0
@@ -74,7 +91,7 @@ static void lstate_test_write(lstate_t *state)
     }
 }
 
-int main(int argc, const char *argv[])
+int main(int argc __UNUSED__, const char *argv[] __UNUSED__)
 {
     ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
     ltrace_test_write(ltrace);
