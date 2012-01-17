@@ -13,34 +13,36 @@ void logctx_format_flush(logctx ctx)
 {
     struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
-    ctx->logkey.fn(ctx, NULL, ctx->logkey.v.u);
+    ctx->logkey.fn(ctx, NULL, ctx->logkey.v.u, ctx->logkey.siz);
     ctx->formatter->fn_delim(ctx);
     if (size) {
-        fmt->fn(ctx, fmt->key, fmt->v.u);
+        fmt->fn(ctx, fmt->key, fmt->v.u, fmt->siz);
         fmt++;
         for (i = 1; i < size; ++i, ++fmt) {
             ctx->formatter->fn_delim(ctx);
-            fmt->fn(ctx, fmt->key, fmt->v.u);
+            fmt->fn(ctx, fmt->key, fmt->v.u, fmt->siz);
         }
         cast(struct logctx *, ctx)->logfmt_size = 0;
     }
 }
 
-void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f)
+void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t siz)
 {
     struct logctx *lctx = cast(struct logctx *, ctx);
     assert(lctx->logfmt_size < LOGFMT_MAX_SIZE);
     lctx->fmt[lctx->logfmt_size].fn  = f;
     lctx->fmt[lctx->logfmt_size].key = key;
     lctx->fmt[lctx->logfmt_size].v.u = v;
+    lctx->fmt[lctx->logfmt_size].siz = siz;
     ++lctx->logfmt_size;
 }
 
-void logctx_init_logkey(logctx ctx, uint64_t v, logFn f)
+void logctx_init_logkey(logctx ctx, uint64_t v, logFn f, size_t size)
 {
     struct logctx *lctx = cast(struct logctx *, ctx);
     lctx->logkey.fn  = f;
     lctx->logkey.v.u = v;
+    lctx->logkey.siz = size;
     lctx->logfmt_size = 0;
 }
 

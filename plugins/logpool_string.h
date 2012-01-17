@@ -9,14 +9,14 @@ typedef struct buffer {
 } buffer_t;
 
 void *logpool_string_init(logctx ctx, void **param);
-void logpool_string_null(logctx ctx, const char *key, uint64_t v);
-void logpool_string_bool(logctx ctx, const char *key, uint64_t v);
-void logpool_string_int(logctx ctx, const char *key, uint64_t v);
-void logpool_string_hex(logctx ctx, const char *key, uint64_t v);
-void logpool_string_float(logctx ctx, const char *key, uint64_t v);
-void logpool_string_char(logctx ctx, const char *key, uint64_t v);
-void logpool_string_string(logctx ctx, const char *key, uint64_t v);
-void logpool_string_raw(logctx ctx, const char *key, uint64_t v);
+void logpool_string_null(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
 void logpool_string_delim(logctx ctx);
 void logpool_string_flush(logctx ctx);
 
@@ -33,13 +33,29 @@ static void reverse(char *const start, char *const end, const int len)
     }
 }
 
-static inline char *write_d(char *const p, const char *const end, uint64_t uvalue, const int base)
+static inline char *write_h(char *const p, const char *const end, uint64_t uvalue)
 {
     int i = 0;
     while (p + i < end) {
-        int tmp = uvalue % base;
-        uvalue /= base;
-        p[i] = tmp + (char)((base == 16 && tmp >= 10)?('a'-10):'0');
+        int tmp = uvalue % 16;
+        uvalue /= 16;
+        p[i] = tmp + (char)((tmp >= 10)?('a'-10):'0');
+        ++i;
+        if (uvalue == 0)
+            break;
+    }
+    reverse(p, p + i, i);
+    return p + i;
+}
+
+
+static inline char *write_d(char *const p, const char *const end, uint64_t uvalue)
+{
+    int i = 0;
+    while (p + i < end) {
+        int tmp = uvalue % 10;
+        uvalue /= 10;
+        p[i] = tmp + '0';
         ++i;
         if (uvalue == 0)
             break;
@@ -56,7 +72,7 @@ static inline char *write_i(char *p, char *ebuf, intptr_t value)
     }
     uintptr_t u = value / 10, r = value % 10;
     if(u != 0) {
-        p = write_d(p, ebuf, u, 10);
+        p = write_d(p, ebuf, u);
     }
     p[0] = ('0' + r);
     return p + 1;
@@ -71,7 +87,7 @@ static inline char *write_f(char *p, char *ebuf, double f)
     }
     intptr_t u = value / 1000, r = value % 1000;
     if(u != 0) {
-        p = write_d(p, ebuf, u, 10);
+        p = write_d(p, ebuf, u);
     }
     else {
         p[0] = '0'; p++;
@@ -85,17 +101,25 @@ static inline char *write_f(char *p, char *ebuf, double f)
     return p + 1;
 }
 
-static inline void put_string(buffer_t *buf, const char *s)
+static inline void put_string(buffer_t *buf, const char *s, short size)
 {
-    size_t len = strlen(s);
-    memcpy(buf->buf, s, len);
-    buf->buf += len;
+    memcpy(buf->buf, s, size);
+    buf->buf += size;
 }
 
 static inline void put_char(buffer_t *buf, char c)
 {
     buf->buf[0] = c;
     ++(buf->buf);
+}
+
+static inline short get_l1(sizeinfo_t info)
+{
+    return (info >> sizeof(short)*8);
+}
+static inline short get_l2(sizeinfo_t info)
+{
+    return (short)info;
 }
 
 #endif /* end of include guard */
