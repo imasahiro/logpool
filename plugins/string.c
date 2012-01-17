@@ -39,10 +39,8 @@ void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    if (key) {
-        put_string(buf, key, get_l2(info));
-        put_char(buf, ':');
-    }
+    put_string(buf, key, get_l2(info));
+    put_char(buf, ':');
     put_char(buf, '0');
     put_char(buf, 'x');
     buf->buf = write_d(buf->buf, v, 16);
@@ -70,10 +68,8 @@ void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t i
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
-    if (key) {
-        put_string(buf, key, get_l2(info));
-        put_char(buf, ':');
-    }
+    put_string(buf, key, get_l2(info));
+    put_char(buf, ':');
     put_char(buf, '\'');
     put_string(buf, s, get_l1(info));
     put_char(buf, '\'');
@@ -127,4 +123,23 @@ struct logapi STRING_API = {
     logpool_string_flush__,
     logpool_string_init,
 };
+
+void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
+{
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    put_char(buf, '0');
+    put_char(buf, 'x');
+    buf->buf = write_d(buf->buf, v, 16);
+    put_char(buf, '+');
+    buf->buf = write_i(buf->buf, seq);
+}
+
+void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
+{
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    char *s = cast(char *, v);
+    put_string(buf, s, get_l1(info));
+    put_char(buf, '+');
+    buf->buf = write_i(buf->buf, seq);
+}
 
