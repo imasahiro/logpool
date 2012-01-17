@@ -12,7 +12,7 @@ dir    = build
 objs = \
 	$(dir)/logpool.o\
 	$(dir)/file2.o\
-	$(dir)/string.o\
+	$(dir)/lpstring.o\
 	$(dir)/syslog.o\
 	$(dir)/memcache.o\
 
@@ -49,16 +49,16 @@ $(dir)/lib$(logpool).dylib : $(objs)
 $(dir)/logpool.o : logpool.c logpool.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/file2.o : ./plugins/file2.c logpool.h plugins/logpool_string.h
+$(dir)/file2.o : ./plugins/file2.c logpool.h lpstring.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/syslog.o : ./plugins/syslog.c logpool.h plugins/logpool_string.h
+$(dir)/syslog.o : ./plugins/syslog.c logpool.h lpstring.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/string.o : ./plugins/string.c logpool.h plugins/logpool_string.h
+$(dir)/lpstring.o : ./lpstring.c logpool.h lpstring.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/memcache.o : ./plugins/memcache.c logpool.h plugins/logpool_string.h
+$(dir)/memcache.o : ./plugins/memcache.c logpool.h lpstring.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ## clean

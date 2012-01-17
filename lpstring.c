@@ -1,7 +1,11 @@
 #include "logpool.h"
-#include "logpool_string.h"
+#include "lpstring.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void *logpool_string_init(logctx ctx __UNUSED__, void **args)
 {
@@ -143,3 +147,6 @@ void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
     buf->buf = write_i(buf->buf, seq);
 }
 
+#ifdef __cplusplus
+}
+#endif

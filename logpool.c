@@ -1,6 +1,10 @@
 #include "logpool.h"
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t);
 extern void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t);
 
@@ -89,4 +93,6 @@ void lstate_close(lstate_t *p)
     free(l);
 }
 
-
+#ifdef __cplusplus
+}
+#endif

@@ -1,6 +1,10 @@
 #include "logpool.h"
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void *logpool_FILE_init(logctx ctx __UNUSED__, void **param)
 {
     const char *F = cast(const char *, param[0]);
@@ -91,3 +95,6 @@ struct logapi FILE_API = {
     logpool_FILE_init,
 };
 
+#ifdef __cplusplus
+}
+#endif

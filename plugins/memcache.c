@@ -1,6 +1,10 @@
 #include "logpool.h"
-#include "logpool_string.h"
+#include "lpstring.h"
 #include <libmemcached/memcached.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct mc {
     char *buf;
@@ -74,3 +78,6 @@ struct logapi MEMCACHE_API = {
     logpool_memcache_init,
 };
 
+#ifdef __cplusplus
+}
+#endif

@@ -1,6 +1,10 @@
 #include "logpool.h"
-#include "logpool_string.h"
+#include "lpstring.h"
 #include <syslog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static void logpool_syslog_flush(logctx ctx)
 {
@@ -23,3 +27,6 @@ struct logapi SYSLOG_API = {
     logpool_string_init,
 };
 
+#ifdef __cplusplus
+}
+#endif

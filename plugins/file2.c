@@ -1,6 +1,10 @@
 #include "logpool.h"
-#include "logpool_string.h"
+#include "lpstring.h"
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct flog {
     char *buf;
@@ -41,3 +45,6 @@ struct logapi FILE2_API = {
     logpool_FILE2_init,
 };
 
+#ifdef __cplusplus
+}
+#endif
