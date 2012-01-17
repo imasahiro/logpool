@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include <stdlib.h>
 
 void logctx_init(logctx ctx, struct logapi *api, void *param)
 {

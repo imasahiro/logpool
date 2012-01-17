@@ -1,6 +1,7 @@
 #include "logpool.h"
 #include "logpool_string.h"
-#include <stdio.h>$
+#include <stdlib.h>
+#include <stdio.h>
 
 static inline void put_string(buffer_t *buf, const char *s)
 {

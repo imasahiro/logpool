@@ -1,12 +1,10 @@
 #ifndef LOGPOOL_H_
 #define LOGPOOL_H_
-#include <stdlib.h>
+
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
-#define __UNUSED__ __attribute__((unused))
-#define cast(T, V) ((T)(V))
 struct logctx;
 struct ltrace;
 struct lstate;
@@ -60,23 +58,21 @@ struct lstate {
 };
 
 ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void *param);
-void ltrace_record(ltrace_t *p, const char* event, ldata_t *);
 void ltrace_close(ltrace_t *p);
 
 lstate_t *lstate_open(const char *state_name, struct logapi *api, void *param);
-void lstate_record(lstate_t *p, const ldata_t*);
 void lstate_close(lstate_t *p);
 
 static inline uint64_t f2u(double f)
 {
-    union {uint64_t u; double f;} v;
+    union {uint64_t u; double f;} v = {};
     v.f = f;
     return v.u;
 }
 
 static inline double u2f(uint64_t u)
 {
-    union {uint64_t u; double f;} v;
+    union {uint64_t u; double f;} v = {};
     v.u = u;
     return v.f;
 }
@@ -104,5 +100,8 @@ void logctx_init_logkey(logctx ctx, uint64_t v, logFn f);
 #define LOG_i(K,V)    ({logctx_append_fmtdata(__CTX__, K, V, __CTX__->formatter->fn_int);})
 #define LOG_f(K,V)    ({logctx_append_fmtdata(__CTX__, K, f2u(V), __CTX__->formatter->fn_float);})
 #define LOG_p(K,V)    ({logctx_append_fmtdata(__CTX__, K, cast(uint64_t, V), __CTX__->formatter->fn_hex);})
+
+#define __UNUSED__ __attribute__((unused))
+#define cast(T, V) ((T)(V))
 
 #endif /* end of include guard */
