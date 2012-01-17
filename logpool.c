@@ -1,7 +1,7 @@
 #include "logpool.h"
 #include <stdlib.h>
 
-void logctx_init(logctx ctx, struct logapi *api, void *param)
+void logctx_init(logctx ctx, struct logapi *api, void **param)
 {
     struct logctx *lctx = cast(struct logctx *, ctx);
     lctx->formatter   = api;
@@ -13,9 +13,9 @@ void logctx_format_flush(logctx ctx)
 {
     struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
+    ctx->logkey.fn(ctx, NULL, ctx->logkey.v.u);
+    ctx->formatter->fn_delim(ctx);
     if (size) {
-        ctx->logkey.fn(ctx, NULL, ctx->logkey.v.u);
-        ctx->formatter->fn_delim(ctx);
         fmt->fn(ctx, fmt->key, fmt->v.u);
         fmt++;
         for (i = 1; i < size; ++i, ++fmt) {
@@ -44,7 +44,7 @@ void logctx_init_logkey(logctx ctx, uint64_t v, logFn f)
     lctx->logfmt_size = 0;
 }
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void *param)
+ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param)
 {
     struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
     logctx_init(cast(logctx, l), api, param);
@@ -67,7 +67,7 @@ static uint64_t hash(uint64_t h, const char *p, size_t len)
     return h;
 }
 
-lstate_t *lstate_open(const char *state_name, struct logapi *api, void *param)
+lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param)
 {
     struct lstate *l = cast(struct lstate *, malloc(sizeof(*l)));
     l->state = hash(0x11029, state_name, strlen(state_name));

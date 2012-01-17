@@ -6,28 +6,27 @@
 #endif
 
 #ifdef LOGTEST_STRING_API
-static void *STRING_API_PARAM = (void*) 1024;
+static void *STRING_API_PARAM[] = {(void*) 1024};
 #define LOGAPI_PARAM STRING_API_PARAM
 #define LOGAPI STRING_API
 #endif
 #ifdef LOGTEST_SYSLOG_API
-static void *SYSLOG_API_PARAM = (void*) 1024;
+static void *SYSLOG_API_PARAM[] = {(void*) 1024};
 #define LOGAPI_PARAM SYSLOG_API_PARAM
 #define LOGAPI SYSLOG_API
 #endif
 #ifdef LOGTEST_FILE_API
-static void *FILE_API_PARAM[] =  (void*) "LOG";
+static void *FILE_API_PARAM[] =  {(void*) "LOG"};
 #define LOGAPI_PARAM FILE_API_PARAM
 #define LOGAPI FILE_API
 #endif
 
 #ifdef LOGTEST_MEMCACHE_API
-static void *MEMCACHE_API_PARAM_[] = {
+static void *MEMCACHE_API_PARAM[] = {
     (void*) 1024,
     (void*) "localhost",
     (void*) 11211L
 };
-static void *MEMCACHE_API_PARAM = (void*) MEMCACHE_API_PARAM_;
 #define LOGAPI_PARAM MEMCACHE_API_PARAM
 #define LOGAPI MEMCACHE_API
 #endif

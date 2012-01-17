@@ -9,12 +9,11 @@ typedef struct mc {
     char base[1];
 } mc_t;
 
-void *logpool_memcache_init(logctx ctx, void *param)
+void *logpool_memcache_init(logctx ctx, void **param)
 {
-    void **args = cast(void **, param);
-    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, (void*) args[0]));
-    const char *host = cast(const char *, args[1]);
-    long port = cast(long, args[2]);
+    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, param[0]));
+    const char *host = cast(const char *, param[1]);
+    long port = cast(long, param[2]);
     memcached_return_t rc;
     memcached_server_list_st servers;
 

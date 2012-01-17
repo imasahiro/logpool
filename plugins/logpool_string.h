@@ -8,7 +8,7 @@ typedef struct buffer {
     char base[1];
 } buffer_t;
 
-void *logpool_string_init(logctx ctx, void *param);
+void *logpool_string_init(logctx ctx, void **param);
 void logpool_string_null(logctx ctx, const char *key, uint64_t v);
 void logpool_string_bool(logctx ctx, const char *key, uint64_t v);
 void logpool_string_int(logctx ctx, const char *key, uint64_t v);

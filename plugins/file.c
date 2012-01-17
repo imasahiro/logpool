@@ -1,9 +1,9 @@
 #include "logpool.h"
 #include <stdio.h>
 
-void *logpool_FILE_init(logctx ctx __UNUSED__, void *param)
+void *logpool_FILE_init(logctx ctx __UNUSED__, void **param)
 {
-    const char *F = cast(const char *, param);
+    const char *F = cast(const char *, param[0]);
     FILE *fp = fopen(F, "w");
     return cast(void *, fp);
 }

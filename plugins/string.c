@@ -16,10 +16,10 @@ static inline void put_char(buffer_t *buf, char c)
     ++(buf->buf);
 }
 
-void *logpool_string_init(logctx ctx __UNUSED__, void *param)
+void *logpool_string_init(logctx ctx __UNUSED__, void **args)
 {
     buffer_t *buf;
-    uintptr_t size = cast(uintptr_t, param);
+    uintptr_t size = cast(uintptr_t, args[0]);
     buf = cast(buffer_t *, malloc(sizeof(*buf) + size - 1));
     buf->buf  = buf->base;
     buf->ebuf = buf->buf + size;
@@ -120,7 +120,7 @@ static void logpool_string_flush__(logctx ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
-    fprintf(stderr, "%s\n", buf->base);
+    fwrite(buf->base, buf->buf - buf->base - 1, 1, stderr);
 }
 
 struct logapi STRING_API = {

@@ -36,7 +36,7 @@ struct logapi {
     logFn fn_raw;
     void   (*fn_delim)(logctx);
     void   (*fn_flush)(logctx);
-    void  *(*fn_init)(logctx, void*);
+    void  *(*fn_init)(logctx, void**);
 };
 #define LOGFMT_MAX_SIZE 8
 struct logctx {
@@ -57,10 +57,10 @@ struct lstate {
     uint64_t state;
 };
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void *param);
+ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param);
 void ltrace_close(ltrace_t *p);
 
-lstate_t *lstate_open(const char *state_name, struct logapi *api, void *param);
+lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param);
 void lstate_close(lstate_t *p);
 
 static inline uint64_t f2u(double f)
@@ -77,7 +77,7 @@ static inline double u2f(uint64_t u)
     return v.f;
 }
 
-void logctx_init(logctx ctx, struct logapi *api, void *param);
+void logctx_init(logctx ctx, struct logapi *api, void **param);
 void logctx_format_flush(logctx ctx);
 void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f);
 void logctx_init_logkey(logctx ctx, uint64_t v, logFn f);
