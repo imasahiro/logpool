@@ -3,19 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static inline void put_string(buffer_t *buf, const char *s)
-{
-    size_t len = strlen(s);
-    memcpy(buf->buf, s, len);
-    buf->buf += len;
-}
-
-static inline void put_char(buffer_t *buf, char c)
-{
-    buf->buf[0] = c;
-    ++(buf->buf);
-}
-
 void *logpool_string_init(logctx ctx __UNUSED__, void **args)
 {
     buffer_t *buf;

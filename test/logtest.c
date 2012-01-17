@@ -16,9 +16,9 @@ static void *SYSLOG_API_PARAM[] = {(void*) 1024};
 #define LOGAPI SYSLOG_API
 #endif
 #ifdef LOGTEST_FILE_API
-static void *FILE_API_PARAM[] =  {(void*) "LOG"};
+static void *FILE_API_PARAM[] =  {(void*) 1024, (void*) "LOG"};
 #define LOGAPI_PARAM FILE_API_PARAM
-#define LOGAPI FILE_API
+#define LOGAPI FILE2_API
 #endif
 
 #ifdef LOGTEST_MEMCACHE_API

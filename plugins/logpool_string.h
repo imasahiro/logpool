@@ -85,4 +85,17 @@ static inline char *write_f(char *p, char *ebuf, double f)
     return p + 1;
 }
 
+static inline void put_string(buffer_t *buf, const char *s)
+{
+    size_t len = strlen(s);
+    memcpy(buf->buf, s, len);
+    buf->buf += len;
+}
+
+static inline void put_char(buffer_t *buf, char c)
+{
+    buf->buf[0] = c;
+    ++(buf->buf);
+}
+
 #endif /* end of include guard */

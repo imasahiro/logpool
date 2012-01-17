@@ -11,9 +11,9 @@ typedef struct mc {
 
 void *logpool_memcache_init(logctx ctx, void **param)
 {
-    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, param[0]));
     const char *host = cast(const char *, param[1]);
     long port = cast(long, param[2]);
+    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, param));
     memcached_return_t rc;
     memcached_server_list_st servers;
 

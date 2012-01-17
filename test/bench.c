@@ -1,4 +1,4 @@
-#define N 1
+#define N 10000000
 #include "logpool.h"
 
 #include <time.h>
@@ -36,14 +36,15 @@ uint64_t logpool_ntrace0(ltrace_t *ltrace)
     return e - s;
 }
 
-extern logapi_t STRING_API;
+extern logapi_t FILE2_API;
+static logapi_t *API = &FILE2_API;
 int main(int argc, const char *argv[])
 {
-    static const void *ARGS[] = {
+    static void *ARGS[] = {
         (void *) 1024,
-        (void *) "FILE"
+        (void *) "/dev/null"
     };
-    ltrace_t *ltrace = ltrace_open(NULL, &STRING_API, (void *) ARGS);
+    ltrace_t *ltrace = ltrace_open(NULL, API, ARGS);
     uint64_t t1 = logpool_ntrace0(ltrace);
     uint64_t t2 = logpool_ntrace1(ltrace);
     fprintf(stderr, "logpool0:%lld\n", t1);
