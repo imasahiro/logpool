@@ -42,7 +42,7 @@ static void logpool_memcache_flush(logctx ctx)
     char keybuf[128];
     const char *key;
     if (ctx->logkey.fn == logpool_string_hex) {
-        char *p = write_h(keybuf, ctx->logkey.v.u);
+        char *p = write_d(keybuf, ctx->logkey.v.u, 16);
         p[0] = 0;
         key = keybuf;
     } else {

@@ -45,7 +45,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     }
     put_char(buf, '0');
     put_char(buf, 'x');
-    buf->buf = write_h(buf->buf, v);
+    buf->buf = write_d(buf->buf, v, 16);
 }
 
 void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)

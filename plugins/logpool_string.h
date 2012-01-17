@@ -32,26 +32,13 @@ static void reverse(char *const start, char *const end, const int len)
     }
 }
 
-static inline char *write_h(char *const p, uint64_t uvalue)
+static inline char *write_d(char *const p, uint64_t uvalue, int radix)
 {
     int i = 0;
     while (uvalue != 0) {
-        int tmp = uvalue % 16;
-        uvalue /= 16;
+        int tmp = uvalue % radix;
+        uvalue /= radix;
         p[i] = (tmp < 10 ? '0' + tmp : + 'a' + tmp - 10);
-        ++i;
-    }
-    reverse(p, p + i, i);
-    return p + i;
-}
-
-static inline char *write_d(char *const p, uint64_t uvalue)
-{
-    int i = 0;
-    while (uvalue != 0) {
-        int tmp = uvalue % 10;
-        uvalue /= 10;
-        p[i] = tmp + '0';
         ++i;
     }
     reverse(p, p + i, i);
@@ -66,7 +53,7 @@ static inline char *write_i(char *p, intptr_t value)
     }
     uintptr_t u = value / 10, r = value % 10;
     if(u != 0) {
-        p = write_d(p, u);
+        p = write_d(p, u, 10);
     }
     p[0] = ('0' + r);
     return p + 1;
@@ -81,7 +68,7 @@ static inline char *write_f(char *p, double f)
     }
     intptr_t u = value / 1000, r = value % 1000;
     if(u != 0) {
-        p = write_d(p, u);
+        p = write_d(p, u, 10);
     }
     else {
         p[0] = '0'; p++;
@@ -97,7 +84,11 @@ static inline char *write_f(char *p, double f)
 
 static inline void put_string(buffer_t *buf, const char *s, short size)
 {
-    memcpy(buf->buf, s, size);
+    int i;
+    char *p = buf->buf;
+    for (i = 0; i < size; ++i) {
+        p[i] = s[i];
+    }
     buf->buf += size;
 }
 
