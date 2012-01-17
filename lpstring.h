@@ -41,10 +41,10 @@ static inline char *write_d(char *const p, uint64_t uvalue, int radix)
     int i = 0;
     static const char _t_[] = "0123456789abcdef";
     while (uvalue != 0) {
-        int tmp = uvalue % radix;
+        int r = uvalue % radix;
+        p[i]  = _t_[r];
         uvalue /= radix;
-        p[i] = _t_[tmp];
-        ++i;
+        i++;
     }
     reverse(p, p + i, i);
     return p + i;
