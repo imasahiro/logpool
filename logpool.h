@@ -83,12 +83,12 @@ static inline double u2f(uint64_t u)
 void logctx_init(logctx ctx, struct logapi *api, void **param);
 void logctx_format_flush(logctx ctx);
 void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
-void logctx_init_logkey(logctx ctx, uint64_t v, logFn f, size_t len);
+void logctx_init_logkey(logctx ctx, uint64_t v, logFn f, sizeinfo_t siz);
 
 #define LCTX(V) (cast(logctx, V))
 #define ltrace_record(T, E, ...) do {\
     logctx __CTX__ = cast(logctx, T);\
-    logctx_init_logkey(__CTX__, cast(uint64_t, E), __CTX__->formatter->fn_string, strlen(E));\
+    logctx_init_logkey(__CTX__, cast(uint64_t, E), __CTX__->formatter->fn_string, sizeinfo_create(strlen(E), 0));\
     __VA_ARGS__;\
 } while (0)
 
