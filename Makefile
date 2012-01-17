@@ -21,28 +21,28 @@ test = logtest
 .PHONY: all
 all: $(dir)/$(test)
 
-$(dir)/$(test) : logtest.c $(dir)/lib$(logpool).dylib
-	$(CC) $(CFLAGS) -o $@ logtest.c -L./$(dir) -l$(logpool)
+$(dir)/$(test) : test/logtest.c $(dir)/lib$(logpool).dylib
+	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool)
 
 $(dir)/lib$(logpool).dylib : $(objs)
 	$(CC) $(CFLAGS) -dynamiclib $(LIBVER) -o $@ $^ $(LDLIBS)
 
 ## object files
 
-$(dir)/logpool.o : logpool.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(dir)/logpool.o : logpool.c logpool.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/file.o : ./plugins/file.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(dir)/file.o : ./plugins/file.c logpool.h plugins/logpool_string.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/syslog.o : ./plugins/syslog.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(dir)/syslog.o : ./plugins/syslog.c logpool.h plugins/logpool_string.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/string.o : ./plugins/string.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(dir)/string.o : ./plugins/string.c logpool.h plugins/logpool_string.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(dir)/memcache.o : ./plugins/memcache.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(dir)/memcache.o : ./plugins/memcache.c logpool.h plugins/logpool_string.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 ## clean
 .PHONY: clean
