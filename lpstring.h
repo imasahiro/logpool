@@ -57,9 +57,7 @@ static inline char *write_i(char *p, intptr_t value)
         value = -value;
     }
     uintptr_t u = value / 10, r = value % 10;
-    if(u != 0) {
-        p = write_d(p, u, 10);
-    }
+    p = write_d(p, u, 10);
     p[0] = ('0' + r);
     return p + 1;
 }
