@@ -137,7 +137,7 @@ static void write_seq(buffer_t *buf, uint64_t seq)
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    //put_char2(buf, '0' ,'x');
+    put_char2(buf, '0' ,'x');
     buf->buf = write_d(buf->buf, v, 16);
     write_seq(buf, seq);
 }
