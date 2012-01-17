@@ -9,27 +9,29 @@ typedef struct mc {
     char base[1];
 } mc_t;
 
-
 void *logpool_memcache_init(logctx ctx, void *param)
 {
     void **args = cast(void **, param);
-    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, (void*) param[0]));
-    const char* host = cast(const char *, param[1]);
-    int port = cast(int, param[2]);
+    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, (void*) args[0]));
+    const char *host = cast(const char *, args[1]);
+    long port = cast(long, args[2]);
     memcached_return_t rc;
     memcached_server_list_st servers;
 
     mc->st = memcached_create(NULL);
-    if (mcd->st == NULL) {
+    if (mc->st == NULL) {
         // TODO Error
+        abort();
     }
     servers = memcached_server_list_append(NULL, host, port, &rc);
     if (rc != MEMCACHED_SUCCESS) {
         // TODO Error
+        abort();
     }
-    rc = memcached_server_push(mcd->st, servers);
+    rc = memcached_server_push(mc->st, servers);
     if (rc != MEMCACHED_SUCCESS) {
         // TODO Error
+        abort();
     }
     memcached_server_list_free(servers);
     return cast(void *, mc);
@@ -39,19 +41,28 @@ static void logpool_memcache_flush(logctx ctx)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
     logpool_string_flush(ctx);
-    const char *key = String_to(const char*, sfp[1]);
-    const char *value = String_to(const char *, sfp[2]);
-    size_t klen = strlen(key);
-    size_t vlen = strlen(mc->base);
+    char keybuf[128];
+    const char *key;
+    if (ctx->logkey.fn == logpool_string_hex) {
+        char *p = write_d(keybuf, keybuf+128, ctx->logkey.v.u, 16);
+        p[0] = 0;
+        key = keybuf;
+    } else {
+        assert(ctx->logkey.fn == logpool_string_string);
+        key = ctx->logkey.v.s;
+    }
+    const char *value = mc->base;
     uint32_t flags = 0;
+    size_t klen = strlen(key), vlen = strlen(value);
     memcached_return_t rc;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
     if (rc != MEMCACHED_SUCCESS) {
         // TODO Error
+        abort();
     }
 }
 
-struct logapi SYSLOG_API = {
+struct logapi MEMCACHE_API = {
     logpool_string_null,
     logpool_string_bool,
     logpool_string_int,

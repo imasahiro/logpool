@@ -4,6 +4,7 @@
 CC ?= gcc
 CFLAGS ?= -O2 -g -Wall -W -fPIC -I. -I..
 #CFLAGS ?= -g3 -O0 -Wall -fPIC -I. -I..
+LDLIBS = -lmemcached
 
 logpool=logpool
 version = 1.0
@@ -11,8 +12,9 @@ dir    = build
 objs = \
 	$(dir)/logpool.o\
 	$(dir)/file.o\
+	$(dir)/string.o\
 	$(dir)/syslog.o\
-	$(dir)/string.o
+	$(dir)/memcache.o\
 
 test = logtest
 
@@ -37,6 +39,9 @@ $(dir)/syslog.o : ./plugins/syslog.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(dir)/string.o : ./plugins/string.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+$(dir)/memcache.o : ./plugins/memcache.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 ## clean

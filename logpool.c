@@ -13,6 +13,8 @@ void logctx_format_flush(logctx ctx)
     struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
     if (size) {
+        ctx->logkey.fn(ctx, NULL, ctx->logkey.v.u);
+        ctx->formatter->fn_delim(ctx);
         fmt->fn(ctx, fmt->key, fmt->v.u);
         fmt++;
         for (i = 1; i < size; ++i, ++fmt) {
@@ -33,10 +35,18 @@ void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f)
     ++lctx->logfmt_size;
 }
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api)
+void logctx_init_logkey(logctx ctx, uint64_t v, logFn f)
+{
+    struct logctx *lctx = cast(struct logctx *, ctx);
+    lctx->logkey.fn  = f;
+    lctx->logkey.v.u = v;
+    lctx->logfmt_size = 0;
+}
+
+ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void *param)
 {
     struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
-    logctx_init(cast(logctx, l), api, cast(void *, "LTRACE_LOG"));
+    logctx_init(cast(logctx, l), api, param);
     l->parent = parent;
     return cast(ltrace_t*, l);
 }
@@ -49,18 +59,18 @@ void ltrace_close(ltrace_t *p)
 
 static uint64_t hash(uint64_t h, const char *p, size_t len)
 {
-	size_t i;
-	for(i = 0; i < len; i++) {
-		h = p[i] + 31 * h;
-	}
-	return h;
+    size_t i;
+    for(i = 0; i < len; i++) {
+        h = p[i] + 31 * h;
+    }
+    return h;
 }
 
-lstate_t *lstate_open(const char *state_name, struct logapi *api)
+lstate_t *lstate_open(const char *state_name, struct logapi *api, void *param)
 {
     struct lstate *l = cast(struct lstate *, malloc(sizeof(*l)));
     l->state = hash(0x11029, state_name, strlen(state_name));
-    logctx_init(cast(logctx, l), api, cast(void *, "LSTATE_LOG"));
+    logctx_init(cast(logctx, l), api, param);
     return cast(lstate_t*, l);
 }
 
