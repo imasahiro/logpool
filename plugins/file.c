@@ -1,15 +1,14 @@
 #include "logpool.h"
 #include <stdio.h>
-#include <stdbool.h>
 
-void *logpool_FILE_init(logctx ctx, void *param)
+void *logpool_FILE_init(logctx ctx __UNUSED__, void *param)
 {
     const char *F = cast(const char *, param);
     FILE *fp = fopen(F, "w");
     return cast(void *, fp);
 }
 
-void logpool_FILE_null(logctx ctx, const char *key, uint64_t v)
+void logpool_FILE_null(logctx ctx, const char *key, uint64_t v __UNUSED__)
 {
     FILE *fp = cast(FILE *, ctx->connection);
     fprintf(fp, "%s:null", key);
@@ -18,8 +17,7 @@ void logpool_FILE_null(logctx ctx, const char *key, uint64_t v)
 void logpool_FILE_bool(logctx ctx, const char *key, uint64_t v)
 {
     FILE *fp = cast(FILE *, ctx->connection);
-    bool b = cast(bool, v);
-    fprintf(fp, "%s:%s", key, (b)?"true":"false");
+    fprintf(fp, "%s:%s", key, (v != 0)?"true":"false");
 }
 
 void logpool_FILE_int(logctx ctx, const char *key, uint64_t v)
@@ -39,7 +37,7 @@ void logpool_FILE_hex(logctx ctx, const char *key, uint64_t v)
 void logpool_FILE_float(logctx ctx, const char *key, uint64_t v)
 {
     FILE *fp = cast(FILE *, ctx->connection);
-    float f = u2f(v);
+    double f = u2f(v);
     fprintf(fp, "%s:%f", key, f);
 }
 

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
+#define __UNUSED__ __attribute__((unused))
 #define cast(T, V) ((T)(V))
 struct logctx;
 struct ltrace;
@@ -37,7 +38,7 @@ struct logctx {
         const char *key;
         union logdata {
             uint64_t u;
-            float f;
+            double f;
             char *s;
         } v;
     } fmt[LOGFMT_MAX_SIZE];
@@ -62,16 +63,16 @@ lstate_t *lstate_open(const char *state_name, logapi_t *);
 void lstate_record(lstate_t *p, const ldata_t*);
 void lstate_close(lstate_t *p);
 
-static inline uint64_t f2u(float f)
+static inline uint64_t f2u(double f)
 {
-    union {uint64_t u; float f;} v;
+    union {uint64_t u; double f;} v;
     v.f = f;
     return v.u;
 }
 
-static inline uint64_t u2f(uint64_t u)
+static inline double u2f(uint64_t u)
 {
-    union {uint64_t u; float f;} v;
+    union {uint64_t u; double f;} v;
     v.u = u;
     return v.f;
 }
@@ -101,6 +102,6 @@ static inline void logctx_fmt_start(logctx ctx, uint64_t v, logFn f)
 #define LOG_s(K,V)    ({logctx_append_fmtdata(__CTX__, K, cast(uint64_t, V), __CTX__->formatter->fn_string);})
 #define LOG_i(K,V)    ({logctx_append_fmtdata(__CTX__, K, V, __CTX__->formatter->fn_int);})
 #define LOG_f(K,V)    ({logctx_append_fmtdata(__CTX__, K, f2u(V), __CTX__->formatter->fn_float);})
-#define LOG_p(K,V)    ({logctx_append_fmtdata(__CTX__, K, V, __CTX__->formatter->fn_hex);})
+#define LOG_p(K,V)    ({logctx_append_fmtdata(__CTX__, K, cast(uint64_t, V), __CTX__->formatter->fn_hex);})
 
 #endif /* end of include guard */

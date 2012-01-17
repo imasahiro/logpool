@@ -2,8 +2,8 @@
 #
 
 CC ?= gcc
-CFLAGS ?= -O2 -g -Wall -fPIC -I. -I..
-#CFLAGS ?= -g3 -O0 -Wall -fPIC
+CFLAGS ?= -O2 -g -Wall -W -fPIC -I. -I..
+#CFLAGS ?= -g3 -O0 -Wall -fPIC -I. -I..
 
 logpool=logpool
 version = 1.0
@@ -11,7 +11,8 @@ dir    = build
 objs = \
 	$(dir)/logpool.o\
 	$(dir)/file.o\
-	$(dir)/syslog.o
+	$(dir)/syslog.o\
+	$(dir)/string.o
 
 test = logtest
 
@@ -33,6 +34,9 @@ $(dir)/file.o : ./plugins/file.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(dir)/syslog.o : ./plugins/syslog.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+$(dir)/string.o : ./plugins/string.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 ## clean
