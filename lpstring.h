@@ -36,7 +36,7 @@ static void reverse(char *const start, char *const end, const int len)
     }
 }
 
-static inline char *write_d(char *const p, uint64_t uvalue, int radix)
+static inline char *put_d(char *const p, uint64_t uvalue, int radix)
 {
     int i = 0;
     static const char _t_[] = "0123456789abcdef";
@@ -50,7 +50,7 @@ static inline char *write_d(char *const p, uint64_t uvalue, int radix)
     return p + i;
 }
 
-static inline char *write_i(char *p, intptr_t value)
+static inline char *put_i(char *p, intptr_t value)
 {
     if(value < 0) {
         p[0] = '-'; p++;
@@ -58,13 +58,13 @@ static inline char *write_i(char *p, intptr_t value)
     }
     uintptr_t u = value / 10, r = value % 10;
     if (u != 0) {
-        p = write_d(p, u, 10);
+        p = put_d(p, u, 10);
     }
     p[0] = ('0' + r);
     return p + 1;
 }
 
-static inline char *write_f(char *p, double f)
+static inline char *put_f(char *p, double f)
 {
     intptr_t value = (intptr_t) (f*1000);
     if(value < 0) {
@@ -73,7 +73,7 @@ static inline char *write_f(char *p, double f)
     }
     intptr_t u = value / 1000, r = value % 1000;
     if(u != 0) {
-        p = write_d(p, u, 10);
+        p = put_d(p, u, 10);
     }
     else {
         p[0] = '0'; p++;
