@@ -44,9 +44,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_string(buf, key, get_l2(info));
-    put_char(buf, ':');
-    put_char(buf, '0');
-    put_char(buf, 'x');
+    put_char3(buf, ':', '0', 'x');
     buf->buf = write_d(buf->buf, v, 16);
 }
 
@@ -130,19 +128,16 @@ struct logapi STRING_API = {
 
 static void write_seq(buffer_t *buf, uint64_t seq)
 {
-    put_char(buf, '+');
     uintptr_t seq_ = seq / 16, r = seq % 16;
-    if(seq_ != 0) {
-        buf->buf = write_d(buf->buf, seq_, 16);
-    }
+    put_char(buf, '+');
+    buf->buf = write_d(buf->buf, seq_, 16);
     put_char(buf, '0' + r);
 }
 
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    put_char(buf, '0');
-    put_char(buf, 'x');
+    put_char2(buf, '0' ,'x');
     buf->buf = write_d(buf->buf, v, 16);
     write_seq(buf, seq);
 }
@@ -151,7 +146,7 @@ void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
-    put_string(buf, s, get_l1(info));
+    put_string(buf, s, get_l2(info));
     write_seq(buf, seq);
 }
 

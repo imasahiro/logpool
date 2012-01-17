@@ -98,7 +98,7 @@ void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz);
 #define LCTX(V) (cast(logctx, V))
 #define ltrace_record(T, E, ...) do {\
     logctx __CTX__ = cast(logctx, T);\
-    logctx_init_logkey(__CTX__, cast(uint64_t, E), sizeinfo_create(strlen(E), 0));\
+    logctx_init_logkey(__CTX__, cast(uint64_t, E), sizeinfo_create(0, strlen(E)));\
     __VA_ARGS__;\
 } while (0)
 

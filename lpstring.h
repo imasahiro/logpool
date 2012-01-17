@@ -39,10 +39,11 @@ static void reverse(char *const start, char *const end, const int len)
 static inline char *write_d(char *const p, uint64_t uvalue, int radix)
 {
     int i = 0;
+    static const char _t_[] = "0123456789abcdef";
     while (uvalue != 0) {
         int tmp = uvalue % radix;
         uvalue /= radix;
-        p[i] = (tmp < 10 ? '0' + tmp : + 'a' + tmp - 10);
+        p[i] = _t_[tmp];
         ++i;
     }
     reverse(p, p + i, i);
@@ -100,6 +101,21 @@ static inline void put_char(buffer_t *buf, char c)
 {
     buf->buf[0] = c;
     ++(buf->buf);
+}
+
+static inline void put_char2(buffer_t *buf, char c0, char c1)
+{
+    buf->buf[0] = c0;
+    buf->buf[1] = c1;
+    buf->buf += 2;
+}
+
+static inline void put_char3(buffer_t *buf, char c0, char c1, char c2)
+{
+    buf->buf[0] = c0;
+    buf->buf[1] = c1;
+    buf->buf[2] = c2;
+    buf->buf += 3;
 }
 
 static inline short get_l1(sizeinfo_t info)
