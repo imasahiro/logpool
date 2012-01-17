@@ -25,7 +25,6 @@ void logpool_FILE2_flush(logctx ctx)
     fl->buf[-1] = '\n';
     fl->buf[ 0] = '\0';
     fwrite(fl->base, fl->buf - fl->base, 1, fl->fp);
-    fflush(fl->fp);
     fl->buf = fl->base;
 }
 
