@@ -9,11 +9,11 @@
 extern "C" {
 #endif
 
-struct logctx;
+struct logCtx;
 struct ltrace;
 struct lstate;
 typedef long sizeinfo_t;
-typedef const struct logctx * logctx;
+typedef const struct logCtx *logctx;
 typedef const struct ltrace ltrace_t;
 typedef const struct lstate lstate_t;
 typedef struct logapi logapi_t;
@@ -51,7 +51,7 @@ struct logapi {
 };
 
 #define LOGFMT_MAX_SIZE 8
-struct logctx {
+struct logCtx {
     void *connection;
     keyFn     fn_key;
     logapi_t *formatter;
@@ -61,12 +61,12 @@ struct logctx {
 };
 
 struct ltrace {
-    struct logctx ctx;
+    struct logCtx ctx;
     ltrace_t *parent;
 };
 
 struct lstate {
-    struct logctx ctx;
+    struct logCtx ctx;
     uint64_t state;
 };
 
@@ -78,14 +78,14 @@ void lstate_close(lstate_t *p);
 
 static inline uint64_t f2u(double f)
 {
-    union {uint64_t u; double f;} v = {};
+    union {uint64_t u; double f;} v = {0};
     v.f = f;
     return v.u;
 }
 
 static inline double u2f(uint64_t u)
 {
-    union {uint64_t u; double f;} v = {};
+    union {uint64_t u; double f;} v = {0};
     v.u = u;
     return v.f;
 }

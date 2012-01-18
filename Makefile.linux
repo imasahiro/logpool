@@ -39,7 +39,7 @@ $(dir)/test_file : test/logtest.c $(dir)/lib$(logpool).so
 	$(CC) $(CFLAGS) -o $@ test/logtest.c -L./$(dir) -l$(logpool) -DLOGAPI_TEST -DLOGTEST_FILE_API
 
 $(dir)/bench : test/bench.c $(dir)/lib$(logpool).so
-	$(CC) $(CFLAGS) -o $@ test/bench.c -L./$(dir) -l$(logpool)
+	$(CC) $(CFLAGS) -o $@ test/bench.c -L./$(dir) -l$(logpool) -lkonoha
 
 $(dir)/lib$(logpool).so : $(objs)
 	$(CC) $(CFLAGS) -shared $(LIBVER) -o $@ $^ $(LDLIBS)
