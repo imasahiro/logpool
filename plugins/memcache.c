@@ -39,7 +39,7 @@ void *logpool_memcache_init(logctx ctx, void **param)
     return cast(void *, mc);
 }
 
-static void logpool_memcache_flush(logctx ctx)
+static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
     logpool_string_flush(ctx);

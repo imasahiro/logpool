@@ -5,8 +5,7 @@
 extern "C" {
 #endif
 
-extern void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t);
-extern void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t);
+static struct keyapi *KeyAPI = NULL;
 
 void logctx_init(logctx ctx, struct logapi *api, void **param)
 {
@@ -59,7 +58,7 @@ ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param)
     struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
     logctx_init(cast(logctx, l), api, param);
     l->parent = parent;
-    l->ctx.fn_key = logpool_key_string;
+    l->ctx.fn_key = KeyAPI->str;
     return cast(ltrace_t*, l);
 }
 
@@ -83,7 +82,7 @@ lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param)
     struct lstate *l = cast(struct lstate *, malloc(sizeof(*l)));
     l->state = hash(0x11029, state_name, strlen(state_name));
     logctx_init(cast(logctx, l), api, param);
-    l->ctx.fn_key = logpool_key_hex;
+    l->ctx.fn_key = KeyAPI->hex;
     return cast(lstate_t*, l);
 }
 
@@ -93,10 +92,15 @@ void lstate_close(lstate_t *p)
     free(l);
 }
 
-extern void logpool_llvm_init(int argc, char **argv);
-void logpool_init(int argc, char **argv)
+extern struct keyapi *logpool_llvm_api_init(void);
+extern struct keyapi *logpool_string_api_init(void);
+void logpool_init(enum LOGPOOL_EXEC_MODE mode)
 {
-    logpool_llvm_init(argc, argv);
+    if (mode == LOGPOOL_JIT) {
+        KeyAPI = logpool_llvm_api_init();
+    } else {
+        KeyAPI = logpool_string_api_init();
+    }
 }
 
 #ifdef __cplusplus

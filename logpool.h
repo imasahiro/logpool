@@ -46,8 +46,18 @@ struct logapi {
     logFn fn_string;
     logFn fn_raw;
     void   (*fn_delim)(logctx);
-    void   (*fn_flush)(logctx);
+    void   (*fn_flush)(logctx, void**);
     void  *(*fn_init)(logctx, void**);
+};
+
+struct keyapi {
+    keyFn hex;
+    keyFn str;
+};
+
+enum LOGPOOL_EXEC_MODE {
+    LOGPOOL_DEFAULT,
+    LOGPOOL_JIT
 };
 
 #define LOGFMT_MAX_SIZE 8
@@ -97,12 +107,14 @@ void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz);
 
 #define LCTX(V) (cast(logctx, V))
 #define ltrace_record(T, E, ...) do {\
+    static void *__LOGDATA__ = NULL;\
     logctx __CTX__ = cast(logctx, T);\
     logctx_init_logkey(__CTX__, cast(uint64_t, E), sizeinfo_create(0, strlen(E)));\
     __VA_ARGS__;\
 } while (0)
 
 #define lstate_record(R, ...) do {\
+    static void *__LOGDATA__ = NULL;\
     logctx __CTX__ = cast(logctx, R);\
     logctx_init_logkey(__CTX__, R->state, 0);\
     __VA_ARGS__;\
@@ -113,7 +125,7 @@ static inline sizeinfo_t sizeinfo_create(short s1, short s2)
     return s1 << (sizeof(short) * 8) | s2;
 }
 
-#define LOG_END       __CTX__->formatter->fn_flush(__CTX__);
+#define LOG_END       __CTX__->formatter->fn_flush(__CTX__, &__LOGDATA__);
 #define LOG_s(K,V)    ({\
         static const char __K__[] = K ":";\
         logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
