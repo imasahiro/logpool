@@ -93,8 +93,10 @@ void lstate_close(lstate_t *p)
     free(l);
 }
 
+extern void logpool_llvm_init(int argc, char **argv);
 void logpool_init(int argc, char **argv)
 {
+    logpool_llvm_init(argc, argv);
 }
 
 #ifdef __cplusplus

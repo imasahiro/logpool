@@ -38,7 +38,7 @@ set(LOGPOOL_SRC
 	plugins/file2.c
 	plugins/memcache.c
 	plugins/syslog.c
-#	jit/llvm.cpp
+	llvm.cpp
 )
 
 find_library(HAVE_LIBDL        NAMES dl)
@@ -59,38 +59,38 @@ if(HAVE_LIBMEMCACHED)
 	set(MessageLibs ${MessageLibs} memcached)
 endif(HAVE_LIBMEMCACHED)
 
-#find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --cppflags
-#		OUTPUT_VARIABLE LLVM_CFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --cxxflags
-#		OUTPUT_VARIABLE LLVM_CXXFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --ldflags
-#		OUTPUT_VARIABLE LLVM_LDFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo engine interpreter
-#	OUTPUT_VARIABLE LLVM_JIT_LIBS
-#	OUTPUT_STRIP_TRAILING_WHITESPACE
-#	)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --libdir
-#		OUTPUT_VARIABLE LLVM_LIBDIR
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LLVM_CFLAGS}")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
-#set(KONOHA_SRC ${KONOHA_SRC} src/lang/llvm.cpp)
-#string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
-#link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
-#set(ExtraLibs ${ExtraLibs} ${v})
+find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
+execute_process(
+		COMMAND ${LLVM_CONFIG} --cppflags
+		OUTPUT_VARIABLE LLVM_CFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --cxxflags
+		OUTPUT_VARIABLE LLVM_CXXFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --ldflags
+		OUTPUT_VARIABLE LLVM_LDFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo engine interpreter
+	OUTPUT_VARIABLE LLVM_JIT_LIBS
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --libdir
+		OUTPUT_VARIABLE LLVM_LIBDIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LLVM_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_CXXFLAGS}")
+set(KONOHA_SRC ${KONOHA_SRC} src/lang/llvm.cpp)
+string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
+link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
+set(ExtraLibs ${ExtraLibs} ${v})
 
 add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
