@@ -45,12 +45,12 @@ static void logpool_memcache_flush(logctx ctx)
     logpool_string_flush(ctx);
     char keybuf[128];
     const char *key;
-    if (ctx->logkey.fn == logpool_string_hex) {
+    if (ctx->fn_key == logpool_key_hex) {
         char *p = put_d(keybuf, ctx->logkey.v.u, 16);
         p[0] = 0;
         key = keybuf;
     } else {
-        assert(ctx->logkey.fn == logpool_string_string);
+        assert(ctx->fn_key == logpool_key_string);
         key = ctx->logkey.v.s;
     }
     const char *value = mc->base;

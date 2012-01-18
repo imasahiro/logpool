@@ -23,6 +23,9 @@ void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 void logpool_string_delim(logctx ctx);
 void logpool_string_flush(logctx ctx);
 
+void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+
 static void reverse(char *const start, char *const end, const int len)
 {
     int i, l = len / 2;
