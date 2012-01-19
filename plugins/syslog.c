@@ -8,9 +8,11 @@ extern "C" {
 
 static void logpool_syslog_flush(logctx ctx, void **args __UNUSED__)
 {
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
     //syslog(LOG_NOTICE, buf->base);
-    syslog(LOG_NOTICE, "%s", cast(buffer_t *, ctx->connection)->base);
+    syslog(LOG_NOTICE, "%s", buf->base);
+    buf->buf = buf->base;
 }
 
 struct logapi SYSLOG_API = {

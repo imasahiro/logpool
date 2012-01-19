@@ -401,6 +401,7 @@ static struct keyapi LLVM_KEY_API = {
     (keyFn)logpool::fn_key_string
 };
 
+#ifdef LOGPOOL_USE_LLVM_31
 static const char* GetHostTriple() {
 #ifdef LLVM_HOSTTRIPLE
   return LLVM_HOSTTRIPLE;
@@ -408,12 +409,13 @@ static const char* GetHostTriple() {
   return LLVM_DEFAULT_TARGET_TRIPLE;
 #endif
 }
+#endif
 
 extern "C" struct keyapi *logpool_llvm_api_init(void)
 {
     InitializeNativeTarget();
     Module *M = new Module("logpool_context", getGlobalContext());
-#if 1
+#ifdef LOGPOOL_USE_LLVM_31
     std::string Error;
     const char *Triple = GetHostTriple();
     const Target* T(TargetRegistry::lookupTarget(Triple, Error));
