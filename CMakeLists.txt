@@ -42,6 +42,7 @@ set(LOGPOOL_SRC
 set(LLVM_LOGPOOL_SRC
 	jit/llvm.cpp
 	jit/llvm_file2.cpp
+	jit/llvm_memcache.cpp
 )
 
 find_library(HAVE_LIBDL        NAMES dl)
@@ -62,7 +63,7 @@ if(HAVE_LIBMEMCACHED)
 	set(MessageLibs ${MessageLibs} memcached)
 endif(HAVE_LIBMEMCACHED)
 
-option(USE_LLVM "Use llvm" off)
+option(USE_LLVM "Use llvm" on)
 if(USE_LLVM)
 set(LOGPOOL_USE_LLVM 1)
 set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
