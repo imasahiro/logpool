@@ -26,6 +26,21 @@ void logpool_string_flush(logctx ctx);
 void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 
+#define PTR_SIZE (sizeof(void*))
+#define BITS (PTR_SIZE * 8)
+#define CLZ(n) __builtin_clzl(n)
+static inline char *put_hex(char *const start, uint64_t v)
+{
+    static const char __digit__[] = "0123456789abcdef";
+    register char *p = start;
+    int i = (BITS - CLZ(v) - 1) >> 2 << 2;
+    for (; i >= 0; i -= 4) {
+        int c = 0xf & (v >> i);
+        *(p++) = __digit__[c];
+    }
+    return p;
+}
+
 static void reverse(char *const start, char *const end, const int len)
 {
     int i, l = len / 2;
@@ -39,14 +54,14 @@ static void reverse(char *const start, char *const end, const int len)
     }
 }
 
-static inline char *put_d(char *const p, uint64_t uvalue, int radix)
+static inline char *put_d(char *const p, uint64_t uvalue)
 {
     int i = 0;
     static const char _t_[] = "0123456789abcdef";
     while (uvalue != 0) {
-        int r = uvalue % radix;
+        int r = uvalue % 10;
         p[i]  = _t_[r];
-        uvalue /= radix;
+        uvalue /= 10;
         i++;
     }
     reverse(p, p + i, i);
@@ -61,7 +76,7 @@ static inline char *put_i(char *p, intptr_t value)
     }
     uintptr_t u = value / 10, r = value % 10;
     if (u != 0) {
-        p = put_d(p, u, 10);
+        p = put_d(p, u);
     }
     p[0] = ('0' + r);
     return p + 1;
@@ -76,7 +91,7 @@ static inline char *put_f(char *p, double f)
     }
     intptr_t u = value / 1000, r = value % 1000;
     if(u != 0) {
-        p = put_d(p, u, 10);
+        p = put_d(p, u);
     }
     else {
         p[0] = '0'; p++;

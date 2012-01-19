@@ -45,7 +45,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_string(buf, key, get_l2(info));
     put_char2(buf, '0', 'x');
-    buf->buf = put_d(buf->buf, v, 16);
+    buf->buf = put_hex(buf->buf, v);
 }
 
 void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -126,7 +126,7 @@ static void write_seq(buffer_t *buf, uint64_t seq)
 {
     uintptr_t seq_ = seq / 16, r = seq % 16;
     put_char(buf, '+');
-    buf->buf = put_d(buf->buf, seq_, 16);
+    buf->buf = put_hex(buf->buf, seq_);
     put_char(buf, '0' + r);
 }
 
@@ -134,7 +134,7 @@ void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNU
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_char2(buf, '0' ,'x');
-    buf->buf = put_d(buf->buf, v, 16);
+    buf->buf = put_hex(buf->buf, v);
     write_seq(buf, seq);
 }
 

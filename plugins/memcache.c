@@ -46,7 +46,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     char keybuf[128];
     const char *key;
     if (ctx->fn_key == logpool_key_hex) {
-        char *p = put_d(keybuf, ctx->logkey.v.u, 16);
+        char *p = put_hex(keybuf, ctx->logkey.v.u);
         p[0] = 0;
         key = keybuf;
     } else {

@@ -317,39 +317,11 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
     ++(cast(struct logCtx *, ctx)->logkey.k.seq);
 }
 
-static void reverse(char *const start, char *const end, const int len)
-{
-    int i, l = len / 2;
-    register char *s = start;
-    register char *e = end - 1;
-    for (i = 0; i < l; i++) {
-        char tmp = *s;
-        tmp  = *s;
-        *s++ = *e;
-        *e-- = tmp;
-    }
-}
-
-template<int radix>
-static inline char *put_d(char *const p, uint64_t uvalue)
-{
-    int i = 0;
-    static const char _t_[] = "0123456789abcdef";
-    while (uvalue != 0) {
-        int r = uvalue % radix;
-        p[i]  = _t_[r];
-        uvalue /= radix;
-        i++;
-    }
-    reverse(p, p + i, i);
-    return p + i;
-}
-
 static char *put_seq(char *buf, uint64_t seq)
 {
     uintptr_t seq_ = seq / 16, r = seq % 16;
     buf[0] = '+';
-    buf = put_d<16>(buf, seq_);
+    buf = put_hex(buf, seq_);
     buf[0] = '0' + r;
     return buf + 1;
 }
@@ -368,7 +340,7 @@ void fn_key_hex(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED_
     char *buf = *bufp;
     buf[0] = '0';
     buf[0] = 'x';
-    buf = put_d<16>(buf, v);
+    buf = put_hex(buf, v);
     *bufp = put_seq(buf, seq);
 }
 
@@ -384,7 +356,7 @@ void fn_key_string(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info)
 
 extern "C" char *llvm_put_h(char *p, uintptr_t value)
 {
-    return logpool::put_d<16>(p, value);
+    return put_hex(p, value);
 }
 
 extern "C" char *llvm_put_i(char *p, intptr_t value)
@@ -395,7 +367,7 @@ extern "C" char *llvm_put_i(char *p, intptr_t value)
     }
     uintptr_t u = value / 10, r = value % 10;
     if (u != 0) {
-        p = logpool::put_d<10>(p, u);
+        p = put_d(p, u);
     }
     p[0] = ('0' + r);
     return p + 1;
@@ -410,7 +382,7 @@ extern "C" char *llvm_put_f(char *p, double f)
     }
     intptr_t u = value / 1000, r = value % 1000;
     if(u != 0) {
-        p = logpool::put_d<10>(p, u);
+        p = put_d(p, u);
     }
     else {
         p[0] = '0'; p++;
