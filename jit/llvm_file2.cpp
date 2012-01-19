@@ -35,7 +35,7 @@ void fn_flush(logctx ctx, void **args)
     logpool::fn_flush(ctx, args);
 }
 
-} /* namespace logpool::file2 */
+} /* namespace file2 */
 
 #ifdef __cplusplus
 extern "C" {
