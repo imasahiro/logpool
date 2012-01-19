@@ -38,6 +38,8 @@ set(LOGPOOL_SRC
 	plugins/file2.c
 	plugins/memcache.c
 	plugins/syslog.c
+)
+set(LLVM_LOGPOOL_SRC
 	jit/llvm.cpp
 	jit/llvm_file2.cpp
 )
@@ -60,6 +62,10 @@ if(HAVE_LIBMEMCACHED)
 	set(MessageLibs ${MessageLibs} memcached)
 endif(HAVE_LIBMEMCACHED)
 
+option(USE_LLVM "Use llvm" off)
+if(USE_LLVM)
+set(LOGPOOL_USE_LLVM 1)
+set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
 execute_process(
 		COMMAND ${LLVM_CONFIG} --cppflags
@@ -92,6 +98,12 @@ set(KONOHA_SRC ${KONOHA_SRC} src/lang/llvm.cpp)
 string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
 link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
 set(ExtraLibs ${ExtraLibs} ${v})
+endif(USE_LLVM)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+add_definitions(-DHAVE_CONFIG_H)
 
 add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})

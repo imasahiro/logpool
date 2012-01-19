@@ -1,23 +1,31 @@
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
-#include <llvm/Intrinsics.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/Target/TargetData.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/ExecutionEngine/Interpreter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/PassManager.h>
+#include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/ADT/Triple.h>
 #include "logpool.h"
 #include "lpstring.h"
 #include "jit/llvm.h"
+
 using namespace llvm;
 
 namespace logpool {
 static Module *global_module = NULL;
+
+static inline long ALIGN(const long x, const long n)
+{
+    return ((x)+((n)-1))&(~((n)-1));
+}
 
 struct jitctx {
     jitctx_base base;
@@ -50,40 +58,19 @@ void *fn_init(logctx ctx __UNUSED__, void **args)
     return cast(void *, buf);
 }
 
-static Function *CreateMemCpy(Module *M, Value *Dst, Value *Src)
-{
-    LLVMContext &Context = M->getContext();
-    //declare void @llvm.memcpy.p0i8.p0i8.i32(i8* <dest>, i8* <src>,
-    //        i32 <len>, i32 <align>, i1 <isvolatile>)
-    Type* List[] = {
-        Dst->getType(),
-        Src->getType(),
-        Type::getInt32Ty(Context),
-        Type::getInt32Ty(Context),
-        Type::getInt1Ty(Context)
-    };
-    return Intrinsic::getDeclaration(M, Intrinsic::memcpy, List);
-}
 static void copy_string(jitctx *jit, std::string &Str)
 {
-    Module *M = jit->m_;
-    LLVMContext &Context = M->getContext();
     IRBuilder<> *builder = jit->builder;
 
-    Constant *StrC = ConstantArray::get(Context, Str, true);
-    GlobalVariable *G = new GlobalVariable(*M, 
-            StrC->getType(), true,
-            GlobalValue::InternalLinkage,
-            StrC, "str", false, 0);
-    G->setAlignment(1);
-    //G->setUnnamedAddr(true);
-
-    Value *C = G;
-    //Constant *PtrC = ConstantExpr::getCast(Instruction::BitCast,
-    //        gStr, PointerTy_4);
-    //Value *C = builder->CreateGlobalStringPtr(Str, "v");
-    builder->CreateMemCpy(jit->Str, C, Str.size(), 1);
-    jit->Str = builder->CreateConstGEP1_32(jit->Str, Str.size(), "");
+    size_t Size = Str.size();
+    size_t AlignedSize = ALIGN(Size, 8);
+    for (size_t i = Size; i < AlignedSize; ++i) {
+        Str.push_back('\0');
+    }
+    Value *L = ConstantInt::get(builder->getInt32Ty(), AlignedSize);
+    Value *C = builder->CreateGlobalStringPtr(Str, "v");
+    builder->CreateMemCpy(jit->Str, C, L, 1, false);
+    jit->Str = builder->CreateConstGEP1_32(jit->Str, Size, "");
 }
 
 static void copy_string(jitctx *jit, Value *Str, Value *Len)
@@ -91,10 +78,9 @@ static void copy_string(jitctx *jit, Value *Str, Value *Len)
     IRBuilder<> *builder = jit->builder;
     Type *Int8PtrTy = builder->getInt8PtrTy();
     Str = builder->CreateIntToPtr(Str, Int8PtrTy);
+    Len = builder->CreateTrunc(Len, builder->getInt32Ty());
 
-    Function *F = CreateMemCpy(jit->m_, jit->Str, Str);
-    builder->CreateCall5(F, jit->Str, Str, Len,
-            builder->getInt32(8), builder->getInt1(0));
+    builder->CreateMemCpy(jit->Str, Str, Len, 1, false);
     jit->Str = builder->CreateGEP(jit->Str, Len);
 }
 
@@ -235,7 +221,8 @@ static void *emit_code(logctx ctx)
 {
     size_t i, size = ctx->logfmt_size;
     jitctx *JIT = static_cast<jitctx*>(ctx->connection);
-    LLVMContext &Context = JIT->m_->getContext();
+    Module *M = JIT->m_;
+    LLVMContext &Context = M->getContext();
     /* void f(uint64_t seq, ...) */
     Type *Int8PtrTy  = Type::getInt8PtrTy(Context);
     Type *Int64PtrTy = Type::getInt64PtrTy(Context);
@@ -247,7 +234,7 @@ static void *emit_code(logctx ctx)
     };
     FunctionType *fnTy = FunctionType::get(Type::getVoidTy(Context), ArgsTy, false);
     Function *F = Function::Create(fnTy,
-            GlobalValue::ExternalLinkage, "logging", JIT->m_);
+            GlobalValue::ExternalLinkage, "logging", M);
     Function::arg_iterator I = F->arg_begin();
     JIT->Str = I;
     (*I).setName("Buf");++I;
@@ -276,12 +263,18 @@ static void *emit_code(logctx ctx)
     PassManager PM;
     PassManagerBuilder Builder;
     Builder.OptLevel = 3;
+    Builder.SizeLevel = 2;
+    Builder.LibraryInfo = new TargetLibraryInfo(Triple(M->getTargetTriple()));
+    Builder.DisableUnitAtATime = false;
+    Builder.DisableUnrollLoops = false;
+    Builder.DisableSimplifyLibCalls = false;
     Builder.Inliner = createFunctionInliningPass(225);
     PM.add(new TargetData(*(JIT->EE->getTargetData())));
+    PM.add(createVerifierPass());
     Builder.populateModulePassManager(PM);
-    PM.run(*JIT->m_);
+    PM.run(*M);
 
-    //(*JIT->m_).dump();
+    //(*M).dump();
     void *fnptr = JIT->EE->getPointerToFunction(F);
     JIT->F = 0;
     JIT->builder = 0;
@@ -436,29 +429,32 @@ static struct keyapi LLVM_KEY_API = {
     (keyFn)logpool::fn_key_string
 };
 
+static const char* GetHostTriple() {
+#ifdef LLVM_HOSTTRIPLE
+  return LLVM_HOSTTRIPLE;
+#else
+  return LLVM_DEFAULT_TARGET_TRIPLE;
+#endif
+}
+
 extern "C" struct keyapi *logpool_llvm_api_init(void)
 {
     InitializeNativeTarget();
     Module *M = new Module("logpool_context", getGlobalContext());
-    //Triple T(sys::getDefaultTargetTriple());
-    //const Target *Target = 0;
-    //std::string Arch = T.getArchName();
-    //for (TargetRegistry::iterator it = TargetRegistry::begin(),
-    //        ie = TargetRegistry::end(); it != ie; ++it) {
-    //    std::string tmp(it->getName());
-    //    str_replace(tmp, "-", "_");
-    //    if (Arch == tmp) {
-    //        Target = &*it;
-    //        break;
-    //    }
-    //}
-    //assert(Target != 0);
-    //std::string FeaturesStr;
-    //TargetOptions Options;
-    //TargetMachine *TM = Target->createTargetMachine(T.getTriple(), Target->getName(), FeaturesStr, Options);
-    //M->setTargetTriple(T.getTriple());
-    //M->setDataLayout(TM->getTargetData()->getStringRepresentation());
-
+#if 1
+    std::string Error;
+    const char *Triple = GetHostTriple();
+    const Target* T(TargetRegistry::lookupTarget(Triple, Error));
+    TargetOptions options;
+    //options.NoFramePointerElim = true;
+#ifdef DEBUG_MODE
+    options.JITEmitDebugInfo = true;
+#endif
+    TargetMachine    *TM = T->createTargetMachine(Triple, "", "", options);
+    const TargetData *TD = TM->getTargetData();
+    M->setDataLayout(TD->getStringRepresentation());
+    M->setTargetTriple(TM->getTargetTriple());
+#endif
     logpool::global_module = M;
     return &LLVM_KEY_API;
 }

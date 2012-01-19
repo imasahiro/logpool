@@ -92,12 +92,18 @@ void lstate_close(lstate_t *p)
     free(l);
 }
 
+#ifdef LOGPOOL_USE_LLVM
 extern struct keyapi *logpool_llvm_api_init(void);
+#endif
 extern struct keyapi *logpool_string_api_init(void);
 void logpool_init(enum LOGPOOL_EXEC_MODE mode)
 {
     if (mode == LOGPOOL_JIT) {
+#ifdef LOGPOOL_USE_LLVM
         KeyAPI = logpool_llvm_api_init();
+#else
+        assert(0 && "please enable USE_LLVM flag");
+#endif
     } else {
         KeyAPI = logpool_string_api_init();
     }
