@@ -20,7 +20,7 @@ void *logpool_FILE2_init(logctx ctx, void **args)
     return cast(void *, fl);
 }
 
-void logpool_FILE2_flush(logctx ctx)
+void logpool_FILE2_flush(logctx ctx, void **args __UNUSED__)
 {
     flog_t *fl = cast(flog_t *, ctx->connection);
     logpool_string_flush(ctx);

@@ -97,7 +97,7 @@ void logpool_string_flush(logctx ctx)
     }
 }
 
-static void logpool_string_flush__(logctx ctx)
+static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
@@ -145,6 +145,17 @@ void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
     put_string(buf, s, get_l2(info));
     write_seq(buf, seq);
 }
+
+static struct keyapi STRING_KEY_API = {
+    logpool_key_hex,
+    logpool_key_string
+};
+
+struct keyapi *logpool_string_api_init(void)
+{
+    return &STRING_KEY_API;
+}
+
 
 #ifdef __cplusplus
 }

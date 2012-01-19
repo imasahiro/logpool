@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-static void logpool_syslog_flush(logctx ctx)
+static void logpool_syslog_flush(logctx ctx, void **args __UNUSED__)
 {
     logpool_string_flush(ctx);
     //syslog(LOG_NOTICE, buf->base);
