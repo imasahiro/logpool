@@ -290,9 +290,34 @@ uint64_t logpool_ntrace0(ltrace_t *ltrace)
     uint64_t e = knh_getTimeMilliSecond();
     return e - s;
 }
+uint64_t logpool_ntrace_jit0(ltrace_t *ltrace)
+{
+    int i;
+    uint64_t s = knh_getTimeMilliSecond();
+    for (i = 0; i < N; ++i) {
+        ltrace_record(ltrace, "setpgid", LOG_END);
+    }
+    uint64_t e = knh_getTimeMilliSecond();
+    return e - s;
+}
+
+uint64_t logpool_ntrace_jit1(ltrace_t *ltrace)
+{
+    int pid  = 0x10;
+    int pgid = 0x20;
+    void *p  = (void*) 0xdeadbeaf;
+    int i;
+    uint64_t s = knh_getTimeMilliSecond();
+    for (i = 0; i < N; ++i) {
+        ltrace_record(ltrace, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
+    }
+    uint64_t e = knh_getTimeMilliSecond();
+    return e - s;
+}
 
 extern logapi_t FILE2_API;
-static logapi_t *API = &FILE2_API;
+extern logapi_t LLVM_FILE2_API;
+void logpool_init(enum LOGPOOL_EXEC_MODE mode);
 int main(int argc, const char *argv[])
 {
     static void *ARGS[] = {
@@ -301,22 +326,31 @@ int main(int argc, const char *argv[])
     };
     konoha_ginit(argc, argv);
     konoha_t konoha = konoha_open();
-    ltrace_t *ltrace = ltrace_open(NULL, API, ARGS);
+    logpool_init(LOGPOOL_DEFAULT);
+    ltrace_t *ltrace0, *ltrace1;
+    ltrace0 = ltrace_open(NULL, &FILE2_API, ARGS);
+    logpool_init(LOGPOOL_JIT);
+    ltrace1 = ltrace_open(NULL, &LLVM_FILE2_API, ARGS);
     devnull = fopen("/dev/null", "w");
     CTX ctx = konoha;
     int i;
     for (i = 0; i < 4; ++i) {
-        uint64_t t1 = logpool_ntrace0(ltrace);
-        uint64_t t3 = konoha_ntrace0(ctx);
-        uint64_t t2 = logpool_ntrace1(ltrace);
-        uint64_t t4 = konoha_ntrace1(ctx);
-        fprintf(stderr, "%d:logpool0:%lld\n", i, t1);
-        fprintf(stderr, "%d:logpool1:%lld\n", i, t2);
-        fprintf(stderr, "%d:ntrace0 :%lld\n", i, t3);
-        fprintf(stderr, "%d:ntrace1 :%lld\n", i, t4);
+        uint64_t t1 = konoha_ntrace0(ctx);
+        uint64_t t2 = konoha_ntrace1(ctx);
+        uint64_t t3 = logpool_ntrace0(ltrace0);
+        uint64_t t4 = logpool_ntrace1(ltrace0);
+        uint64_t t5 = logpool_ntrace_jit0(ltrace1);
+        uint64_t t6 = logpool_ntrace_jit1(ltrace1);
+        fprintf(stderr, "%d:ntrace0:%lld\n", i, t1);
+        fprintf(stderr, "%d:ntrace1:%lld\n", i, t2);
+        fprintf(stderr, "%d:logvm0 :%lld\n", i, t3);
+        fprintf(stderr, "%d:logvm1 :%lld\n", i, t4);
+        fprintf(stderr, "%d:logjit0:%lld\n", i, t5);
+        fprintf(stderr, "%d:logjit1:%lld\n", i, t6);
 
     }
-    ltrace_close(ltrace);
+    ltrace_close(ltrace0);
+    ltrace_close(ltrace1);
     fclose(devnull);
     konoha_close(konoha);
     return 0;

@@ -38,7 +38,8 @@ set(LOGPOOL_SRC
 	plugins/file2.c
 	plugins/memcache.c
 	plugins/syslog.c
-	llvm.cpp
+	jit/llvm.cpp
+	jit/llvm_file2.cpp
 )
 
 find_library(HAVE_LIBDL        NAMES dl)

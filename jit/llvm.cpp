@@ -3,55 +3,50 @@
 #include <llvm/Intrinsics.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetData.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
-#include <llvm/ADT/SmallVector.h>
+#include <llvm/PassManager.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/ADT/Triple.h>
 #include "logpool.h"
 #include "lpstring.h"
+#include "jit/llvm.h"
 using namespace llvm;
 
-static Module *global_module = NULL;
-//void f() {
-//    std::vector<Type*> args_type;
-//    args_type.push_back(floatTy);
-//    BasicBlock *bb = BasicBlock::Create(Context, "EntryBlock", func);
-//    IRBuilder<> builder(bb);
-//    Value *v = ConstantFP::get(floatTy, -10.0);
-//    v = builder->CreateCall(f, v);
-//    builder->CreateRet(v);
-//    std::cout << "before" << std::endl;
-//    (*m).dump();
-//    PassManager mpm;
-//    mpm.add(createIPSCCPPass());
-//    mpm.add(createFunctionInliningPass());
-//    mpm.add(createLICMPass());
-//    mpm.add(createGVNPass());
-//    mpm.add(createGlobalDCEPass());
-//    mpm.run(*m);
-//    std::cout << std::endl << "before" << std::endl;
-//    (*m).dump();
-//}
-
 namespace logpool {
+static Module *global_module = NULL;
+
 struct jitctx {
-    void *ptr_;
+    jitctx_base base;
     Module *m_;/*shared*/
     Function *F;
     IRBuilder<> *builder;
     Value *Str;
     ExecutionEngine *EE;
     int arg_idx;
-    jitctx(Module *m, void *ptr) :
-        ptr_(ptr), m_(m), F(0),
-        builder(0), Str(0), arg_idx(0) {
+    int hasEOL;
+    jitctx(Module *m, long b) :
+        m_(m), F(0),
+        builder(0), Str(0), arg_idx(0),
+        hasEOL(b) {
             EE = EngineBuilder(m_).setEngineKind(EngineKind::JIT).create();
         }
 };
 
-void *fn_init(logctx ctx __UNUSED__, void **args __UNUSED__)
+static void api_fn_flush(logctx ctx, char *buffer, size_t size)
 {
-    jitctx *buf = new jitctx(global_module, 0);
+    (void)ctx;(void)size;
+    fputs(buffer, stderr);
+}
+
+void *fn_init(logctx ctx __UNUSED__, void **args)
+{
+    long hasEOL = cast(long, args[0]);
+    jitctx *buf = new jitctx(global_module, hasEOL);
+    buf->base.fn = api_fn_flush;
     return cast(void *, buf);
 }
 
@@ -71,12 +66,23 @@ static Function *CreateMemCpy(Module *M, Value *Dst, Value *Src)
 }
 static void copy_string(jitctx *jit, std::string &Str)
 {
+    Module *M = jit->m_;
+    LLVMContext &Context = M->getContext();
     IRBuilder<> *builder = jit->builder;
-    Value *C = builder->CreateGlobalStringPtr(Str, "v");
-    Function *F = CreateMemCpy(jit->m_, jit->Str, C);
-    Value *Length = builder->getInt32(Str.size());
-    builder->CreateCall5(F, jit->Str, C, Length,
-            builder->getInt32(8), builder->getInt1(0));
+
+    Constant *StrC = ConstantArray::get(Context, Str, true);
+    GlobalVariable *G = new GlobalVariable(*M, 
+            StrC->getType(), true,
+            GlobalValue::InternalLinkage,
+            StrC, "str", false, 0);
+    G->setAlignment(1);
+    //G->setUnnamedAddr(true);
+
+    Value *C = G;
+    //Constant *PtrC = ConstantExpr::getCast(Instruction::BitCast,
+    //        gStr, PointerTy_4);
+    //Value *C = builder->CreateGlobalStringPtr(Str, "v");
+    builder->CreateMemCpy(jit->Str, C, Str.size(), 1);
     jit->Str = builder->CreateConstGEP1_32(jit->Str, Str.size(), "");
 }
 
@@ -174,7 +180,9 @@ void fn_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
-    copy_string(jit, key);
+    std::string key_(key);
+    key_ += "0x";
+    copy_string(jit, key_);
     copy_number(jit, "llvm_put_h", get_arg(jit));
 }
 void fn_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -203,10 +211,13 @@ void fn_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
-    copy_string(jit, key);
+    std::string key_(key);
+    key_ += "'";
+    copy_string(jit, key_);
     Value *Str = get_arg(jit);
     Value *Len = get_arg(jit);
     copy_string(jit, Str, Len);
+    copy_char(jit, '\'');
 }
 void fn_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
@@ -236,7 +247,7 @@ static void *emit_code(logctx ctx)
     };
     FunctionType *fnTy = FunctionType::get(Type::getVoidTy(Context), ArgsTy, false);
     Function *F = Function::Create(fnTy,
-            GlobalValue::InternalLinkage, "logging", JIT->m_);
+            GlobalValue::ExternalLinkage, "logging", JIT->m_);
     Function::arg_iterator I = F->arg_begin();
     JIT->Str = I;
     (*I).setName("Buf");++I;
@@ -244,11 +255,10 @@ static void *emit_code(logctx ctx)
     BasicBlock *bb = BasicBlock::Create(Context, "EntryBlock", F);
     IRBuilder<> builder(bb);
     JIT->builder = &builder;
-    JIT->F   = F;
+    JIT->F = F;
     fmt = cast(struct logCtx *, ctx)->fmt;
 
     if (size) {
-        ctx->formatter->fn_delim(ctx);
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         fmt++;
         for (i = 1; i < size; ++i, ++fmt) {
@@ -256,10 +266,23 @@ static void *emit_code(logctx ctx)
             fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         }
     }
+    if (JIT->hasEOL) {
+        copy_char(JIT, '\n');
+    }
     copy_char(JIT, '\0');
+
     builder.CreateRetVoid();
-    (*JIT->m_).dump();
-    void *fnptr = JIT->EE->getPointerToFunction(JIT->F);
+
+    PassManager PM;
+    PassManagerBuilder Builder;
+    Builder.OptLevel = 3;
+    Builder.Inliner = createFunctionInliningPass(225);
+    PM.add(new TargetData(*(JIT->EE->getTargetData())));
+    Builder.populateModulePassManager(PM);
+    PM.run(*JIT->m_);
+
+    //(*JIT->m_).dump();
+    void *fnptr = JIT->EE->getPointerToFunction(F);
     JIT->F = 0;
     JIT->builder = 0;
     return fnptr;
@@ -275,6 +298,7 @@ static int push_args(uint64_t *a, int argc, struct logfmt *fmt)
 }
 
 typedef void (*jitFn)(char *, uint64_t *);
+
 void fn_flush(logctx ctx, void **fnptr __UNUSED__)
 {
     char buffer[256], *p = buffer;
@@ -284,6 +308,7 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
     }
     jitFn F = reinterpret_cast<jitFn>(*fnptr);
     ctx->fn_key(cast(logctx, &p), ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    p[0] = ','; ++p;
     if (ctx->logfmt_size) {
         struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
         size_t argc = 0, size = ctx->logfmt_size;
@@ -293,7 +318,9 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
         cast(struct logCtx *, ctx)->logfmt_size = 0;
     }
     F(p, params);
-    fprintf(stderr, "%s\n", buffer);
+
+    jitctx *JIT = static_cast<jitctx*>(ctx->connection);
+    JIT->base.fn(ctx, buffer, 0);
     ++(cast(struct logCtx *, ctx)->logkey.k.seq);
 }
 
@@ -412,7 +439,27 @@ static struct keyapi LLVM_KEY_API = {
 extern "C" struct keyapi *logpool_llvm_api_init(void)
 {
     InitializeNativeTarget();
-    global_module = new Module("logpool_context", getGlobalContext());
+    Module *M = new Module("logpool_context", getGlobalContext());
+    //Triple T(sys::getDefaultTargetTriple());
+    //const Target *Target = 0;
+    //std::string Arch = T.getArchName();
+    //for (TargetRegistry::iterator it = TargetRegistry::begin(),
+    //        ie = TargetRegistry::end(); it != ie; ++it) {
+    //    std::string tmp(it->getName());
+    //    str_replace(tmp, "-", "_");
+    //    if (Arch == tmp) {
+    //        Target = &*it;
+    //        break;
+    //    }
+    //}
+    //assert(Target != 0);
+    //std::string FeaturesStr;
+    //TargetOptions Options;
+    //TargetMachine *TM = Target->createTargetMachine(T.getTriple(), Target->getName(), FeaturesStr, Options);
+    //M->setTargetTriple(T.getTriple());
+    //M->setDataLayout(TM->getTargetData()->getStringRepresentation());
+
+    logpool::global_module = M;
     return &LLVM_KEY_API;
 }
 
@@ -427,5 +474,5 @@ struct logapi LLVM_STRING_API = {
     logpool::fn_raw,
     logpool::fn_delim,
     logpool::fn_flush,
-    logpool::fn_init,
+    logpool::fn_init
 };
