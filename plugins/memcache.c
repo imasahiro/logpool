@@ -42,26 +42,24 @@ void *logpool_memcache_init(logctx ctx, void **param)
 static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
-    logpool_string_flush(ctx);
-    char keybuf[128];
-    const char *key;
-    if (ctx->fn_key == logpool_key_hex) {
-        char *p = put_hex(keybuf, ctx->logkey.v.u);
-        p[0] = 0;
-        key = keybuf;
-    } else {
-        assert(ctx->fn_key == logpool_key_string);
-        key = ctx->logkey.v.s;
-    }
+    char key[128] = {0}, *buf_orig = mc->buf;
     const char *value = mc->base;
     uint32_t flags = 0;
-    size_t klen = strlen(key), vlen = strlen(value);
+    size_t klen, vlen;
+
+    mc->buf = key;
+    ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    mc->buf = buf_orig;
+    logpool_string_flush(ctx);
+    klen = strlen(key);
+    vlen = strlen(value);
     memcached_return_t rc;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
     if (rc != MEMCACHED_SUCCESS) {
         // TODO Error
         abort();
     }
+    logpool_string_reset(ctx);
 }
 
 struct logapi MEMCACHE_API = {

@@ -12,7 +12,7 @@ static void logpool_syslog_flush(logctx ctx, void **args __UNUSED__)
     logpool_string_flush(ctx);
     //syslog(LOG_NOTICE, buf->base);
     syslog(LOG_NOTICE, "%s", buf->base);
-    buf->buf = buf->base;
+    logpool_string_reset(ctx);
 }
 
 struct logapi SYSLOG_API = {

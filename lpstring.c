@@ -97,6 +97,12 @@ void logpool_string_flush(logctx ctx)
     }
 }
 
+void logpool_string_reset(logctx ctx)
+{
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf->buf = buf->base;
+}
+
 static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
@@ -105,7 +111,7 @@ static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
     buf->buf[-1] = '\n';
     buf->buf[ 0] = '\0';
     fwrite(buf->base, buf->buf - buf->base, 1, stderr);
-    buf->buf = buf->base;
+    logpool_string_reset(ctx);
 }
 
 struct logapi STRING_API = {

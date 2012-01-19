@@ -28,7 +28,7 @@ void logpool_FILE2_flush(logctx ctx, void **args __UNUSED__)
     fl->buf[-1] = '\n';
     fl->buf[ 0] = '\0';
     fwrite(fl->base, fl->buf - fl->base, 1, fl->fp);
-    fl->buf = fl->base;
+    logpool_string_reset(ctx);
 }
 
 struct logapi FILE2_API = {
