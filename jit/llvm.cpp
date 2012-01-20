@@ -22,6 +22,7 @@ using namespace llvm;
 
 namespace logpool {
 static Module *global_module = NULL;
+extern Module *LoadModule(LLVMContext &Context);
 
 struct jitctx {
     jitctx_base base;
@@ -267,7 +268,7 @@ static void *emit_code(logctx ctx)
     Builder.Inliner = createFunctionInliningPass(225);
     PM.add(new TargetData(*(JIT->EE->getTargetData())));
     PM.add(createVerifierPass());
-    Builder.populateModulePassManager(PM);
+    Builder.populateLTOPassManager(PM, true, true);
     PM.run(*M);
 
     //(*M).dump();
@@ -370,7 +371,7 @@ static const char* GetHostTriple() {
 extern "C" struct keyapi *logpool_llvm_api_init(void)
 {
     InitializeNativeTarget();
-    Module *M = new Module("logpool_context", getGlobalContext());
+    Module *M = logpool::LoadModule(getGlobalContext());
 #ifdef LOGPOOL_USE_LLVM_31
     std::string Error;
     const char *Triple = GetHostTriple();

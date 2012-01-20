@@ -41,6 +41,7 @@ set(LOGPOOL_SRC
 )
 set(LLVM_LOGPOOL_SRC
 	jit/llvm.cpp
+	jit/bc.cpp
 	jit/llvm_file2.cpp
 	jit/llvm_memcache.cpp
 )

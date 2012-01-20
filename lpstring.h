@@ -121,6 +121,7 @@ static inline char *put_f(char *p, double f)
     p = put_d(p, u);
     s3 = r % 100;
     u  = r / 100;
+    /* s2 = s3 / 10; s1 = s3 % 10 */
     s2 = (s3 * 0xcd) >> 11;
     s1 = (s3) - 10*s2;
     put_char4(p, '.', ('0' + u), ('0' + s2), ('0' + s1));
