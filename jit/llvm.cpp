@@ -13,6 +13,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <stdio.h>
 #include "logpool.h"
 #include "lpstring.h"
 #include "jit/llvm.h"
