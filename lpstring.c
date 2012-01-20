@@ -130,10 +130,8 @@ struct logapi STRING_API = {
 
 static void write_seq(buffer_t *buf, uint64_t seq)
 {
-    uintptr_t seq_ = seq / 16, r = seq % 16;
     put_char(buf, '+');
-    buf->buf = put_hex(buf->buf, seq_);
-    put_char(buf, '0' + r);
+    buf->buf = put_hex(buf->buf, seq);
 }
 
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)

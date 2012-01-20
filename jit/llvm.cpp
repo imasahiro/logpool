@@ -22,11 +22,6 @@ using namespace llvm;
 namespace logpool {
 static Module *global_module = NULL;
 
-static inline long ALIGN(const long x, const long n)
-{
-    return ((x)+((n)-1))&(~((n)-1));
-}
-
 struct jitctx {
     jitctx_base base;
     Module *m_;/*shared*/
@@ -319,11 +314,9 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
 
 static char *put_seq(char *buf, uint64_t seq)
 {
-    uintptr_t seq_ = seq / 16, r = seq % 16;
     buf[0] = '+';
-    buf = put_hex(buf, seq_);
-    buf[0] = '0' + r;
-    return buf + 1;
+    buf = put_hex(buf, seq);
+    return buf;
 }
 
 static char *put_string(char *p, const char *s, short size)
