@@ -19,19 +19,19 @@ void logctx_init(logctx ctx, struct logapi *api, void **param)
 
 void logctx_format_flush(logctx ctx)
 {
-    struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
-    size_t i, size = ctx->logfmt_size;
+    void (*fn_delim)(logctx) = ctx->formatter->fn_delim;
+    const struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+    const struct logfmt *fmtend = fmt + ctx->logfmt_size;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
-    ctx->formatter->fn_delim(ctx);
-    if (size) {
+    fn_delim(ctx);
+    fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+    fmt++;
+    while (fmt < fmtend) {
+        fn_delim(ctx);
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
-        fmt++;
-        for (i = 1; i < size; ++i, ++fmt) {
-            ctx->formatter->fn_delim(ctx);
-            fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
-        }
-        cast(struct logCtx *, ctx)->logfmt_size = 0;
+        ++fmt;
     }
+    cast(struct logCtx *, ctx)->logfmt_size = 0;
     ++(cast(struct logCtx *, ctx)->logkey.k.seq);
 }
 
