@@ -22,12 +22,14 @@ void logctx_format_flush(logctx ctx)
     struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
-    ctx->formatter->fn_delim(ctx);
     if (size) {
+        void (*fn_delim)(logctx) = ctx->formatter->fn_delim;
+        /* unroled */
+        fn_delim(ctx);
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
-        fmt++;
+        ++fmt;
         for (i = 1; i < size; ++i, ++fmt) {
-            ctx->formatter->fn_delim(ctx);
+            fn_delim(ctx);
             fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         }
         cast(struct logCtx *, ctx)->logfmt_size = 0;

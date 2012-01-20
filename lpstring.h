@@ -127,14 +127,18 @@ static inline char *put_f(char *p, double f)
     return p + 4;
 }
 
-static inline void put_string(buffer_t *buf, const char *s, short size)
+static inline char *put_string(char *p, const char *s, short size)
 {
-    int i;
-    char *p = buf->buf;
-    for (i = 0; i < size; ++i) {
-        p[i] = s[i];
+    const char *e = s + size;
+    while (s < e) {
+        *p++ = *s++;
     }
-    buf->buf += size;
+    return p;
+}
+
+static inline void buf_put_string(buffer_t *buf, const char *s, short size)
+{
+    buf->buf = put_string(buf->buf, s, size);
 }
 
 static inline short get_l1(sizeinfo_t info)

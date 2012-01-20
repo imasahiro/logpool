@@ -291,25 +291,24 @@ typedef void (*jitFn)(char *, uint64_t *);
 void fn_flush(logctx ctx, void **fnptr __UNUSED__)
 {
     char buffer[256], *p = buffer;
-    uint64_t params[LOGFMT_MAX_SIZE*2];
-    if (!*fnptr) {
-        *fnptr = emit_code(ctx);
-    }
-    jitFn F = reinterpret_cast<jitFn>(*fnptr);
+
     ctx->fn_key(cast(logctx, &p), ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
-    p[0] = ','; ++p;
+    p[0] = ',';
     if (ctx->logfmt_size) {
+        uint64_t params[LOGFMT_MAX_SIZE*2];
+        jitctx *JIT = static_cast<jitctx*>(ctx->connection);
+        if (!*fnptr)
+            *fnptr = emit_code(ctx);
+        jitFn F = reinterpret_cast<jitFn>(*fnptr);
         struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
         size_t argc = 0, size = ctx->logfmt_size;
         for (size_t i = 0; i < size; ++i, ++fmt) {
             argc = push_args(params, argc, fmt);
         }
         cast(struct logCtx *, ctx)->logfmt_size = 0;
+        F(p+1, params);
+        JIT->base.fn(ctx, buffer, 0);
     }
-    F(p, params);
-
-    jitctx *JIT = static_cast<jitctx*>(ctx->connection);
-    JIT->base.fn(ctx, buffer, 0);
     ++(cast(struct logCtx *, ctx)->logkey.k.seq);
 }
 
@@ -320,21 +319,11 @@ static char *put_seq(char *buf, uint64_t seq)
     return buf;
 }
 
-static char *put_string(char *p, const char *s, short size)
-{
-    int i;
-    for (i = 0; i < size; ++i) {
-        p[i] = s[i];
-    }
-    return p + i;
-}
-
 void fn_key_hex(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     char *buf = *bufp;
-    buf[0] = '0';
-    buf[0] = 'x';
-    buf = put_hex(buf, v);
+    put_char2(buf, '0', 'x');
+    buf = put_hex(buf+2, v);
     *bufp = put_seq(buf, seq);
 }
 
@@ -355,39 +344,12 @@ extern "C" char *llvm_put_h(char *p, uintptr_t value)
 
 extern "C" char *llvm_put_i(char *p, intptr_t value)
 {
-    if(value < 0) {
-        p[0] = '-'; p++;
-        value = -value;
-    }
-    uintptr_t u = value / 10, r = value % 10;
-    if (u != 0) {
-        p = put_d(p, u);
-    }
-    p[0] = ('0' + r);
-    return p + 1;
+    return put_i(p, value);
 }
 
 extern "C" char *llvm_put_f(char *p, double f)
 {
-    intptr_t value = (intptr_t) (f*1000);
-    if(value < 0) {
-        p[0] = '-'; p++;
-        value = -value;
-    }
-    intptr_t u = value / 1000, r = value % 1000;
-    if(u != 0) {
-        p = put_d(p, u);
-    }
-    else {
-        p[0] = '0'; p++;
-    }
-    p[0] = '.'; p++;
-    u = r / 100;
-    r = r % 100;
-    p[0] = ('0' + (u)); p++;
-    p[0] = ('0' + (r / 10)); p++;
-    p[0] = ('0' + (r % 10));
-    return p + 1;
+    return put_f(p, f);
 }
 
 static struct keyapi LLVM_KEY_API = {
