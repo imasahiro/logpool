@@ -23,10 +23,44 @@ void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 void logpool_string_delim(logctx ctx);
 void logpool_string_flush(logctx ctx);
 
-void logpool_string_reset(logctx ctx);
+static inline void logpool_string_reset(logctx ctx)
+{
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf->buf = buf->base;
+}
 
 void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+
+static void put_char2(char *p, int8_t c0, int8_t c1)
+{
+    uint16_t v = (c1 << 8) | c0;
+    *(uint16_t*)p = v;
+}
+
+static void put_char4(char *p, int8_t c0, int8_t c1, int8_t c2, int8_t c3)
+{
+    uint32_t v = (c3 << 24) | (c2 << 16) | (c1 << 8) | c0;
+    *(uint32_t*)p = v;
+}
+
+static inline void buf_put_char(buffer_t *buf, char c)
+{
+    buf->buf[0] = c;
+    ++(buf->buf);
+}
+
+static inline void buf_put_char2(buffer_t *buf, char c0, char c1)
+{
+    put_char2(buf->buf, c0, c1);
+    buf->buf += 2;
+}
+
+static inline void buf_put_char3(buffer_t *buf, char c0, char c1, char c2)
+{
+    put_char4(buf->buf, c0, c1, c2, 0);
+    buf->buf += 3;
+}
 
 #define PTR_SIZE (sizeof(void*))
 #define BITS (PTR_SIZE * 8)
@@ -66,17 +100,13 @@ static char *put_d(char *p, uint64_t v)
     return p;
 }
 
-static inline char *put_i(char *p, intptr_t value)
+static inline char *put_i(char *p, int64_t value)
 {
     if(value < 0) {
         p[0] = '-'; p++;
         value = -value;
     }
-    uintptr_t u = value;
-    if (u != 0) {
-        p = put_d(p, u);
-    }
-    return p;
+    return put_d(p, (uint64_t)value);
 }
 
 static inline char *put_f(char *p, double f)
@@ -86,20 +116,15 @@ static inline char *put_f(char *p, double f)
         p[0] = '-'; p++;
         value = -value;
     }
-    intptr_t u = value / 1000, r = value % 1000;
-    if(u != 0) {
-        p = put_d(p, u);
-    }
-    else {
-        p[0] = '0'; p++;
-    }
-    p[0] = '.'; p++;
-    u = r / 100;
-    r = r % 100;
-    p[0] = ('0' + (u)); p++;
-    p[0] = ('0' + (r / 10)); p++;
-    p[0] = ('0' + (r % 10));
-    return p + 1;
+    int32_t u = value / 1000, r = value % 1000;
+    int32_t s1, s2, s3;
+    p = put_d(p, u);
+    s3 = r % 100;
+    u  = r / 100;
+    s2 = (s3 * 0xcd) >> 11;
+    s1 = (s3) - 10*s2;
+    put_char4(p, '.', ('0' + u), ('0' + s2), ('0' + s1));
+    return p + 4;
 }
 
 static inline void put_string(buffer_t *buf, const char *s, short size)
@@ -110,27 +135,6 @@ static inline void put_string(buffer_t *buf, const char *s, short size)
         p[i] = s[i];
     }
     buf->buf += size;
-}
-
-static inline void put_char(buffer_t *buf, char c)
-{
-    buf->buf[0] = c;
-    ++(buf->buf);
-}
-
-static inline void put_char2(buffer_t *buf, char c0, char c1)
-{
-    buf->buf[0] = c0;
-    buf->buf[1] = c1;
-    buf->buf += 2;
-}
-
-static inline void put_char3(buffer_t *buf, char c0, char c1, char c2)
-{
-    buf->buf[0] = c0;
-    buf->buf[1] = c1;
-    buf->buf[2] = c2;
-    buf->buf += 3;
 }
 
 static inline short get_l1(sizeinfo_t info)

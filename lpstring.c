@@ -44,7 +44,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     put_string(buf, key, get_l2(info));
-    put_char2(buf, '0', 'x');
+    buf_put_char2(buf, '0', 'x');
     buf->buf = put_hex(buf->buf, v);
 }
 
@@ -61,7 +61,7 @@ void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t inf
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     long c = cast(long, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, (char)c);
+    buf_put_char(buf, (char)c);
 }
 
 void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -69,9 +69,9 @@ void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t i
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
     put_string(buf, key, get_l2(info));
-    put_char(buf, '\'');
+    buf_put_char(buf, '\'');
     put_string(buf, s, get_l1(info));
-    put_char(buf, '\'');
+    buf_put_char(buf, '\'');
 }
 
 void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -85,7 +85,7 @@ void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
 void logpool_string_delim(logctx ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    put_char(buf, ',');
+    buf_put_char(buf, ',');
 }
 
 void logpool_string_flush(logctx ctx)
@@ -93,14 +93,8 @@ void logpool_string_flush(logctx ctx)
     logctx_format_flush(ctx);
     {
         buffer_t *buf = cast(buffer_t *, ctx->connection);
-        put_char(buf, 0);
+        buf_put_char(buf, 0);
     }
-}
-
-void logpool_string_reset(logctx ctx)
-{
-    buffer_t *buf = cast(buffer_t *, ctx->connection);
-    buf->buf = buf->base;
 }
 
 static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
@@ -108,8 +102,7 @@ static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
     assert(buf->buf[-1] == '\0');
-    buf->buf[-1] = '\n';
-    buf->buf[ 0] = '\0';
+    put_char2(buf->buf-1, '\n', '\0');
     fwrite(buf->base, buf->buf - buf->base, 1, stderr);
     logpool_string_reset(ctx);
 }
@@ -130,14 +123,14 @@ struct logapi STRING_API = {
 
 static void write_seq(buffer_t *buf, uint64_t seq)
 {
-    put_char(buf, '+');
+    buf_put_char(buf, '+');
     buf->buf = put_hex(buf->buf, seq);
 }
 
 void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
-    put_char2(buf, '0' ,'x');
+    buf_put_char2(buf, '0' ,'x');
     buf->buf = put_hex(buf->buf, v);
     write_seq(buf, seq);
 }
