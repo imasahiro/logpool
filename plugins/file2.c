@@ -25,7 +25,8 @@ void logpool_FILE2_flush(logctx ctx, void **args __UNUSED__)
     flog_t *fl = cast(flog_t *, ctx->connection);
     logpool_string_flush(ctx);
     assert(fl->buf[-1] == '\0');
-    put_char2(fl->buf-1, '\n', '\0');
+    fl->buf[-1] = '\n';
+    fl->buf[ 0] = '\0';
     fwrite(fl->base, fl->buf - fl->base, 1, fl->fp);
     logpool_string_reset(ctx);
 }

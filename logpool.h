@@ -67,7 +67,7 @@ struct logCtx {
     logapi_t *formatter;
     logfmt_t logkey;
     logfmt_t fmt[LOGFMT_MAX_SIZE];
-    int logfmt_size;
+    long logfmt_size;
 };
 
 struct ltrace {
