@@ -89,7 +89,7 @@ static void reverse(char *const start, char *const end)
     }
 }
 
-static char *put_d(char *p, uint64_t v)
+static inline char *put_d(char *p, uint64_t v)
 {
     char *base = p;
     do {
