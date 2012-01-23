@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include "logpool_internal.h"
 #include "config.h"
 #include <stdlib.h>
 

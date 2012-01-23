@@ -111,13 +111,14 @@ static inline char *put_i(char *p, int64_t value)
 
 static inline char *put_f(char *p, double f)
 {
+    int32_t s1, s2, s3, u, r;
     intptr_t value = (intptr_t) (f*1000);
     if(value < 0) {
         p[0] = '-'; p++;
         value = -value;
     }
-    int32_t u = value / 1000, r = value % 1000;
-    int32_t s1, s2, s3;
+    u = value / 1000;
+    r = value % 1000;
     p = put_d(p, u);
     s3 = r % 100;
     u  = r / 100;

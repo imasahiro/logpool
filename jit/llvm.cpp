@@ -15,6 +15,7 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <stdio.h>
 #include "logpool.h"
+#include "logpool_internal.h"
 #include "lpstring.h"
 #include "jit/llvm.h"
 
@@ -300,7 +301,12 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
         jitctx *JIT = static_cast<jitctx*>(ctx->connection);
         if (!*fnptr)
             *fnptr = emit_code(ctx);
-        jitFn F = reinterpret_cast<jitFn>(*fnptr);
+        //XXX
+        //To remove worning "casting between pointer-to-function
+        //and pointer-to-object"
+        //jitFn F = reinterpret_cast<jitFn>(*fnptr);
+        union anyptr { void *p; jitFn f;} ptr = {fnptr};
+        jitFn F = ptr.f;
         struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
         size_t argc = 0, size = ctx->logfmt_size;
         for (size_t i = 0; i < size; ++i, ++fmt) {

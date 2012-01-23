@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include "logpool_internal.h"
 #include <stdio.h>
 
 #ifdef __cplusplus

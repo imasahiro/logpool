@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include "logpool_internal.h"
 #include "lpstring.h"
 #include <stdio.h>
 

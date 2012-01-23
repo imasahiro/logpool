@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include "logpool_internal.h"
 #include "lpstring.h"
 #include <libmemcached/memcached.h>
 
@@ -22,17 +23,17 @@ void *logpool_memcache_init(logctx ctx, void **param)
 
     mc->st = memcached_create(NULL);
     if (mc->st == NULL) {
-        // TODO Error
+        /* TODO Error */
         abort();
     }
     servers = memcached_server_list_append(NULL, host, port, &rc);
     if (rc != MEMCACHED_SUCCESS) {
-        // TODO Error
+        /* TODO Error */
         abort();
     }
     rc = memcached_server_push(mc->st, servers);
     if (rc != MEMCACHED_SUCCESS) {
-        // TODO Error
+        /* TODO Error */
         abort();
     }
     memcached_server_list_free(servers);
@@ -46,6 +47,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     const char *value = mc->base;
     uint32_t flags = 0;
     size_t klen, vlen;
+    memcached_return_t rc;
 
     mc->buf = key;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
@@ -53,7 +55,6 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     logpool_string_flush(ctx);
     klen = strlen(key);
     vlen = strlen(value);
-    memcached_return_t rc;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
     if (rc != MEMCACHED_SUCCESS) {
         // TODO Error

@@ -93,14 +93,6 @@ static inline uint64_t f2u(double f)
     return v.u;
 }
 
-static inline double u2f(uint64_t u)
-{
-    union {uint64_t u; double f;} v = {0};
-    v.u = u;
-    return v.f;
-}
-
-void logctx_init(logctx ctx, struct logapi *api, void **param);
 void logctx_format_flush(logctx ctx);
 void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
 void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz);
@@ -143,9 +135,6 @@ static inline sizeinfo_t sizeinfo_create(short s1, short s2)
         static const char __K__[] = K ":";\
         logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
             __CTX__->formatter->fn_hex, sizeinfo_create(0, strlen(__K__)));})
-
-#define __UNUSED__ __attribute__((unused))
-#define cast(T, V) ((T)(V))
 
 #ifdef __cplusplus
 }

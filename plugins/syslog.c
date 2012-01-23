@@ -1,4 +1,5 @@
 #include "logpool.h"
+#include "logpool_internal.h"
 #include "lpstring.h"
 #include <syslog.h>
 
@@ -10,7 +11,9 @@ static void logpool_syslog_flush(logctx ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
-    //syslog(LOG_NOTICE, buf->base);
+#if 0
+    syslog(LOG_NOTICE, buf->base);
+#endif
     syslog(LOG_NOTICE, "%s", buf->base);
     logpool_string_reset(ctx);
 }
