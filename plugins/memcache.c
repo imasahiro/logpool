@@ -40,34 +40,33 @@ void *logpool_memcache_init(logctx ctx, void **param)
     return cast(void *, mc);
 }
 
-static char *logpool_key_nop(logctx ctx __UNUSED__, uint64_t v __UNUSED__,
-        uint64_t seq __UNUSED__, sizeinfo_t info __UNUSED__)
-{
-    mc_t *mc = cast(mc_t *, ctx->connection);
-    return mc->buf;
-}
-
 static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
-    char key[128] = {0}, *buf_orig = mc->buf;
+    char key[128] = {0}, *buf_orig = mc->buf, *p;
     const char *value = mc->base;
     uint32_t flags = 0;
     size_t klen, vlen;
     memcached_return_t rc;
+    struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+    size_t i, size = ctx->logfmt_size;
 
     mc->buf = key;
-    char *p = ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    p = ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     klen = p - (char*) key;
-
     mc->buf = buf_orig;
-    {
-        struct logCtx *lctx = cast(struct logCtx *, ctx);
-        keyFn fn = ctx->fn_key;
-        lctx->fn_key = logpool_key_nop;
-        logpool_string_flush(ctx);
-        lctx->fn_key = fn;
+
+    if (size) {
+        void (*fn_delim)(logctx) = ctx->formatter->fn_delim;
+        fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+        ++fmt;
+        for (i = 1; i < size; ++i, ++fmt) {
+            fn_delim(ctx);
+            fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+        }
+        cast(struct logCtx *, ctx)->logfmt_size = 0;
     }
+
     vlen = (char*) mc->buf - value;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
@@ -75,6 +74,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
         abort();
     }
     logpool_string_reset(ctx);
+    ++(cast(struct logCtx *, ctx)->logkey.k.seq);
 }
 
 struct logapi MEMCACHE_API = {

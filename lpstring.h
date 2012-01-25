@@ -77,7 +77,7 @@ static inline char *put_hex(char *const start, uint64_t v)
 {
     static const char __digit__[] = "0123456789abcdef";
     register char *p = start;
-    int i = ALIGN((v>0?(BITS-CLZ(v)):1), 4) - 4;
+    int i = ALIGN((v>0?(BITS-CLZ(v)):4), 4) - 4;
     do {
         unsigned char c = 0xf & (v >> i);
         *(p++) = __digit__[c];
