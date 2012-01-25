@@ -11,7 +11,7 @@ static void ltrace_test_write(ltrace_t *ltrace)
 {
     double f = 3.14;
     long   i = 128;
-    char  *s = "hello world";
+    const char *s = "hello world";
     ltrace_record(ltrace, "event",
             LOG_f("float", f),
             LOG_i("int",   i),
@@ -24,7 +24,7 @@ static void lstate_test_write(lstate_t *state)
 {
     double f = 3.14;
     long   n = 128;
-    char  *s = "hello world";
+    const char *s = "hello world";
     void  *p = (void*) 0xdeadbeaf;
     int i;
     for (i = 0; i < 10; ++i) {

@@ -117,9 +117,7 @@ execute_process(
 		OUTPUT_VARIABLE LLVM_LIBDIR
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
-set(CMAKE_C_FLAGS "${LLVM_CFLAGS} ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
-set(KONOHA_SRC ${KONOHA_SRC} src/lang/llvm.cpp)
 string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
 link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
 set(ExtraLibs ${ExtraLibs} ${v})
