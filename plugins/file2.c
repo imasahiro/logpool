@@ -21,6 +21,13 @@ void *logpool_FILE2_init(logctx ctx, void **args)
     return cast(void *, fl);
 }
 
+void logpool_FILE2_close(logctx ctx)
+{
+    flog_t *fl = cast(flog_t *, ctx->connection);
+    fclose(fl->fp);
+    logpool_string_close(ctx);
+}
+
 void logpool_FILE2_flush(logctx ctx, void **args __UNUSED__)
 {
     flog_t *fl = cast(flog_t *, ctx->connection);
@@ -44,6 +51,7 @@ struct logapi FILE2_API = {
     logpool_string_delim,
     logpool_FILE2_flush,
     logpool_FILE2_init,
+    logpool_FILE2_close,
 };
 
 #ifdef __cplusplus

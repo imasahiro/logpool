@@ -51,9 +51,17 @@ static void api_fn_flush(logctx ctx, char *buffer, size_t size)
 void *fn_init(logctx ctx __UNUSED__, void **args)
 {
     long hasEOL = cast(long, args[0]);
-    jitctx *buf = new jitctx(global_module, hasEOL);
-    buf->base.fn = api_fn_flush;
-    return cast(void *, buf);
+    jitctx *jit = new jitctx(global_module, hasEOL);
+    jit->base.fn = api_fn_flush;
+    return cast(void *, jit);
+}
+
+void fn_close(logctx ctx)
+{
+    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    jitctx *jit = static_cast<jitctx*>(ctx->connection);
+    delete jit;
+    lctx->connection = NULL;
 }
 
 static void copy_string(jitctx *jit, std::string &Str)
@@ -409,5 +417,6 @@ struct logapi LLVM_STRING_API = {
     logpool::fn_raw,
     logpool::fn_delim,
     logpool::fn_flush,
-    logpool::fn_init
+    logpool::fn_init,
+    logpool::fn_close
 };

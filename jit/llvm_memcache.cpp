@@ -15,7 +15,7 @@ typedef union mc {
     } s;
 } mc_t;
 
-static void api_fn_flush(logctx ctx, char *buffer, size_t size)
+static void api_fn_flush(logctx ctx, char *buffer, size_t size __UNUSED__)
 {
     //TODO
     assert(0);
@@ -71,6 +71,12 @@ void *fn_init(logctx ctx, void **args)
     return cast(void *, mc);
 }
 
+void fn_close(logctx ctx)
+{
+    mc_t *mc = cast(mc_t *, ctx->connection);
+    memcached_free(mc->s.st);
+    logpool::fn_close(ctx);
+}
 
 void fn_flush(logctx ctx, void **args)
 {
@@ -93,7 +99,8 @@ struct logapi LLVM_MEMCACHE_API = {
     logpool::fn_raw,
     logpool::fn_delim,
     memcache::fn_flush,
-    memcache::fn_init
+    memcache::fn_init,
+    memcache::fn_close
 };
 #ifdef __cplusplus
 }

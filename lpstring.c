@@ -17,6 +17,14 @@ void *logpool_string_init(logctx ctx __UNUSED__, void **args)
     return cast(void *, buf);
 }
 
+void logpool_string_close(logctx ctx)
+{
+    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    free(buf);
+    lctx->connection = NULL;
+}
+
 void logpool_string_null(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
@@ -116,6 +124,7 @@ struct logapi STRING_API = {
     logpool_string_delim,
     logpool_string_flush__,
     logpool_string_init,
+    logpool_string_close,
 };
 
 static char *write_seq(buffer_t *buf, uint64_t seq)

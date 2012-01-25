@@ -9,6 +9,7 @@ struct jitctx_base {
 };
 
 void *fn_init(logctx ctx, void **args);
+void fn_close(logctx ctx);
 void fn_null(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
 void fn_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
 void fn_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);

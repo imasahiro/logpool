@@ -13,6 +13,14 @@ void *logpool_FILE_init(logctx ctx __UNUSED__, void **param)
     return cast(void *, fp);
 }
 
+void logpool_FILE_close(logctx ctx)
+{
+    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    FILE *fp = cast(FILE *, ctx->connection);
+    fclose(fp);
+    lctx->connection = NULL;
+}
+
 void logpool_FILE_null(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info)
 {
     FILE *fp = cast(FILE *, ctx->connection);

@@ -1,7 +1,8 @@
+#include <libmemcached/memcached.h>
+#include <stdio.h>
 #include "logpool.h"
 #include "logpool_internal.h"
 #include "lpstring.h"
-#include <libmemcached/memcached.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,7 @@ typedef struct mc {
     char base[1];
 } mc_t;
 
+#define USE_BUFFER_REQ 1
 void *logpool_memcache_init(logctx ctx, void **param)
 {
     const char *host = cast(const char *, param[1]);
@@ -22,6 +24,10 @@ void *logpool_memcache_init(logctx ctx, void **param)
     memcached_server_list_st servers;
 
     mc->st = memcached_create(NULL);
+    memcached_behavior_set (mc->st, MEMCACHED_BEHAVIOR_NO_BLOCK, 1);
+#ifdef USE_BUFFER_REQ
+    memcached_behavior_set (mc->st, MEMCACHED_BEHAVIOR_BUFFER_REQUESTS, 1);
+#endif
     if (unlikely(mc->st == NULL)) {
         /* TODO Error */
         abort();
@@ -29,15 +35,33 @@ void *logpool_memcache_init(logctx ctx, void **param)
     servers = memcached_server_list_append(NULL, host, port, &rc);
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
         /* TODO Error */
+        fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
         abort();
     }
     rc = memcached_server_push(mc->st, servers);
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
         /* TODO Error */
+        fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
         abort();
     }
     memcached_server_list_free(servers);
     return cast(void *, mc);
+}
+
+void logpool_memcache_close(logctx ctx)
+{
+    mc_t *mc = cast(mc_t *, ctx->connection);
+    memcached_st *st = mc->st;
+#ifdef USE_BUFFER_REQ
+    memcached_return_t rc = memcached_flush(st, 0);
+    if (unlikely(rc != MEMCACHED_SUCCESS)) {
+        /* TODO Error */
+        fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
+        abort();
+    }
+#endif
+    memcached_free(st);
+    logpool_string_close(ctx);
 }
 
 static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
@@ -69,8 +93,14 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
 
     vlen = (char*) mc->buf - value;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
+#ifdef USE_BUFFER_REQ
+    if (unlikely(rc == MEMCACHED_BUFFERED)) {
+    }
+    else
+#endif
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
         // TODO Error
+        fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
         abort();
     }
     logpool_string_reset(ctx);
@@ -89,6 +119,7 @@ struct logapi MEMCACHE_API = {
     logpool_string_delim,
     logpool_memcache_flush,
     logpool_memcache_init,
+    logpool_memcache_close,
 };
 
 #ifdef __cplusplus

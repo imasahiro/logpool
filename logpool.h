@@ -48,6 +48,7 @@ struct logapi {
     void   (*fn_delim)(logctx);
     void   (*fn_flush)(logctx, void**);
     void  *(*fn_init)(logctx, void**);
+    void   (*fn_close)(logctx);
 };
 
 struct keyapi {

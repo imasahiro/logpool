@@ -69,6 +69,7 @@ ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param)
 void ltrace_close(ltrace_t *p)
 {
     struct ltrace *l = cast(struct ltrace *, p);
+    cast(logctx, l)->formatter->fn_close(cast(logctx, l));
     free(l);
 }
 
@@ -93,6 +94,7 @@ lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param)
 void lstate_close(lstate_t *p)
 {
     struct lstate *l = cast(struct lstate *, p);
+    cast(logctx, l)->formatter->fn_close(cast(logctx, l));
     free(l);
 }
 
