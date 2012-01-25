@@ -9,6 +9,14 @@
 extern "C" {
 #endif
 
+#ifndef unlikely
+#define unlikely(x)   __builtin_expect(!!(x), 0)
+#endif
+
+#ifndef likely
+#define likely(x)     __builtin_expect(!!(x), 1)
+#endif
+
 void logctx_init(logctx ctx, struct logapi *api, void **param);
 
 static inline double u2f(uint64_t u)

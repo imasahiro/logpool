@@ -22,22 +22,29 @@ void *logpool_memcache_init(logctx ctx, void **param)
     memcached_server_list_st servers;
 
     mc->st = memcached_create(NULL);
-    if (mc->st == NULL) {
+    if (unlikely(mc->st == NULL)) {
         /* TODO Error */
         abort();
     }
     servers = memcached_server_list_append(NULL, host, port, &rc);
-    if (rc != MEMCACHED_SUCCESS) {
+    if (unlikely(rc != MEMCACHED_SUCCESS)) {
         /* TODO Error */
         abort();
     }
     rc = memcached_server_push(mc->st, servers);
-    if (rc != MEMCACHED_SUCCESS) {
+    if (unlikely(rc != MEMCACHED_SUCCESS)) {
         /* TODO Error */
         abort();
     }
     memcached_server_list_free(servers);
     return cast(void *, mc);
+}
+
+static char *logpool_key_nop(logctx ctx __UNUSED__, uint64_t v __UNUSED__,
+        uint64_t seq __UNUSED__, sizeinfo_t info __UNUSED__)
+{
+    mc_t *mc = cast(mc_t *, ctx->connection);
+    return mc->buf;
 }
 
 static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
@@ -51,12 +58,19 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
 
     mc->buf = key;
     char *p = ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    klen = p - (char*) key;
+
     mc->buf = buf_orig;
-    logpool_string_flush(ctx);
-    klen = p - key;
-    vlen = strlen(value);
+    {
+        struct logCtx *lctx = cast(struct logCtx *, ctx);
+        keyFn fn = ctx->fn_key;
+        lctx->fn_key = logpool_key_nop;
+        logpool_string_flush(ctx);
+        lctx->fn_key = fn;
+    }
+    vlen = (char*) mc->buf - value;
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
-    if (rc != MEMCACHED_SUCCESS) {
+    if (unlikely(rc != MEMCACHED_SUCCESS)) {
         // TODO Error
         abort();
     }
