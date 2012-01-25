@@ -50,10 +50,10 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     memcached_return_t rc;
 
     mc->buf = key;
-    ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    char *p = ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     mc->buf = buf_orig;
     logpool_string_flush(ctx);
-    klen = strlen(key);
+    klen = p - key;
     vlen = strlen(value);
     rc = memcached_set(mc->st, key, klen, value, vlen, 0, flags);
     if (rc != MEMCACHED_SUCCESS) {

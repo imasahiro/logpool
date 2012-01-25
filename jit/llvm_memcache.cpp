@@ -17,12 +17,16 @@ typedef union mc {
 
 static void api_fn_flush(logctx ctx, char *buffer, size_t size)
 {
+    //TODO
+    assert(0);
+
     mc_t *mc = cast(mc_t *, ctx->connection);
-    char keybuf[128];
+    char keybuf[128] = {0}, *p;
     const char *key;
     if (ctx->fn_key == logpool_key_hex) {
-        char *p = put_hex(keybuf, ctx->logkey.v.u);
-        p[0] = 0;
+        p = put_hex(keybuf, ctx->logkey.v.u);
+        //TODO check null terminate
+        //p[0] = 0;
         key = keybuf;
     } else {
         assert(ctx->fn_key == logpool_key_string);

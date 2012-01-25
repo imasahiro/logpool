@@ -11,8 +11,7 @@ static void put_char4(char *p, int8_t c0, int8_t c1, int8_t c2, int8_t c3)
     *(uint32_t*)p = v;
 }
 
-#define PTR_SIZE (sizeof(void*))
-#define BITS (PTR_SIZE * 8)
+#define BITS (sizeof(void*) * 8)
 #define CLZ(n) __builtin_clzl(n)
 #define ALIGN(x,n)  (((x)+((n)-1))&(~((n)-1)))
 static inline char *put_hex(char *const start, uint64_t v)

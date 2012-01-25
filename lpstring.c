@@ -91,11 +91,7 @@ void logpool_string_delim(logctx ctx)
 
 void logpool_string_flush(logctx ctx)
 {
-    logctx_format_flush(ctx);
-    {
-        buffer_t *buf = cast(buffer_t *, ctx->connection);
-        buf_put_char(buf, 0);
-    }
+    logpool_string_flush_internal(ctx);
 }
 
 static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
@@ -122,26 +118,27 @@ struct logapi STRING_API = {
     logpool_string_init,
 };
 
-static void write_seq(buffer_t *buf, uint64_t seq)
+static char *write_seq(buffer_t *buf, uint64_t seq)
 {
     buf_put_char(buf, '+');
     buf->buf = put_hex(buf->buf, seq);
+    return buf->buf;
 }
 
-void logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
+char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf_put_char2(buf, '0' ,'x');
     buf->buf = put_hex(buf->buf, v);
-    write_seq(buf, seq);
+    return write_seq(buf, seq);
 }
 
-void logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
+char *logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
     buf_put_string(buf, s, get_l2(info));
-    write_seq(buf, seq);
+    return write_seq(buf, seq);
 }
 
 static struct keyapi STRING_KEY_API = {

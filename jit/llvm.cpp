@@ -326,20 +326,22 @@ static char *put_seq(char *buf, uint64_t seq)
     return buf;
 }
 
-void fn_key_hex(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
+char *fn_key_hex(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     char *buf = *bufp;
     put_char2(buf, '0', 'x');
     buf = put_hex(buf+2, v);
     *bufp = put_seq(buf, seq);
+    return *bufp;
 }
 
-void fn_key_string(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info)
+char *fn_key_string(char **bufp, uint64_t v, uint64_t seq, sizeinfo_t info)
 {
     char *buf = *bufp;
     char *s = cast(char *, v);
     buf = put_string(buf, s, get_l2(info));
     *bufp = put_seq(buf, seq);
+    return *bufp;
 }
 
 } /* namespace logpool */

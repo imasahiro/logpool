@@ -9,9 +9,6 @@
 extern "C" {
 #endif
 
-#define __UNUSED__ __attribute__((unused))
-#define cast(T, V) ((T)(V))
-
 void logctx_init(logctx ctx, struct logapi *api, void **param);
 
 static inline double u2f(uint64_t u)

@@ -19,8 +19,8 @@ typedef const struct lstate lstate_t;
 typedef struct logapi logapi_t;
 typedef struct logfmt logfmt_t;
 
-typedef void (*logFn)(logctx, const char *K, uint64_t v, sizeinfo_t info);
-typedef void (*keyFn)(logctx, uint64_t v, uint64_t seq, sizeinfo_t size);
+typedef void  (*logFn)(logctx, const char *K, uint64_t v, sizeinfo_t info);
+typedef char *(*keyFn)(logctx, uint64_t v, uint64_t seq, sizeinfo_t size);
 
 struct logfmt {
     logFn fn;
@@ -60,6 +60,8 @@ enum LOGPOOL_EXEC_MODE {
     LOGPOOL_JIT
 };
 
+void logpool_init(enum LOGPOOL_EXEC_MODE mode);
+
 #define LOGFMT_MAX_SIZE 8
 struct logCtx {
     void *connection;
@@ -96,6 +98,9 @@ static inline uint64_t f2u(double f)
 void logctx_format_flush(logctx ctx);
 void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
 void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz);
+
+#define __UNUSED__ __attribute__((unused))
+#define cast(T, V) ((T)(V))
 
 #define LCTX(V) (cast(logctx, V))
 #define ltrace_record(T, E, ...) do {\
