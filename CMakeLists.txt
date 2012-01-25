@@ -67,8 +67,10 @@ endif(HAVE_LIBMEMCACHED)
 
 option(USE_LLVM "Use llvm" on)
 if(USE_LLVM)
-set(LOGPOOL_USE_LLVM 1)
-set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
+set(LOGPOOL_USE_LLVM true)
+endif(USE_LLVM)
+
+if(LOGPOOL_USE_LLVM)
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
 execute_process(
 		COMMAND ${LLVM_CONFIG} --version
@@ -76,9 +78,19 @@ execute_process(
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
+if(NOT DEFINED LLVM_CONFIG)
+set(LOGPOOL_USE_LLVM false)
+endif(NOT DEFINED LLVM_CONFIG)
+
+endif(LOGPOOL_USE_LLVM)
+
+if(LLVM_CONFIG)
 if(${LLVM_VERSION} VERSION_GREATER "3.0")
 set(LOGPOOL_USE_LLVM_31 1)
-endif()
+endif(${LLVM_VERSION} VERSION_GREATER "3.0")
+
+set(LOGPOOL_USE_LLVM 1)
+set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
 
 execute_process(
 		COMMAND ${LLVM_CONFIG} --cppflags
@@ -111,7 +123,7 @@ set(KONOHA_SRC ${KONOHA_SRC} src/lang/llvm.cpp)
 string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
 link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
 set(ExtraLibs ${ExtraLibs} ${v})
-endif(USE_LLVM)
+endif(LLVM_CONFIG)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/config.h)
