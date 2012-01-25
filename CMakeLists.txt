@@ -134,6 +134,23 @@ add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
+add_executable(test_file     test/file.c)
+add_executable(test_memcache test/memcache.c)
+add_executable(test_string   test/string.c)
+add_executable(test_syslog   test/syslog.c)
+
+target_link_libraries(test_file     logpool)
+target_link_libraries(test_memcache logpool)
+target_link_libraries(test_string   logpool)
+target_link_libraries(test_syslog   logpool)
+
+# test cases
+enable_testing()
+add_test(test_string   test_string)
+add_test(test_file     test_file)
+add_test(test_memcache test_memcache)
+add_test(test_syslog   test_syslog)
+
 install(TARGETS logpool
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION lib
