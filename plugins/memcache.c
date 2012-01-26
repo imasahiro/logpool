@@ -53,7 +53,7 @@ void logpool_memcache_close(logctx ctx)
     mc_t *mc = cast(mc_t *, ctx->connection);
     memcached_st *st = mc->st;
 #ifdef USE_BUFFER_REQ
-    memcached_return_t rc = memcached_flush(st, 0);
+    memcached_return_t rc = memcached_flush_buffers(st);
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
         /* TODO Error */
         fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
