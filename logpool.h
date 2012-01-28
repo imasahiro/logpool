@@ -124,23 +124,23 @@ static inline sizeinfo_t sizeinfo_create(short s1, short s2)
 }
 
 #define LOG_END       __CTX__->formatter->fn_flush(__CTX__, &__LOGDATA__);
-#define LOG_s(K,V)    ({\
+#define LOG_s(K,V)    __extension__(({\
         static const char __K__[] = K ":";\
         logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
             __CTX__->formatter->fn_string,\
-            sizeinfo_create(strlen(V), strlen(__K__)));})
-#define LOG_i(K,V)    ({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, V,\
-            __CTX__->formatter->fn_int, sizeinfo_create(0, strlen(__K__)));})
-#define LOG_f(K,V)    ({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, f2u(V),\
-            __CTX__->formatter->fn_float, sizeinfo_create(0, strlen(__K__)));})
-#define LOG_p(K,V)    ({\
+            sizeinfo_create(strlen(V), strlen(__K__)));}))
+#define LOG_i(K,V)    __extension__(({\
         static const char __K__[] = K ":";\
         logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
-            __CTX__->formatter->fn_hex, sizeinfo_create(0, strlen(__K__)));})
+            __CTX__->formatter->fn_int, sizeinfo_create(0, strlen(__K__)));}))
+#define LOG_f(K,V)    __extension__(({\
+        static const char __K__[] = K ":";\
+        logctx_append_fmtdata(__CTX__, __K__, f2u(V),\
+            __CTX__->formatter->fn_float, sizeinfo_create(0, strlen(__K__)));}))
+#define LOG_p(K,V)    __extension__(({\
+        static const char __K__[] = K ":";\
+        logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
+            __CTX__->formatter->fn_hex, sizeinfo_create(0, strlen(__K__)));}))
 
 #ifdef __cplusplus
 }
