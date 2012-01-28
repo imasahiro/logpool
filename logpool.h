@@ -84,9 +84,17 @@ struct lstate {
 };
 
 ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param);
+ltrace_t *ltrace_open_syslog(ltrace_t *parent);
+ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename);
+ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip);
+
 void ltrace_close(ltrace_t *p);
 
 lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param);
+lstate_t *lstate_open_syslog(const char *state);
+lstate_t *lstate_open_file(const char *state, char *filename);
+lstate_t *lstate_open_memcache(const char *state, char *host, long ip);
+
 void lstate_close(lstate_t *p);
 
 static inline uint64_t f2u(double f)
