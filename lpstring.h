@@ -15,13 +15,13 @@ typedef struct buffer {
     char base[1];
 } buffer_t;
 
-static void put_char2(char *p, int8_t c0, int8_t c1)
+static inline void put_char2(char *p, int8_t c0, int8_t c1)
 {
     uint16_t v = (c1 << 8) | c0;
     *(uint16_t*)p = v;
 }
 
-static void put_char4(char *p, int8_t c0, int8_t c1, int8_t c2, int8_t c3)
+static inline void put_char4(char *p, int8_t c0, int8_t c1, int8_t c2, int8_t c3)
 {
     uint32_t v = (c3 << 24) | (c2 << 16) | (c1 << 8) | c0;
     *(uint32_t*)p = v;
@@ -57,6 +57,8 @@ void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t i
 void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
 void logpool_string_delim(logctx ctx);
 void logpool_string_flush(logctx ctx);
+char *logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 
 static inline void logpool_string_flush_internal(logctx ctx)
 {
@@ -71,9 +73,6 @@ static inline void logpool_string_reset(logctx ctx)
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf->buf = buf->base;
 }
-
-char *logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
-char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 
 static inline char *put_hex(char *const start, uint64_t v)
 {

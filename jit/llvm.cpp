@@ -15,7 +15,6 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <stdio.h>
 #include "logpool.h"
-#include "logpool_internal.h"
 #include "lpstring.h"
 #include "jit/llvm.h"
 

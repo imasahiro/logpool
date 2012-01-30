@@ -1,7 +1,8 @@
-#include "logpool.h"
-#include "logpool_internal.h"
-#include "config.h"
 #include <stdlib.h>
+#include "logpool.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -163,6 +164,10 @@ void logpool_init(enum LOGPOOL_EXEC_MODE mode)
     } else {
         KeyAPI = logpool_string_api_init();
     }
+}
+
+void logpool_exit(void)
+{
 }
 
 #ifdef __cplusplus

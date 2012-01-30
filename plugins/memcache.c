@@ -1,7 +1,6 @@
 #include <libmemcached/memcached.h>
 #include <stdio.h>
 #include "logpool.h"
-#include "logpool_internal.h"
 #include "lpstring.h"
 
 #ifdef __cplusplus

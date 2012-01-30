@@ -1,7 +1,6 @@
-#include "logpool.h"
-#include "logpool_internal.h"
-#include "lpstring.h"
 #include <syslog.h>
+#include "logpool.h"
+#include "lpstring.h"
 
 #ifdef __cplusplus
 extern "C" {

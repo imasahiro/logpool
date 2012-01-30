@@ -153,6 +153,7 @@ add_test(test_string   test_string)
 add_test(test_file     test_file)
 add_test(test_memcache test_memcache)
 add_test(test_syslog   test_syslog)
+add_test(test_cpp      test_cpp)
 
 install(TARGETS logpool
 		RUNTIME DESTINATION bin
