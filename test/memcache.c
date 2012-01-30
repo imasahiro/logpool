@@ -1,4 +1,4 @@
-//memcache api test
+/*memcache api test*/
 static void *MEMCACHE_API_PARAM[] = {
     (void*) 1024,
     (void*) "localhost",

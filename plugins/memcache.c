@@ -24,7 +24,9 @@ void *logpool_memcache_init(logctx ctx, void **param)
     memcached_server_list_st servers;
 
     mc->st = memcached_create(NULL);
-    //memcached_behavior_set (mc->st, MEMCACHED_BEHAVIOR_NO_BLOCK, 1);
+#if 0
+    memcached_behavior_set (mc->st, MEMCACHED_BEHAVIOR_NO_BLOCK, 1);
+#endif
 #ifdef USE_BUFFER_REQ
     memcached_behavior_set (mc->st, MEMCACHED_BEHAVIOR_BUFFER_REQUESTS, 1);
 #endif
@@ -99,7 +101,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     else
 #endif
     if (unlikely(rc != MEMCACHED_SUCCESS)) {
-        // TODO Error
+        /* TODO Error */
         fprintf(stderr, "Error!! '%s'\n", memcached_strerror(mc->st, rc));
         abort();
     }

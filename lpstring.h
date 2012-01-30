@@ -60,8 +60,9 @@ void logpool_string_flush(logctx ctx);
 
 static inline void logpool_string_flush_internal(logctx ctx)
 {
+    buffer_t *buf;
     logctx_format_flush(ctx);
-    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf = cast(buffer_t *, ctx->connection);
     buf_put_char(buf, 0);
 }
 

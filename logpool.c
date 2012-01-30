@@ -8,6 +8,9 @@ extern "C" {
 #endif
 
 static struct keyapi *KeyAPI = NULL;
+extern struct logapi SYSLOG_API;
+extern struct logapi FILE2_API;
+extern struct logapi MEMCACHE_API;
 
 void logctx_init(logctx ctx, struct logapi *api, void **param)
 {
@@ -75,15 +78,18 @@ ltrace_t *ltrace_open_syslog(ltrace_t *parent)
 
 ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename)
 {
-    void *param[] = {(void*) 1024, (void*)filename};
-    extern struct logapi FILE2_API;
+    void *param[2];
+    param[0] = (void*) 1024;
+    param[1] = (void*) filename;
     return ltrace_open(parent, &FILE2_API, param);
 }
 
 ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip)
 {
-    void *param[] = {(void*) 1024, (void*) host, (void*) ip};
-    extern struct logapi MEMCACHE_API;
+    void *param[3];
+    param[0] = (void*) 1024;
+    param[1] = (void*) host;
+    param[2] = (void*) ip;
     return ltrace_open(parent, &MEMCACHE_API, param);
 }
 
@@ -115,21 +121,23 @@ lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param)
 lstate_t *lstate_open_syslog(const char *state)
 {
     void *param[] = {(void*) 1024};
-    extern struct logapi SYSLOG_API;
     return lstate_open(state, &SYSLOG_API, param);
 }
 
 lstate_t *lstate_open_file(const char *state, char *filename)
 {
-    void *param[] = {(void*) 1024, (void*)filename};
-    extern struct logapi FILE2_API;
+    void *param[2];
+    param[0] = (void*) 1024;
+    param[1] = (void*)filename;
     return lstate_open(state, &FILE2_API, param);
 }
 
 lstate_t *lstate_open_memcache(const char *state, char *host, long ip)
 {
-    void *param[] = {(void*) 1024, (void*) host, (void*) ip};
-    extern struct logapi MEMCACHE_API;
+    void *param[3];
+    param[0] = (void*) 1024;
+    param[1] = (void*) host;
+    param[2] = (void*) ip;
     return lstate_open(state, &MEMCACHE_API, param);
 }
 
