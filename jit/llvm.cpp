@@ -312,7 +312,7 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
         //To remove worning "casting between pointer-to-function
         //and pointer-to-object"
         //jitFn F = reinterpret_cast<jitFn>(*fnptr);
-        union anyptr { void *p; jitFn f;} ptr = {fnptr};
+        union anyptr { void *p; jitFn f;} ptr = {*fnptr};
         jitFn F = ptr.f;
         struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
         size_t argc = 0, size = ctx->logfmt_size;
