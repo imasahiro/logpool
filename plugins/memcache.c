@@ -14,11 +14,12 @@ typedef struct mc {
 } mc_t;
 
 #define USE_BUFFER_REQ 1
-void *logpool_memcache_init(logctx ctx, void **param)
+void *logpool_memcache_init(logctx ctx, struct logpool_param *p)
 {
-    const char *host = cast(const char *, param[1]);
-    long port = cast(long, param[2]);
-    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, param));
+    struct logpool_param_memcache *args = cast(struct logpool_param_memcache *, p);
+    const char *host = args->host;
+    long port = args->port;
+    mc_t *mc = cast(mc_t *, logpool_string_init(ctx, p));
     memcached_return_t rc;
     memcached_server_list_st servers;
 

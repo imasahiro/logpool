@@ -1,5 +1,6 @@
 /* syslog api test */
-static void *SYSLOG_API_PARAM[] = {(void*) 1024};
-#define LOGAPI_PARAM SYSLOG_API_PARAM
+#include "logpool.h"
+static struct logpool_param_syslog SYSLOG_API_PARAM = {8, 1024};
+#define LOGAPI_PARAM cast(struct logpool_param *, &SYSLOG_API_PARAM)
 #define LOGAPI SYSLOG_API
 #include "test_main.c"

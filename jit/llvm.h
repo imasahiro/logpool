@@ -8,7 +8,7 @@ struct jitctx_base {
     flushFn fn;
 };
 
-void *fn_init(logctx ctx, void **args);
+void *fn_init(logctx ctx, struct logpool_param *);
 void fn_close(logctx ctx);
 void fn_null(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
 void fn_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);

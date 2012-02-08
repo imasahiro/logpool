@@ -1,7 +1,11 @@
 /* large size format test */
-static void *STRING_API_PARAM[] = {(void*) 1024};
+#include "logpool.h"
+static struct logpool_param_string STRING_API_PARAM = {
 #define LOGFMT_MAX_SIZE 16
-#define LOGAPI_PARAM STRING_API_PARAM
+    LOGFMT_MAX_SIZE,
+    1024
+};
+#define LOGAPI_PARAM cast(struct logpool_param *, &STRING_API_PARAM)
 #define LOGAPI STRING_API
 
 #include "logpool.h"

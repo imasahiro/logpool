@@ -42,11 +42,13 @@ static void api_fn_flush(logctx ctx, char *buffer, size_t size __UNUSED__)
     }
 }
 
-void *fn_init(logctx ctx, void **args)
+void *fn_init(logctx ctx, struct logpool_param *p)
 {
-    const char *host = cast(const char *, args[1]);
-    long port = cast(long, args[2]);
-    mc_t *mc = cast(mc_t *, logpool::fn_init(ctx, args));
+    struct logpool_param_memcache *args = cast(struct logpool_param_memcache *, p);
+    const char *host = args->host;
+    long port = args->port;
+
+    mc_t *mc = cast(mc_t *, logpool::fn_init(ctx, p));
     memcached_return_t rc;
     memcached_server_list_st servers;
 

@@ -7,10 +7,11 @@
 extern "C" {
 #endif
 
-void *logpool_string_init(logctx ctx __UNUSED__, void **args)
+void *logpool_string_init(logctx ctx __UNUSED__, struct logpool_param *p)
 {
+    struct logpool_param_string *args = cast(struct logpool_param_string *, p);
     buffer_t *buf;
-    uintptr_t size = cast(uintptr_t, args[0]);
+    uintptr_t size = cast(uintptr_t, args->buffer_size);
     buf = cast(buffer_t *, malloc(sizeof(*buf) + size - 1));
     buf->buf  = buf->base;
     return cast(void *, buf);

@@ -9,8 +9,8 @@
 extern "C" {
 #endif
 
-#ifndef LOGFMT_MAX_SIZE
-#define LOGFMT_MAX_SIZE 16
+#ifndef LOGFMT_DEFAULT_MAX_SIZE
+#define LOGFMT_DEFAULT_MAX_SIZE 16
 #endif
 
 struct logCtx;
@@ -39,6 +39,34 @@ struct logfmt {
     sizeinfo_t siz;
 };
 
+/* param format */
+struct logpool_param {
+    int logfmt_capacity;
+};
+
+struct logpool_param_string {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+};
+
+struct logpool_param_syslog {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+};
+
+struct logpool_param_file {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+    const char *fname;
+};
+
+struct logpool_param_memcache {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+    const char *host;
+    long port;
+};
+
 struct logapi {
     logFn fn_null;
     logFn fn_bool;
@@ -50,7 +78,7 @@ struct logapi {
     logFn fn_raw;
     void  (*fn_delim)(logctx);
     void  (*fn_flush)(logctx, void**);
-    void *(*fn_init)(logctx, void**);
+    void *(*fn_init)(logctx, struct logpool_param *);
     void  (*fn_close)(logctx);
 };
 
@@ -67,16 +95,18 @@ struct logCtx {
     keyFn     fn_key;
     logapi_t *formatter;
     logfmt_t logkey;
-    logfmt_t fmt[LOGFMT_MAX_SIZE];
+    logfmt_t *fmt;
     long logfmt_size;
+    long logfmt_capacity;
 };
 
+/* ltrace API */
 struct ltrace {
     struct logCtx ctx;
     ltrace_t *parent;
 };
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, void **param);
+ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, struct logpool_param *);
 ltrace_t *ltrace_open_syslog(ltrace_t *parent);
 ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename);
 ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip);
@@ -88,27 +118,13 @@ struct lstate {
     uint64_t state;
 };
 
-lstate_t *lstate_open(const char *state_name, struct logapi *api, void **param);
+lstate_t *lstate_open(const char *state_name, struct logapi *api, struct logpool_param *);
 lstate_t *lstate_open_syslog(const char *state);
 lstate_t *lstate_open_file(const char *state, char *filename);
 lstate_t *lstate_open_memcache(const char *state, char *host, long ip);
 void lstate_close(lstate_t *p);
 
-static inline uint64_t f2u(double f)
-{
-    union {uint64_t u; double f;} v;
-    v.f = f;
-    return v.u;
-}
-
-static inline double u2f(uint64_t u)
-{
-    union {uint64_t u; double f;} v;
-    v.u = u;
-    return v.f;
-}
-
-void logctx_init(logctx ctx, struct logapi *api, void **param);
+void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *);
 void logctx_format_flush(logctx ctx);
 void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
 void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz);
@@ -147,6 +163,20 @@ struct keyapi {
 static inline sizeinfo_t sizeinfo_create(short s1, short s2)
 {
     return s1 << (sizeof(short) * 8) | s2;
+}
+
+static inline uint64_t f2u(double f)
+{
+    union {uint64_t u; double f;} v;
+    v.f = f;
+    return v.u;
+}
+
+static inline double u2f(uint64_t u)
+{
+    union {uint64_t u; double f;} v;
+    v.u = u;
+    return v.f;
 }
 
 #define LOG_END       __CTX__->formatter->fn_flush(__CTX__, &__LOGDATA__);

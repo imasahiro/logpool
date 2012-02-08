@@ -1,4 +1,3 @@
-#include "logpool.h"
 #include <stdbool.h>
 
 #ifndef LOGAPI

@@ -1,7 +1,7 @@
 #include "logpool.h"
 #include <stdbool.h>
 
-static void *LLVM_STRING_API_PARAM[] = {(void*) 1024};
+static struct logpool_param_string LLVM_STRING_API_PARAM = {8, 1024};
 extern logapi_t LLVM_STRING_API;
 
 static void lstate_test_write(lstate_t *state)
@@ -26,7 +26,7 @@ int main(int argc __UNUSED__, const char *argv[] __UNUSED__)
 {
     lstate_t *lstate;
     logpool_init(LOGPOOL_JIT);
-    lstate = lstate_open("abcd", &LLVM_STRING_API, LLVM_STRING_API_PARAM);
+    lstate = lstate_open("abcd", &LLVM_STRING_API, (struct logpool_param*) &LLVM_STRING_API_PARAM);
     lstate_test_write(lstate);
     lstate_close(lstate);
     return 0;

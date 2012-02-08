@@ -12,10 +12,11 @@ typedef struct flog {
     char base[1];
 } flog_t;
 
-void *logpool_FILE2_init(logctx ctx, void **args)
+void *logpool_FILE2_init(logctx ctx, struct logpool_param *p)
 {
-    char *fname = cast(char *, args[1]);
-    flog_t *fl  = cast(flog_t *, logpool_string_init(ctx, args));
+    struct logpool_param_file *args = cast(struct logpool_param_file *, p);
+    char *fname = cast(char *, args->fname);
+    flog_t *fl  = cast(flog_t *, logpool_string_init(ctx, p));
     fl->fp = fopen(fname, "w");
     return cast(void *, fl);
 }

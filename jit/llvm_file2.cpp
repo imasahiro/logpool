@@ -21,10 +21,11 @@ static void api_fn_flush(logctx ctx, char *buffer, size_t size)
     fputs(buffer, fp);
 }
 
-void *fn_init(logctx ctx, void **args)
+void *fn_init(logctx ctx, struct logpool_param *p)
 {
-    char *fname = cast(char *, args[1]);
-    flog_t *fl  = cast(flog_t *, logpool::fn_init(ctx, args));
+    struct logpool_param_file *args = cast(struct logpool_param_file *, p);
+    char *fname = cast(char *, args->fname);
+    flog_t *fl  = cast(flog_t *, logpool::fn_init(ctx, p));
     fl->f.fp = fopen(fname, "w");
     fl->f.fn = api_fn_flush;
     return cast(void *, fl);

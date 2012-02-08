@@ -18,7 +18,7 @@ int main(int argc, const char *argv[])
     size_t size = getfilesize(file);
     FILE *fp  = fopen(file, "rb");
     FILE *out = fopen("llvm_bc.h", "wb");
-    char buf[size];
+    char *buf = (char *) alloca(size);
     if (fread(buf, size, 1, fp) != 1)
         abort();
 

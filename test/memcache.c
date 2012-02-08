@@ -1,9 +1,11 @@
 /*memcache api test*/
-static void *MEMCACHE_API_PARAM[] = {
-    (void*) 1024,
-    (void*) "localhost",
-    (void*) 11211L
+#include "logpool.h"
+static struct logpool_param_memcache MEMCACHE_API_PARAM = {
+    8,
+    1024,
+    "localhost",
+    11211L
 };
-#define LOGAPI_PARAM MEMCACHE_API_PARAM
+#define LOGAPI_PARAM cast(struct logpool_param *, &MEMCACHE_API_PARAM)
 #define LOGAPI MEMCACHE_API
 #include "test_main.c"

@@ -47,9 +47,11 @@ static void api_fn_flush(logctx ctx, char *buffer, size_t size)
     fputs(buffer, stderr);
 }
 
-void *fn_init(logctx ctx __UNUSED__, void **args)
+void *fn_init(logctx ctx __UNUSED__, struct logpool_param *args_)
 {
-    long hasEOL = cast(long, args[0]);
+    struct logpool_param_string *args;
+    args = cast(logpool_param_string *, args_);
+    long hasEOL = cast(long, args->buffer_size);
     jitctx *jit = new jitctx(global_module, hasEOL);
     jit->base.fn = api_fn_flush;
     return cast(void *, jit);
@@ -304,7 +306,7 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
     ctx->fn_key(cast(logctx, &p), ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     p[0] = ',';
     if (ctx->logfmt_size) {
-        uint64_t params[LOGFMT_MAX_SIZE*2];
+        uint64_t *params = static_cast<uint64_t*>(alloca(sizeof(uint64_t) * ctx->logfmt_capacity*2));
         jitctx *JIT = static_cast<jitctx*>(ctx->connection);
         if (!*fnptr)
             *fnptr = emit_code(ctx);
