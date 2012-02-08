@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #ifndef LOGFMT_MAX_SIZE
-#define LOGFMT_MAX_SIZE 8
+#define LOGFMT_MAX_SIZE 16
 #endif
 
 struct logCtx;

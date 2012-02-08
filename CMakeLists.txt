@@ -136,6 +136,7 @@ add_executable(test_memcache test/memcache.c)
 add_executable(test_string   test/string.c)
 add_executable(test_syslog   test/syslog.c)
 add_executable(test_cpp      test/cpp.cpp)
+add_executable(test_largefmt test/large_fmtdata.c)
 
 set(TestLibs logpool)
 if(HAVE_LIBDL)
@@ -146,6 +147,7 @@ target_link_libraries(test_memcache ${TestLibs})
 target_link_libraries(test_string   ${TestLibs})
 target_link_libraries(test_syslog   ${TestLibs})
 target_link_libraries(test_cpp      ${TestLibs})
+target_link_libraries(test_largefmt ${TestLibs})
 
 # test cases
 enable_testing()
@@ -154,6 +156,7 @@ add_test(test_file     test_file)
 add_test(test_memcache test_memcache)
 add_test(test_syslog   test_syslog)
 add_test(test_cpp      test_cpp)
+add_test(test_largefmt test_largefmt)
 
 install(TARGETS logpool
 		RUNTIME DESTINATION bin
