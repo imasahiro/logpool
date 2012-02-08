@@ -181,7 +181,7 @@ add_test(test_cpp      test_cpp)
 add_test(test_largefmt test_largefmt)
 
 if(LOGPOOL_USE_LLVM)
-add_executable(test_llvm test/testllvm.c)
+add_executable(test_llvm test/llvm.c)
 target_link_libraries(test_llvm ${TestLibs})
 add_test(test_llvm test_llvm)
 endif(LOGPOOL_USE_LLVM)

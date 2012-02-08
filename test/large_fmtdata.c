@@ -1,7 +1,7 @@
 /* large size format test */
 #include "logpool.h"
 static struct logpool_param_string STRING_API_PARAM = {
-#define LOGFMT_MAX_SIZE 16
+#define LOGFMT_MAX_SIZE 32
     LOGFMT_MAX_SIZE,
     1024
 };
@@ -33,6 +33,21 @@ static void ltrace_test_write(ltrace_t *ltrace)
             LOG_f("4:float", f),
             LOG_i("4:int",   i),
             LOG_s("4:string", s),
+            LOG_f("5:float", f),
+            LOG_i("5:int",   i),
+            LOG_s("5:string", s),
+            LOG_f("6:float", f),
+            LOG_i("6:int",   i),
+            LOG_s("6:string", s),
+            LOG_f("7:float", f),
+            LOG_i("7:int",   i),
+            LOG_s("7:string", s),
+            LOG_f("8:float", f),
+            LOG_i("8:int",   i),
+            LOG_s("8:string", s),
+            LOG_f("9:float", f),
+            LOG_i("9:int",   i),
+            LOG_s("9:string", s),
             LOG_END
             );
 }

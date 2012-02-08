@@ -22,13 +22,31 @@ static void lstate_test_write(lstate_t *state)
     }
 }
 
-int main(int argc __UNUSED__, const char *argv[] __UNUSED__)
+void lstate_test(void)
 {
     lstate_t *lstate;
     logpool_init(LOGPOOL_JIT);
     lstate = lstate_open("abcd", &LLVM_STRING_API, (struct logpool_param*) &LLVM_STRING_API_PARAM);
     lstate_test_write(lstate);
     lstate_close(lstate);
-    return 0;
 }
 
+void ltrace_test(void) {
+    ltrace_t *ltrace;
+    const char *s = "hello world";
+    logpool_init(LOGPOOL_JIT);
+    ltrace = ltrace_open(NULL, &LLVM_STRING_API,
+            (struct logpool_param*) &LLVM_STRING_API_PARAM);
+    ltrace_record(ltrace, "test",
+            LOG_s("string", s),
+            LOG_END
+            );
+    ltrace_close(ltrace);
+}
+
+int main(void)
+{
+    ltrace_test();
+    lstate_test();
+    return 0;
+}
