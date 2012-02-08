@@ -6,6 +6,6 @@ static struct logpool_param_memcache MEMCACHE_API_PARAM = {
     "localhost",
     11211L
 };
-#define LOGAPI_PARAM cast(struct logpool_param *, &MEMCACHE_API_PARAM)
+#define LOGAPI_PARAM cast(logpool_param_t *, &MEMCACHE_API_PARAM)
 #define LOGAPI MEMCACHE_API
 #include "test_main.c"

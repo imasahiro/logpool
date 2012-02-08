@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-void *logpool_string_init(logctx ctx __UNUSED__, struct logpool_param *p)
+void *logpool_string_init(logctx_t *ctx __UNUSED__, logpool_param_t *p)
 {
     struct logpool_param_string *args = cast(struct logpool_param_string *, p);
     buffer_t *buf;
@@ -18,22 +18,22 @@ void *logpool_string_init(logctx ctx __UNUSED__, struct logpool_param *p)
     return cast(void *, buf);
 }
 
-void logpool_string_close(logctx ctx)
+void logpool_string_close(logctx_t *ctx)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     free(buf);
     lctx->connection = NULL;
 }
 
-void logpool_string_null(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info)
+void logpool_string_null(logctx_t *ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf_put_string(buf, key, get_l2(info));
     buf_put_string(buf, "null", 5);
 }
 
-void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_bool(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     const char *s = (v != 0)?"true":"false";
@@ -42,7 +42,7 @@ void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t inf
     buf_put_string(buf, s, len);
 }
 
-void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_int(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     intptr_t i = cast(intptr_t, v);
@@ -50,7 +50,7 @@ void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buf->buf = put_i(buf->buf, i);
 }
 
-void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_hex(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf_put_string(buf, key, get_l2(info));
@@ -58,7 +58,7 @@ void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buf->buf = put_hex(buf->buf, v);
 }
 
-void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_float(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     double f = u2f(v);
@@ -66,7 +66,7 @@ void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t in
     buf->buf = put_f(buf->buf, f);
 }
 
-void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_char(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     long c = cast(long, v);
@@ -74,7 +74,7 @@ void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t inf
     buf_put_char(buf, (char)c);
 }
 
-void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_string(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
@@ -84,7 +84,7 @@ void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t i
     buf_put_char(buf, '\'');
 }
 
-void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void logpool_string_raw(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
@@ -92,18 +92,18 @@ void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info
     buf_put_string(buf, s, get_l1(info));
 }
 
-void logpool_string_delim(logctx ctx)
+void logpool_string_delim(logctx_t *ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf_put_char(buf, ',');
 }
 
-void logpool_string_flush(logctx ctx)
+void logpool_string_flush(logctx_t *ctx)
 {
     logpool_string_flush_internal(ctx);
 }
 
-static void logpool_string_flush__(logctx ctx, void **args __UNUSED__)
+static void logpool_string_flush__(logctx_t *ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
@@ -135,7 +135,7 @@ static char *write_seq(buffer_t *buf, uint64_t seq)
     return buf->buf;
 }
 
-char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
+char *logpool_key_hex(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf_put_char2(buf, '0' ,'x');
@@ -143,7 +143,7 @@ char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info __UN
     return write_seq(buf, seq);
 }
 
-char *logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
+char *logpool_key_string(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);

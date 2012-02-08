@@ -4,24 +4,24 @@
 #define LOGPOOL_LLVM_H_
 namespace logpool {
 
-typedef void (*flushFn)(logctx, char *buf, size_t len);
+typedef void (*flushFn)(logctx_t *, char *buf, size_t len);
 struct jitctx_base {
     void *ptr_;
     flushFn fn;
 };
 
-void *fn_init(logctx ctx, struct logpool_param *);
-void fn_close(logctx ctx);
-void fn_null(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void fn_delim(logctx ctx);
-void fn_flush(logctx ctx, void **fnptr);
+void *fn_init(logctx_t *ctx, logpool_param_t *);
+void fn_close(logctx_t *ctx);
+void fn_null(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_bool(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_int(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_hex(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_float(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_char(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_string(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_raw(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void fn_delim(logctx_t *ctx);
+void fn_flush(logctx_t *ctx, void **fnptr);
 } /* namespace logpool */
 
 #endif /* end of include guard */

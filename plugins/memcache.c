@@ -15,7 +15,7 @@ typedef struct mc {
 } mc_t;
 
 #define USE_BUFFER_REQ 1
-void *logpool_memcache_init(logctx ctx, struct logpool_param *p)
+void *logpool_memcache_init(logctx_t *ctx, logpool_param_t *p)
 {
     struct logpool_param_memcache *args = cast(struct logpool_param_memcache *, p);
     const char *host = args->host;
@@ -51,7 +51,7 @@ void *logpool_memcache_init(logctx ctx, struct logpool_param *p)
     return cast(void *, mc);
 }
 
-void logpool_memcache_close(logctx ctx)
+void logpool_memcache_close(logctx_t *ctx)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
     memcached_st *st = mc->st;
@@ -67,7 +67,7 @@ void logpool_memcache_close(logctx ctx)
     logpool_string_close(ctx);
 }
 
-static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
+static void logpool_memcache_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
     char key[128] = {0}, *buf_orig = mc->buf, *p;
@@ -75,7 +75,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     uint32_t flags = 0;
     size_t klen, vlen;
     memcached_return_t rc;
-    struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+    struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
 
     mc->buf = key;
@@ -84,14 +84,14 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
     mc->buf = buf_orig;
 
     if (size) {
-        void (*fn_delim)(logctx) = ctx->formatter->fn_delim;
+        void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         ++fmt;
         for (i = 1; i < size; ++i, ++fmt) {
             fn_delim(ctx);
             fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         }
-        cast(struct logCtx *, ctx)->logfmt_size = 0;
+        cast(struct logctx *, ctx)->logfmt_size = 0;
     }
 
     vlen = (char*) mc->buf - value;
@@ -107,7 +107,7 @@ static void logpool_memcache_flush(logctx ctx, void **args __UNUSED__)
         abort();
     }
     logpool_string_reset(ctx);
-    ++(cast(struct logCtx *, ctx)->logkey.k.seq);
+    ++(cast(struct logctx *, ctx)->logkey.k.seq);
 }
 
 struct logapi MEMCACHE_API = {

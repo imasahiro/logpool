@@ -14,14 +14,14 @@ typedef union fileinfo {
     } f;
 } flog_t;
 
-static void api_fn_flush(logctx ctx, char *buffer, size_t size)
+static void api_fn_flush(logctx_t *ctx, char *buffer, size_t size)
 {
     (void)size;
     FILE *fp = cast(flog_t *, ctx->connection)->f.fp;
     fputs(buffer, fp);
 }
 
-void *fn_init(logctx ctx, struct logpool_param *p)
+void *fn_init(logctx_t *ctx, logpool_param_t *p)
 {
     struct logpool_param_file *args = cast(struct logpool_param_file *, p);
     char *fname = cast(char *, args->fname);
@@ -31,7 +31,7 @@ void *fn_init(logctx ctx, struct logpool_param *p)
     return cast(void *, fl);
 }
 
-void fn_flush(logctx ctx, void **args)
+void fn_flush(logctx_t *ctx, void **args)
 {
     logpool::fn_flush(ctx, args);
 }

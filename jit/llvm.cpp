@@ -41,13 +41,13 @@ struct jitctx {
         }
 };
 
-static void api_fn_flush(logctx ctx, char *buffer, size_t size)
+static void api_fn_flush(logctx_t *ctx, char *buffer, size_t size)
 {
     (void)ctx;(void)size;
     fputs(buffer, stderr);
 }
 
-void *fn_init(logctx ctx __UNUSED__, struct logpool_param *args_)
+void *fn_init(logctx_t *ctx __UNUSED__, logpool_param_t *args_)
 {
     struct logpool_param_string *args;
     args = cast(logpool_param_string *, args_);
@@ -57,9 +57,9 @@ void *fn_init(logctx ctx __UNUSED__, struct logpool_param *args_)
     return cast(void *, jit);
 }
 
-void fn_close(logctx ctx)
+void fn_close(logctx_t *ctx)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     jitctx *jit = static_cast<jitctx*>(ctx->connection);
     delete jit;
     lctx->connection = NULL;
@@ -134,14 +134,14 @@ static void copy_char(jitctx *jit, char c)
     copy_char(jit, C);
 }
 
-void fn_null(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info __UNUSED__)
+void fn_null(logctx_t *ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info __UNUSED__)
 {
     jitctx *jit = cast(jitctx *, ctx->connection);
     std::string key_(key);
     key_ += "null";
     copy_string(jit, key_);
 }
-void fn_bool(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info __UNUSED__)
+void fn_bool(logctx_t *ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info __UNUSED__)
 {
     jitctx *jit = cast(jitctx *, ctx->connection);
     IRBuilder<> *builder = jit->builder;
@@ -162,14 +162,14 @@ void fn_bool(logctx ctx, const char *key, uint64_t v __UNUSED__, sizeinfo_t info
     Len = builder->CreateSelect(Arg, TLen, FLen);
     copy_string(jit, Str, Len);
 }
-void fn_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_int(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
     copy_string(jit, key);
     copy_number(jit, "llvm_put_i", get_arg(jit));
 }
-void fn_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_hex(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
@@ -178,7 +178,7 @@ void fn_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
     copy_string(jit, key_);
     copy_number(jit, "llvm_put_h", get_arg(jit));
 }
-void fn_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_float(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
@@ -192,7 +192,7 @@ void fn_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
     copy_number(jit, "llvm_put_f", V);
 
 }
-void fn_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_char(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
@@ -200,7 +200,7 @@ void fn_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
     copy_char(jit, get_arg(jit));
 }
 
-void fn_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_string(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
@@ -212,19 +212,19 @@ void fn_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
     copy_string(jit, Str, Len);
     copy_char(jit, '\'');
 }
-void fn_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info)
+void fn_raw(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     (void)v;(void)info;
     jitctx *jit = cast(jitctx *, ctx->connection);
     copy_string(jit, key);
 }
 
-void fn_delim(logctx ctx)
+void fn_delim(logctx_t *ctx)
 {
     jitctx *jit = cast(jitctx *, ctx->connection);
     copy_char(jit, ',');
 }
-static void *emit_code(logctx ctx)
+static void *emit_code(logctx_t *ctx)
 {
     size_t i, size = ctx->logfmt_size;
     jitctx *JIT = static_cast<jitctx*>(ctx->connection);
@@ -233,7 +233,7 @@ static void *emit_code(logctx ctx)
     /* void f(uint64_t seq, ...) */
     Type *Int8PtrTy  = Type::getInt8PtrTy(Context);
     Type *Int64PtrTy = Type::getInt64PtrTy(Context);
-    struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+    struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
 
     Type * ArgsTy[] = {
         Int8PtrTy,
@@ -250,7 +250,7 @@ static void *emit_code(logctx ctx)
     IRBuilder<> builder(bb);
     JIT->builder = &builder;
     JIT->F = F;
-    fmt = cast(struct logCtx *, ctx)->fmt;
+    fmt = cast(struct logctx *, ctx)->fmt;
 
     if (size) {
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
@@ -299,11 +299,11 @@ static int push_args(uint64_t *a, int argc, struct logfmt *fmt)
 
 typedef void (*jitFn)(char *, uint64_t *);
 
-void fn_flush(logctx ctx, void **fnptr __UNUSED__)
+void fn_flush(logctx_t *ctx, void **fnptr __UNUSED__)
 {
     char buffer[256], *p = buffer;
 
-    ctx->fn_key(cast(logctx, &p), ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    ctx->fn_key(cast(logctx_t *, &p), ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     p[0] = ',';
     if (ctx->logfmt_size) {
         uint64_t *params = static_cast<uint64_t*>(alloca(sizeof(uint64_t) * ctx->logfmt_capacity*2));
@@ -316,16 +316,16 @@ void fn_flush(logctx ctx, void **fnptr __UNUSED__)
         //jitFn F = reinterpret_cast<jitFn>(*fnptr);
         union anyptr { void *p; jitFn f;} ptr = {*fnptr};
         jitFn F = ptr.f;
-        struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+        struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
         size_t argc = 0, size = ctx->logfmt_size;
         for (size_t i = 0; i < size; ++i, ++fmt) {
             argc = push_args(params, argc, fmt);
         }
-        cast(struct logCtx *, ctx)->logfmt_size = 0;
+        cast(struct logctx *, ctx)->logfmt_size = 0;
         F(p+1, params);
         JIT->base.fn(ctx, buffer, 0);
     }
-    ++(cast(struct logCtx *, ctx)->logkey.k.seq);
+    ++(cast(struct logctx *, ctx)->logkey.k.seq);
 }
 
 static char *put_seq(char *buf, uint64_t seq)

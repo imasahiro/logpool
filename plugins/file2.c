@@ -13,7 +13,7 @@ typedef struct flog {
     char base[1];
 } flog_t;
 
-void *logpool_FILE2_init(logctx ctx, struct logpool_param *p)
+void *logpool_FILE2_init(logctx_t *ctx, logpool_param_t *p)
 {
     struct logpool_param_file *args = cast(struct logpool_param_file *, p);
     char *fname = cast(char *, args->fname);
@@ -22,14 +22,14 @@ void *logpool_FILE2_init(logctx ctx, struct logpool_param *p)
     return cast(void *, fl);
 }
 
-void logpool_FILE2_close(logctx ctx)
+void logpool_FILE2_close(logctx_t *ctx)
 {
     flog_t *fl = cast(flog_t *, ctx->connection);
     fclose(fl->fp);
     logpool_string_close(ctx);
 }
 
-void logpool_FILE2_flush(logctx ctx, void **args __UNUSED__)
+void logpool_FILE2_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     flog_t *fl = cast(flog_t *, ctx->connection);
     logpool_string_flush(ctx);

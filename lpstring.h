@@ -45,22 +45,22 @@ static inline void buf_put_char3(buffer_t *buf, char c0, char c1, char c2)
     buf->buf += 3;
 }
 
-void *logpool_string_init(logctx ctx, struct logpool_param *param);
-void logpool_string_close(logctx ctx);
-void logpool_string_null(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_bool(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_int(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_hex(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_float(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_char(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_string(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_raw(logctx ctx, const char *key, uint64_t v, sizeinfo_t info);
-void logpool_string_delim(logctx ctx);
-void logpool_string_flush(logctx ctx);
-char *logpool_key_string(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
-char *logpool_key_hex(logctx ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+void *logpool_string_init(logctx_t *ctx, logpool_param_t *param);
+void logpool_string_close(logctx_t *ctx);
+void logpool_string_null(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_bool(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_int(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_hex(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_float(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_char(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_string(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_raw(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info);
+void logpool_string_delim(logctx_t *ctx);
+void logpool_string_flush(logctx_t *ctx);
+char *logpool_key_string(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
+char *logpool_key_hex(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 
-static inline void logpool_string_flush_internal(logctx ctx)
+static inline void logpool_string_flush_internal(logctx_t *ctx)
 {
     buffer_t *buf;
     logctx_format_flush(ctx);
@@ -68,7 +68,7 @@ static inline void logpool_string_flush_internal(logctx ctx)
     buf_put_char(buf, 0);
 }
 
-static inline void logpool_string_reset(logctx ctx)
+static inline void logpool_string_reset(logctx_t *ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     buf->buf = buf->base;

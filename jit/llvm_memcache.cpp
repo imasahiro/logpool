@@ -14,7 +14,7 @@ typedef union mc {
     } s;
 } mc_t;
 
-static void api_fn_flush(logctx ctx, char *buffer, size_t size __UNUSED__)
+static void api_fn_flush(logctx_t *ctx, char *buffer, size_t size __UNUSED__)
 {
     //TODO
     assert(0);
@@ -42,7 +42,7 @@ static void api_fn_flush(logctx ctx, char *buffer, size_t size __UNUSED__)
     }
 }
 
-void *fn_init(logctx ctx, struct logpool_param *p)
+void *fn_init(logctx_t *ctx, logpool_param_t *p)
 {
     struct logpool_param_memcache *args = cast(struct logpool_param_memcache *, p);
     const char *host = args->host;
@@ -72,14 +72,14 @@ void *fn_init(logctx ctx, struct logpool_param *p)
     return cast(void *, mc);
 }
 
-void fn_close(logctx ctx)
+void fn_close(logctx_t *ctx)
 {
     mc_t *mc = cast(mc_t *, ctx->connection);
     memcached_free(mc->s.st);
     logpool::fn_close(ctx);
 }
 
-void fn_flush(logctx ctx, void **args)
+void fn_flush(logctx_t *ctx, void **args)
 {
     logpool::fn_flush(ctx, args);
 }

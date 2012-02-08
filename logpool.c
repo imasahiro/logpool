@@ -15,9 +15,9 @@ extern struct logapi SYSLOG_API;
 extern struct logapi FILE2_API;
 extern struct logapi MEMCACHE_API;
 
-static void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *param)
+static void logctx_init(logctx_t *ctx, struct logapi *api, logpool_param_t *param)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     lctx->logfmt_capacity = param->logfmt_capacity;
     lctx->fmt = cast(logfmt_t *, malloc(sizeof(logfmt_t) * lctx->logfmt_capacity));
     lctx->formatter   = api;
@@ -26,20 +26,20 @@ static void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *pa
     lctx->logfmt_size  = 0;
 }
 
-static void logctx_close(logctx ctx)
+static void logctx_close(logctx_t *ctx)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     free(lctx->fmt);
     lctx->fmt = NULL;
 }
 
-void logctx_format_flush(logctx ctx)
+void logctx_format_flush(logctx_t *ctx)
 {
-    struct logfmt *fmt = cast(struct logCtx *, ctx)->fmt;
+    struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     if (size) {
-        void (*fn_delim)(logctx) = ctx->formatter->fn_delim;
+        void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
         /* unroled */
         fn_delim(ctx);
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
@@ -48,14 +48,14 @@ void logctx_format_flush(logctx ctx)
             fn_delim(ctx);
             fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         }
-        cast(struct logCtx *, ctx)->logfmt_size = 0;
+        cast(struct logctx *, ctx)->logfmt_size = 0;
     }
-    ++(cast(struct logCtx *, ctx)->logkey.k.seq);
+    ++(cast(struct logctx *, ctx)->logkey.k.seq);
 }
 
-void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, sizeinfo_t siz)
+void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t siz)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     assert(lctx->logfmt_size < lctx->logfmt_capacity);
     lctx->fmt[lctx->logfmt_size].fn    = f;
     lctx->fmt[lctx->logfmt_size].k.key = key;
@@ -64,18 +64,18 @@ void logctx_append_fmtdata(logctx ctx, const char *key, uint64_t v, logFn f, siz
     ++lctx->logfmt_size;
 }
 
-void logctx_init_logkey(logctx ctx, uint64_t v, sizeinfo_t siz)
+void logctx_init_logkey(logctx_t *ctx, uint64_t v, sizeinfo_t siz)
 {
-    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    struct logctx *lctx = cast(struct logctx *, ctx);
     lctx->logkey.v.u = v;
     lctx->logkey.siz = siz;
     lctx->logfmt_size = 0;
 }
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, struct logpool_param *p)
+ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *p)
 {
     struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
-    logctx_init(cast(logctx, l), api, p);
+    logctx_init(cast(logctx_t *, l), api, p);
     l->parent = parent;
     l->ctx.fn_key = KeyAPI->str;
     return cast(ltrace_t*, l);
@@ -85,7 +85,7 @@ ltrace_t *ltrace_open_syslog(ltrace_t *parent)
 {
     struct logpool_param_syslog param = {8, 1024};
     extern struct logapi SYSLOG_API;
-    return ltrace_open(parent, &SYSLOG_API, (struct logpool_param*) &param);
+    return ltrace_open(parent, &SYSLOG_API, (logpool_param_t *) &param);
 }
 
 ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename)
@@ -106,8 +106,8 @@ ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip)
 void ltrace_close(ltrace_t *p)
 {
     struct ltrace *l = cast(struct ltrace *, p);
-    cast(logctx, l)->formatter->fn_close(cast(logctx, l));
-    logctx_close(cast(logctx, l));
+    cast(logctx_t *, l)->formatter->fn_close(cast(logctx_t *, l));
+    logctx_close(cast(logctx_t *, l));
     free(l);
 }
 
@@ -120,11 +120,11 @@ static uint64_t hash(uint64_t h, const char *p, size_t len)
     return h;
 }
 
-lstate_t *lstate_open(const char *state_name, struct logapi *api, struct logpool_param *p)
+lstate_t *lstate_open(const char *state_name, struct logapi *api, logpool_param_t *p)
 {
     struct lstate *l = cast(struct lstate *, malloc(sizeof(*l)));
     l->state = hash(0x11029, state_name, strlen(state_name));
-    logctx_init(cast(logctx, l), api, p);
+    logctx_init(cast(logctx_t *, l), api, p);
     l->ctx.fn_key = KeyAPI->hex;
     return cast(lstate_t*, l);
 }
@@ -139,7 +139,7 @@ lstate_t *lstate_open_file(const char *state, char *filename)
 {
     struct logpool_param_file param = {8, 1024};
     param.fname = (const char *) filename;
-    return lstate_open(state, &FILE2_API, (struct logpool_param *) &param);
+    return lstate_open(state, &FILE2_API, (logpool_param_t *) &param);
 }
 
 lstate_t *lstate_open_memcache(const char *state, char *host, long ip)
@@ -147,14 +147,14 @@ lstate_t *lstate_open_memcache(const char *state, char *host, long ip)
     struct logpool_param_memcache param = {8, 1024};
     param.host = host;
     param.port = ip;
-    return lstate_open(state, &MEMCACHE_API, (struct logpool_param *) &param);
+    return lstate_open(state, &MEMCACHE_API, (logpool_param_t *) &param);
 }
 
 void lstate_close(lstate_t *p)
 {
     struct lstate *l = cast(struct lstate *, p);
-    cast(logctx, l)->formatter->fn_close(cast(logctx, l));
-    logctx_close(cast(logctx, l));
+    cast(logctx_t *, l)->formatter->fn_close(cast(logctx_t *, l));
+    logctx_close(cast(logctx_t *, l));
     free(l);
 }
 

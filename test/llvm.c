@@ -26,7 +26,7 @@ void lstate_test(void)
 {
     lstate_t *lstate;
     logpool_init(LOGPOOL_JIT);
-    lstate = lstate_open("abcd", &LLVM_STRING_API, (struct logpool_param*) &LLVM_STRING_API_PARAM);
+    lstate = lstate_open("abcd", &LLVM_STRING_API, (logpool_param_t *) &LLVM_STRING_API_PARAM);
     lstate_test_write(lstate);
     lstate_close(lstate);
 }
@@ -36,7 +36,7 @@ void ltrace_test(void) {
     const char *s = "hello world";
     logpool_init(LOGPOOL_JIT);
     ltrace = ltrace_open(NULL, &LLVM_STRING_API,
-            (struct logpool_param*) &LLVM_STRING_API_PARAM);
+            (logpool_param_t *) &LLVM_STRING_API_PARAM);
     ltrace_record(ltrace, "test",
             LOG_s("string", s),
             LOG_END

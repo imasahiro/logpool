@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-static void logpool_syslog_flush(logctx ctx, void **args __UNUSED__)
+static void logpool_syslog_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     logpool_string_flush(ctx);
