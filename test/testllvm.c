@@ -1,14 +1,8 @@
 #include "logpool.h"
 #include <stdbool.h>
 
-#define LOGTEST_LLVM_STRING_API
-#ifdef LOGTEST_LLVM_STRING_API
 static void *LLVM_STRING_API_PARAM[] = {(void*) 1024};
-#define LOGAPI_PARAM LLVM_STRING_API_PARAM
-#define LOGAPI LLVM_STRING_API
-#endif
-
-extern logapi_t LOGAPI;
+extern logapi_t LLVM_STRING_API;
 
 static void lstate_test_write(lstate_t *state)
 {
@@ -30,8 +24,9 @@ static void lstate_test_write(lstate_t *state)
 
 int main(int argc __UNUSED__, const char *argv[] __UNUSED__)
 {
+    lstate_t *lstate;
     logpool_init(LOGPOOL_JIT);
-    lstate_t *lstate = lstate_open("abcd", &LOGAPI, LOGAPI_PARAM);
+    lstate = lstate_open("abcd", &LLVM_STRING_API, LLVM_STRING_API_PARAM);
     lstate_test_write(lstate);
     lstate_close(lstate);
     return 0;

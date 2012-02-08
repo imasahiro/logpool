@@ -72,6 +72,7 @@ endif(USE_LLVM)
 
 if(LOGPOOL_USE_LLVM)
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
+find_program(HAVE_CLANG   NAMES clang DOC "clang")
 if(NOT LLVM_CONFIG)
 set(LOGPOOL_USE_LLVM false)
 endif(NOT LLVM_CONFIG)
@@ -116,10 +117,31 @@ execute_process(
 		OUTPUT_VARIABLE LLVM_LIBDIR
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
+
 set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
 string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
 link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
 set(ExtraLibs ${ExtraLibs} ${v})
+
+add_executable(ConvertBC ./jit/tohex.c)
+if(HAVE_CLANG)
+	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+	set(_cflag "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TYPE}}")
+	set(_tmp "${_cflag} -g0")
+	set(_output ${CMAKE_CURRENT_BINARY_DIR}/puts.bc)
+	add_custom_command(
+		OUTPUT  ${_output}
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
+		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
+		${LLVM_C_FLAGS} -emit-llvm -c -o
+		${_output})
+	add_custom_command(
+		OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h
+		DEPENDS ConvertBC ${_output}
+		COMMAND ConvertBC ${_output})
+	set(LOGPOOL_SRC ${LOGPOOL_SRC} ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h)
+endif(HAVE_CLANG)
+
 endif(LLVM_CONFIG)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
@@ -158,20 +180,17 @@ add_test(test_syslog   test_syslog)
 add_test(test_cpp      test_cpp)
 add_test(test_largefmt test_largefmt)
 
+if(LOGPOOL_USE_LLVM)
+add_executable(test_llvm test/testllvm.c)
+target_link_libraries(test_llvm ${TestLibs})
+add_test(test_llvm test_llvm)
+endif(LOGPOOL_USE_LLVM)
+
+
 install(TARGETS logpool
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION lib
 		)
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/logpool.h DESTINATION include)
-
-MESSAGE(STATUS)
-MESSAGE(STATUS "---------------------------------------------------------------------------" )
-MESSAGE(STATUS "CMAKE_C_COMPILER = ${CMAKE_C_COMPILER}")
-MESSAGE(STATUS "CMAKE_CXX_COMPILER = ${CMAKE_CXX_COMPILER}")
-MESSAGE(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
-MESSAGE(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
-MESSAGE(STATUS "Change a value with: cmake -D<Variable>=<Value>" )
-MESSAGE(STATUS "---------------------------------------------------------------------------" )
-MESSAGE(STATUS)
 

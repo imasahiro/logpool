@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static size_t getfilesize(char *fname)
+static size_t getfilesize(const char *fname)
 {
     fpos_t fsize = 0;
     FILE *fp = fopen(fname, "rb"); 
@@ -13,14 +13,15 @@ static size_t getfilesize(char *fname)
 
 int main(int argc, const char *argv[])
 {
-    size_t size = getfilesize("./puts.o");
-    FILE *fp  = fopen("./puts.o", "rb");
-    FILE *out = fopen("./puts.o.hex", "wb");
+    int i;
+    const char *file = argv[1];
+    size_t size = getfilesize(file);
+    FILE *fp  = fopen(file, "rb");
+    FILE *out = fopen("llvm_bc.h", "wb");
     char buf[size];
     if (fread(buf, size, 1, fp) != 1)
         abort();
 
-    int i;
     fputs("static const unsigned char bitcodes[] = {", out);
     for (i = 0; i < size; ++i) {
         unsigned char h = (unsigned char) buf[i];

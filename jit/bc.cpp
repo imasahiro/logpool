@@ -7,16 +7,21 @@
 #include <iostream>
 #include <assert.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 using namespace llvm;
 
 namespace logpool {
 
+#ifdef HAVE_CLANG
 #include "./llvm_bc.h"
+#endif
 
 Module *LoadModule(LLVMContext &Context)
 {
-#if 1
+#ifdef HAVE_CLANG
     std::string ErrMsg;
     Module *M;
     MemoryBuffer *Buffer = MemoryBuffer::getMemBuffer(
@@ -24,10 +29,14 @@ Module *LoadModule(LLVMContext &Context)
             "llvm_bitcode", false);
     assert(Buffer != 0);
     M = ParseBitcodeFile(Buffer, Context, &ErrMsg);
+    if (!M) {
+        std::cout << ErrMsg << std::endl;
+        asm volatile("int3");
+    }
     assert(M != 0);
     return M;
 #else
-    return new Module("logpool_context", getGlobalContext());
+    return new Module("logpool_context", Context);
 #endif
 }
 }

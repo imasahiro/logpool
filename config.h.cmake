@@ -9,5 +9,6 @@
 #cmakedefine SIZEOF_DOUBLE ${SIZEOF_DOUBLE}
 #cmakedefine LOGPOOL_USE_LLVM    ${LOGPOOL_USE_LLVM}
 #cmakedefine LOGPOOL_USE_LLVM_31 ${LOGPOOL_USE_LLVM_31}
+#cmakedefine HAVE_CLANG          ${HAVE_CLANG}
 
 #endif /* end of include guard */
