@@ -9,7 +9,9 @@
 extern "C" {
 #endif
 
+#ifndef LOGFMT_MAX_SIZE
 #define LOGFMT_MAX_SIZE 8
+#endif
 
 struct logCtx;
 struct ltrace;
