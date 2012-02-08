@@ -1,8 +1,9 @@
 #include <stdlib.h>
-#include "logpool.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "logpool.h"
+#include "logpool_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +14,7 @@ extern struct logapi SYSLOG_API;
 extern struct logapi FILE2_API;
 extern struct logapi MEMCACHE_API;
 
-void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *param)
+static void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *param)
 {
     struct logCtx *lctx = cast(struct logCtx *, ctx);
     lctx->logfmt_capacity = param->logfmt_capacity;
@@ -22,6 +23,13 @@ void logctx_init(logctx ctx, struct logapi *api, struct logpool_param *param)
     lctx->connection  = api->fn_init(ctx, param);
     lctx->logkey.k.seq = 0;
     lctx->logfmt_size  = 0;
+}
+
+static void logctx_close(logctx ctx)
+{
+    struct logCtx *lctx = cast(struct logCtx *, ctx);
+    free(lctx->fmt);
+    lctx->fmt = NULL;
 }
 
 void logctx_format_flush(logctx ctx)
@@ -98,6 +106,7 @@ void ltrace_close(ltrace_t *p)
 {
     struct ltrace *l = cast(struct ltrace *, p);
     cast(logctx, l)->formatter->fn_close(cast(logctx, l));
+    logctx_close(cast(logctx, l));
     free(l);
 }
 
@@ -144,6 +153,7 @@ void lstate_close(lstate_t *p)
 {
     struct lstate *l = cast(struct lstate *, p);
     cast(logctx, l)->formatter->fn_close(cast(logctx, l));
+    logctx_close(cast(logctx, l));
     free(l);
 }
 
@@ -166,6 +176,7 @@ void logpool_init(enum LOGPOOL_EXEC_MODE mode)
 
 void logpool_exit(void)
 {
+    /* TODO */
 }
 
 #ifdef __cplusplus

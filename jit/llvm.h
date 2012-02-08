@@ -1,3 +1,5 @@
+#include "logpool_internal.h"
+
 #ifndef LOGPOOL_LLVM_H_
 #define LOGPOOL_LLVM_H_
 namespace logpool {

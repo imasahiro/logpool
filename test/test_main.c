@@ -37,7 +37,7 @@ static void lstate_test_write(lstate_t *state)
     }
 }
 
-int main(int argc __UNUSED__, const char *argv[] __UNUSED__)
+int main(void)
 {
     logpool_init(LOGPOOL_DEFAULT);
     {

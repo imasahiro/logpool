@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "logpool.h"
 #include "lpstring.h"
+#include "logpool_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
