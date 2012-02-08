@@ -1,16 +1,11 @@
+#include <stdint.h>
+#include <string.h>
+
 #ifndef LOGPOOL_H_
 #define LOGPOOL_H_
 
-#include <stdint.h>
-#include <string.h>
-#include <assert.h>
-
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifndef LOGFMT_DEFAULT_MAX_SIZE
-#define LOGFMT_DEFAULT_MAX_SIZE 16
 #endif
 
 struct logCtx;

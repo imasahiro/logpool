@@ -1,3 +1,4 @@
+#include <assert.h>
 #ifndef LOGPOOL_INTERNAL_H
 #define LOGPOOL_INTERNAL_H
 
