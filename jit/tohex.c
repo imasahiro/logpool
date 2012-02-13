@@ -3,12 +3,16 @@
 
 static size_t getfilesize(const char *fname)
 {
-    fpos_t fsize = 0;
-    FILE *fp = fopen(fname, "rb"); 
-    fseek(fp, 0, SEEK_END); 
-    fgetpos(fp, &fsize); 
+    fpos_t fsize;
+    FILE *fp = fopen(fname, "rb");
+    fseek(fp, 0, SEEK_END);
+    fgetpos(fp, &fsize);
     fclose(fp);
+#ifdef __linux__
+    return fsize.__pos;
+#else
     return fsize;
+#endif
 }
 
 int main(int argc, const char *argv[])
