@@ -1,7 +1,7 @@
 #include "logpool.h"
 #include <stdbool.h>
 
-static struct logpool_param_string LLVM_STRING_API_PARAM = {LOG_NOTICE, 8, 1024};
+static struct logpool_param_string LLVM_STRING_API_PARAM = {8, 1024};
 extern logapi_t LLVM_STRING_API;
 
 void ltrace_test(void) {
@@ -10,7 +10,7 @@ void ltrace_test(void) {
     logpool_init(LOGPOOL_JIT);
     ltrace = ltrace_open(NULL, &LLVM_STRING_API,
             (logpool_param_t *) &LLVM_STRING_API_PARAM);
-    ltrace_record(ltrace, "test",
+    ltrace_record(ltrace, LOG_NOTICE, "test",
             LOG_s("string", s),
             LOG_END
             );

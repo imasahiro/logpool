@@ -30,31 +30,26 @@ typedef struct logfmt logfmt_t;
 
 /* param format */
 typedef struct logpool_param {
-    int priority;
     int logfmt_capacity;
 } logpool_param_t;
 
 struct logpool_param_string {
-    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
 };
 
 struct logpool_param_syslog {
-    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
 };
 
 struct logpool_param_file {
-    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *fname;
 };
 
 struct logpool_param_memcache {
-    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *host;
@@ -126,14 +121,14 @@ void ltrace_close(ltrace_t *p);
 
 void logctx_format_flush(logctx_t *ctx);
 void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
-void logctx_init_logkey(logctx_t *ctx, uint64_t v, sizeinfo_t siz);
+void logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz);
 
 #define cast(T, V) ((T)(V))
 
-#define ltrace_record(T, E, ...) do {\
+#define ltrace_record(T, PRIORITY, E, ...) do {\
     static void *__LOGDATA__ = NULL;\
     logctx_t *__CTX__ = cast(logctx_t *, T);\
-    logctx_init_logkey(__CTX__, cast(uint64_t, E), build_sizeinfo(0, strlen(E)));\
+    logctx_init_logkey(__CTX__, PRIORITY, cast(uint64_t, E), build_sizeinfo(0, strlen(E)));\
     __VA_ARGS__;\
 } while (0)
 

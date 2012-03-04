@@ -64,7 +64,7 @@ void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, 
     ++lctx->logfmt_size;
 }
 
-void logctx_init_logkey(logctx_t *ctx, uint64_t v, sizeinfo_t siz)
+void logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
 {
     struct logctx *lctx = cast(struct logctx *, ctx);
     lctx->logkey.v.u = v;

@@ -32,7 +32,7 @@ uint64_t ntrace1(ltrace_t *ltrace)
     int i;
     uint64_t s = getTimeMilliSecond();
     for (i = 0; i < N; ++i) {
-        ltrace_record(ltrace, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
+        ltrace_record(ltrace, LOG_NOTICE, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
     }
     uint64_t e = getTimeMilliSecond();
     return e - s;
@@ -44,13 +44,13 @@ static void *MEMCACHE_API_PARAM[] = {
 };
 extern logapi_t MEMCACHE_API;
 
-static struct logpool_param_string STRING_API_PARAM = {LOG_NOTICE, 8, 1024};
+static struct logpool_param_string STRING_API_PARAM = {8, 1024};
 extern logapi_t STRING_API;
 
-static struct logpool_param_file FILE_API_PARAM =  {LOG_NOTICE, 8, 1024, "LOG"};
+static struct logpool_param_file FILE_API_PARAM =  {8, 1024, "LOG"};
 extern logapi_t FILE2_API;
 
-static struct logpool_param_syslog SYSLOG_API_PARAM = {LOG_NOTICE, 8, 1024};
+static struct logpool_param_syslog SYSLOG_API_PARAM = {8, 1024};
 extern logapi_t SYSLOG_API;
 
 static void **ARGS[] = {

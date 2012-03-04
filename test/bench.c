@@ -275,7 +275,7 @@ uint64_t logpool_ntrace1(ltrace_t *ltrace)
     int i;
     uint64_t s = knh_getTimeMilliSecond();
     for (i = 0; i < N; ++i) {
-        ltrace_record(ltrace, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
+        ltrace_record(ltrace, LOG_NOTICE, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
     }
     uint64_t e = knh_getTimeMilliSecond();
     return e - s;
@@ -309,7 +309,7 @@ uint64_t logpool_ntrace_jit1(ltrace_t *ltrace)
     int i;
     uint64_t s = knh_getTimeMilliSecond();
     for (i = 0; i < N; ++i) {
-        ltrace_record(ltrace, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
+        ltrace_record(ltrace, LOG_NOTICE, "setpgid", LOG_i("pid", pid), LOG_s("send", "foo"), LOG_i("pgid", pgid), LOG_p("ptr", p), LOG_END);
     }
     uint64_t e = knh_getTimeMilliSecond();
     return e - s;
@@ -321,7 +321,6 @@ void logpool_init(enum LOGPOOL_EXEC_MODE mode);
 int main(int argc, const char *argv[])
 {
     static struct logpool_param_file ARGS = {
-        LOG_NOTICE,
         1024,
         "/dev/null"
     };
