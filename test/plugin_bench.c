@@ -44,13 +44,13 @@ static void *MEMCACHE_API_PARAM[] = {
 };
 extern logapi_t MEMCACHE_API;
 
-static void *STRING_API_PARAM[] = {(void*) 1024};
+static struct logpool_param_string STRING_API_PARAM = {LOG_NOTICE, 8, 1024};
 extern logapi_t STRING_API;
 
-static void *FILE_API_PARAM[] =  {(void*) 1024, (void*) "LOG"};
+static struct logpool_param_file FILE_API_PARAM =  {LOG_NOTICE, 8, 1024, "LOG"};
 extern logapi_t FILE2_API;
 
-static void *SYSLOG_API_PARAM[] = {(void*) 1024};
+static struct logpool_param_syslog SYSLOG_API_PARAM = {LOG_NOTICE, 8, 1024};
 extern logapi_t SYSLOG_API;
 
 static void **ARGS[] = {

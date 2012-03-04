@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include <syslog.h> /* LOG_EMERG etc.. */
 
 #ifndef LOGPOOL_H_
 #define LOGPOOL_H_
@@ -16,28 +17,44 @@ typedef const struct ltrace ltrace_t;
 typedef struct logapi logapi_t;
 typedef struct logfmt logfmt_t;
 
+#ifndef LOG_EMERG
+#define LOG_EMERG   0 /* system is unusable */
+#define LOG_ALERT   1 /* action must be taken immediately */
+#define LOG_CRIT    2 /* critical conditions */
+#define LOG_ERR     3 /* error conditions */
+#define LOG_WARNING 4 /* warning conditions */
+#define LOG_NOTICE  5 /* normal but significant condition */
+#define LOG_INFO    6 /* informational */
+#define LOG_DEBUG   7 /* debug-level messages */
+#endif
+
 /* param format */
 typedef struct logpool_param {
+    int priority;
     int logfmt_capacity;
 } logpool_param_t;
 
 struct logpool_param_string {
+    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
 };
 
 struct logpool_param_syslog {
+    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
 };
 
 struct logpool_param_file {
+    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *fname;
 };
 
 struct logpool_param_memcache {
+    int priority;
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *host;

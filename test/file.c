@@ -1,6 +1,7 @@
 /* file api test */
 #include "logpool.h"
 static struct logpool_param_file FILE_API_PARAM = {
+    LOG_NOTICE,
     8,
     1024,
     "LOG"

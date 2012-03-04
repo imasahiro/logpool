@@ -84,7 +84,6 @@ ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *p)
 ltrace_t *ltrace_open_syslog(ltrace_t *parent)
 {
     struct logpool_param_syslog param = {8, 1024};
-    extern struct logapi SYSLOG_API;
     return ltrace_open(parent, &SYSLOG_API, (logpool_param_t *) &param);
 }
 

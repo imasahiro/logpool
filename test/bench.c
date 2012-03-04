@@ -320,9 +320,10 @@ extern logapi_t LLVM_FILE2_API;
 void logpool_init(enum LOGPOOL_EXEC_MODE mode);
 int main(int argc, const char *argv[])
 {
-    static void *ARGS[] = {
-        (void *) 1024,
-        (void *) "/dev/null"
+    static struct logpool_param_file ARGS = {
+        LOG_NOTICE,
+        1024,
+        "/dev/null"
     };
     konoha_ginit(argc, argv);
     konoha_t konoha = konoha_open();

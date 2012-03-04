@@ -4,3 +4,9 @@ LOGPOOL
 Logging API
 
 ...
+
+
+ENV
+$LOGPOOL_SERVER_NAME LogPool Server
+$LOGPOOL_SERVER_PORT LogPool Port
+$LOGPOOL_THREAD

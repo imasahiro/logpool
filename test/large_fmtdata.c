@@ -1,6 +1,7 @@
 /* large size format test */
 #include "logpool.h"
 static struct logpool_param_string STRING_API_PARAM = {
+    LOG_NOTICE,
 #define LOGFMT_MAX_SIZE 32
     LOGFMT_MAX_SIZE,
     1024
