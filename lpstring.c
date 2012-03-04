@@ -130,7 +130,7 @@ struct logapi STRING_API = {
 
 static char *write_seq(buffer_t *buf, uint64_t seq)
 {
-    buf_put_char(buf, '+');
+    buf_put_char(buf, '#');
     buf->buf = put_hex(buf->buf, seq);
     return buf->buf;
 }
