@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "logpool.h"
-#include "lpstring.h"
+#include "plugins/lpstring.h"
 #include "jit/llvm.h"
 
 namespace file2 {

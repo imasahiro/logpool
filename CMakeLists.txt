@@ -35,7 +35,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	logpool.c
-	lpstring.c
+	plugins/lpstring.c
 	plugins/file2.c
 	plugins/memcache.c
 	plugins/syslog.c
