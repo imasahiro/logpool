@@ -123,6 +123,7 @@ struct logapi MEMCACHE_API = {
     logpool_memcache_flush,
     logpool_memcache_init,
     logpool_memcache_close,
+    logpool_default_priority
 };
 
 #ifdef __cplusplus

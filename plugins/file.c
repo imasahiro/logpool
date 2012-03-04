@@ -102,6 +102,7 @@ struct logapi FILE_API = {
     logpool_FILE_delim,
     logpool_FILE_flush,
     logpool_FILE_init,
+    logpool_default_priority
 };
 
 #ifdef __cplusplus

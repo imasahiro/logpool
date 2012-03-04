@@ -56,6 +56,20 @@ struct logpool_param_memcache {
     long port;
 };
 
+struct logpool_param_filter {
+    int priority;
+    logapi_t *api;
+    struct logpool_param param;
+};
+
+#define LOGPOOL_PARAM_FILTER_T(T) logpool_param_filter_##T##_t
+#define DEF_LOGPOOL_PARAM_FILTER(T) \
+typedef struct LOGPOOL_PARAM_FILTER_T(T) {\
+    int priority;\
+    logapi_t *api;\
+    struct logpool_param_##T param;\
+} LOGPOOL_PARAM_FILTER_T(T)
+
 /* log formatter API */
 typedef void  (*logFn)(logctx_t *, const char *K, uint64_t v, sizeinfo_t info);
 typedef char *(*keyFn)(logctx_t *, uint64_t v, uint64_t seq, sizeinfo_t size);
@@ -87,6 +101,7 @@ struct logapi {
     void  (*fn_flush)(logctx_t *, void**);
     void *(*fn_init) (logctx_t *, logpool_param_t *);
     void  (*fn_close)(logctx_t *);
+    int   (*fn_priority)(logctx_t *, int);
 };
 
 enum LOGPOOL_EXEC_MODE {
@@ -105,6 +120,7 @@ struct logctx {
     logfmt_t *fmt;
     long logfmt_size;
     long logfmt_capacity;
+    uintptr_t is_flushed;
 };
 
 /* ltrace API */
@@ -119,9 +135,9 @@ ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename);
 ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip);
 void ltrace_close(ltrace_t *p);
 
-void logctx_format_flush(logctx_t *ctx);
+void logctx_flush(logctx_t *ctx, void **args);
 void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
-void logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz);
+int  logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz);
 
 #define cast(T, V) ((T)(V))
 
@@ -132,7 +148,7 @@ void logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
     __VA_ARGS__;\
 } while (0)
 
-#define LOG_END       __CTX__->formatter->fn_flush(__CTX__, &__LOGDATA__);
+#define LOG_END       logctx_flush(__CTX__, &__LOGDATA__);
 #define LOG_s(K,V)    __extension__(({\
         static const char __K__[] = K ":";\
         logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\

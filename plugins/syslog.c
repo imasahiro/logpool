@@ -10,6 +10,7 @@ extern "C" {
 static void logpool_syslog_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
+    logctx_format_flush(ctx);
     logpool_string_flush(ctx);
 #if 0
     syslog(LOG_NOTICE, buf->base);
@@ -31,6 +32,7 @@ struct logapi SYSLOG_API = {
     logpool_syslog_flush,
     logpool_string_init,
     logpool_string_close,
+    logpool_default_priority
 };
 
 #ifdef __cplusplus

@@ -419,5 +419,6 @@ struct logapi LLVM_STRING_API = {
     logpool::fn_delim,
     logpool::fn_flush,
     logpool::fn_init,
-    logpool::fn_close
+    logpool::fn_close,
+    logpool_default_priority
 };

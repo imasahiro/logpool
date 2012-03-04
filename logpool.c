@@ -24,6 +24,7 @@ static void logctx_init(logctx_t *ctx, struct logapi *api, logpool_param_t *para
     lctx->connection  = api->fn_init(ctx, param);
     lctx->logkey.k.seq = 0;
     lctx->logfmt_size  = 0;
+    lctx->is_flushed   = 0;
 }
 
 static void logctx_close(logctx_t *ctx)
@@ -37,6 +38,9 @@ void logctx_format_flush(logctx_t *ctx)
 {
     struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
+    if (ctx->is_flushed)
+        return;
+    cast(struct logctx *, ctx)->is_flushed = 1;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     if (size) {
         void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
@@ -53,6 +57,12 @@ void logctx_format_flush(logctx_t *ctx)
     ++(cast(struct logctx *, ctx)->logkey.k.seq);
 }
 
+void logctx_flush(logctx_t *ctx, void **args)
+{
+    cast(struct logctx *, ctx)->is_flushed = 0;
+    ctx->formatter->fn_flush(ctx, args);
+}
+
 void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t siz)
 {
     struct logctx *lctx = cast(struct logctx *, ctx);
@@ -64,21 +74,25 @@ void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, 
     ++lctx->logfmt_size;
 }
 
-void logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
+int logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
 {
-    struct logctx *lctx = cast(struct logctx *, ctx);
-    lctx->logkey.v.u = v;
-    lctx->logkey.siz = siz;
-    lctx->logfmt_size = 0;
+    int doLog = ctx->formatter->fn_priority(ctx, priority);
+    if (doLog) {
+        struct logctx *lctx = cast(struct logctx *, ctx);
+        lctx->logkey.v.u = v;
+        lctx->logkey.siz = siz;
+        lctx->logfmt_size = 0;
+    }
+    return doLog;
 }
 
 ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *p)
 {
     struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
-    logctx_init(cast(logctx_t *, l), api, p);
     l->parent = parent;
     l->ctx.fn_key = KeyAPI->str;
-    return cast(ltrace_t*, l);
+    logctx_init(cast(logctx_t *, l), api, p);
+    return l;
 }
 
 ltrace_t *ltrace_open_syslog(ltrace_t *parent)

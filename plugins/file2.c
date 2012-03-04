@@ -32,6 +32,7 @@ void logpool_FILE2_close(logctx_t *ctx)
 void logpool_FILE2_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     flog_t *fl = cast(flog_t *, ctx->connection);
+    logctx_format_flush(ctx);
     logpool_string_flush(ctx);
     assert(fl->buf[-1] == '\0');
     fl->buf[-1] = '\n';
@@ -53,6 +54,7 @@ struct logapi FILE2_API = {
     logpool_FILE2_flush,
     logpool_FILE2_init,
     logpool_FILE2_close,
+    logpool_default_priority
 };
 
 #ifdef __cplusplus

@@ -24,7 +24,10 @@ int main(void)
     logpool_init(LOGPOOL_DEFAULT);
     {
         ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
-        ltrace_test_write(ltrace);
+        int i;
+        for (i = 0; i < 5; ++i) {
+            ltrace_test_write(ltrace);
+        }
         ltrace_close(ltrace);
     }
     return 0;

@@ -100,12 +100,14 @@ void logpool_string_delim(logctx_t *ctx)
 
 void logpool_string_flush(logctx_t *ctx)
 {
-    logpool_string_flush_internal(ctx);
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf_put_char(buf, 0);
 }
 
 static void logpool_string_flush__(logctx_t *ctx, void **args __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
+    logctx_format_flush(ctx);
     logpool_string_flush(ctx);
     assert(buf->buf[-1] == '\0');
     put_char2(buf->buf-1, '\n', '\0');
@@ -126,6 +128,7 @@ struct logapi STRING_API = {
     logpool_string_flush__,
     logpool_string_init,
     logpool_string_close,
+    logpool_default_priority,
 };
 
 static char *write_seq(buffer_t *buf, uint64_t seq)

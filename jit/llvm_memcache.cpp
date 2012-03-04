@@ -101,7 +101,8 @@ struct logapi LLVM_MEMCACHE_API = {
     logpool::fn_delim,
     memcache::fn_flush,
     memcache::fn_init,
-    memcache::fn_close
+    memcache::fn_close,
+    logpool_default_priority
 };
 #ifdef __cplusplus
 }

@@ -54,7 +54,8 @@ struct logapi LLVM_FILE2_API = {
     logpool::fn_delim,
     file2::fn_flush,
     file2::fn_init,
-    logpool::fn_close
+    logpool::fn_close,
+    logpool_default_priority
 };
 #ifdef __cplusplus
 }

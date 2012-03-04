@@ -60,14 +60,6 @@ void logpool_string_flush(logctx_t *ctx);
 char *logpool_key_string(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 char *logpool_key_hex(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info);
 
-static inline void logpool_string_flush_internal(logctx_t *ctx)
-{
-    buffer_t *buf;
-    logctx_format_flush(ctx);
-    buf = cast(buffer_t *, ctx->connection);
-    buf_put_char(buf, 0);
-}
-
 static inline void logpool_string_reset(logctx_t *ctx)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
