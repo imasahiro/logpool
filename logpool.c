@@ -111,53 +111,6 @@ void ltrace_close(ltrace_t *p)
     free(l);
 }
 
-static uint64_t hash(uint64_t h, const char *p, size_t len)
-{
-    size_t i;
-    for(i = 0; i < len; i++) {
-        h = p[i] + 31 * h;
-    }
-    return h;
-}
-
-lstate_t *lstate_open(const char *state_name, struct logapi *api, logpool_param_t *p)
-{
-    struct lstate *l = cast(struct lstate *, malloc(sizeof(*l)));
-    l->state = hash(0x11029, state_name, strlen(state_name));
-    logctx_init(cast(logctx_t *, l), api, p);
-    l->ctx.fn_key = KeyAPI->hex;
-    return cast(lstate_t*, l);
-}
-
-lstate_t *lstate_open_syslog(const char *state)
-{
-    struct logpool_param_syslog param = {8, 1024};
-    return lstate_open(state, &SYSLOG_API, (struct logpool_param*) &param);
-}
-
-lstate_t *lstate_open_file(const char *state, char *filename)
-{
-    struct logpool_param_file param = {8, 1024};
-    param.fname = (const char *) filename;
-    return lstate_open(state, &FILE2_API, (logpool_param_t *) &param);
-}
-
-lstate_t *lstate_open_memcache(const char *state, char *host, long ip)
-{
-    struct logpool_param_memcache param = {8, 1024};
-    param.host = host;
-    param.port = ip;
-    return lstate_open(state, &MEMCACHE_API, (logpool_param_t *) &param);
-}
-
-void lstate_close(lstate_t *p)
-{
-    struct lstate *l = cast(struct lstate *, p);
-    cast(logctx_t *, l)->formatter->fn_close(cast(logctx_t *, l));
-    logctx_close(cast(logctx_t *, l));
-    free(l);
-}
-
 #ifdef LOGPOOL_USE_LLVM
 extern struct keyapi *logpool_llvm_api_init(void);
 #endif

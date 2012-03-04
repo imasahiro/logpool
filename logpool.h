@@ -10,11 +10,9 @@ extern "C" {
 
 struct logctx;
 struct ltrace;
-struct lstate;
 typedef long sizeinfo_t;
 typedef const struct logctx logctx_t;
 typedef const struct ltrace ltrace_t;
-typedef const struct lstate lstate_t;
 typedef struct logapi logapi_t;
 typedef struct logfmt logfmt_t;
 
@@ -109,18 +107,6 @@ ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename);
 ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip);
 void ltrace_close(ltrace_t *p);
 
-/* lstate API */
-struct lstate {
-    struct logctx ctx;
-    uint64_t state;
-};
-
-lstate_t *lstate_open(const char *state, struct logapi *api, logpool_param_t *);
-lstate_t *lstate_open_syslog(const char *state);
-lstate_t *lstate_open_file(const char *state, char *filename);
-lstate_t *lstate_open_memcache(const char *state, char *host, long ip);
-void lstate_close(lstate_t *p);
-
 void logctx_format_flush(logctx_t *ctx);
 void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
 void logctx_init_logkey(logctx_t *ctx, uint64_t v, sizeinfo_t siz);
@@ -131,13 +117,6 @@ void logctx_init_logkey(logctx_t *ctx, uint64_t v, sizeinfo_t siz);
     static void *__LOGDATA__ = NULL;\
     logctx_t *__CTX__ = cast(logctx_t *, T);\
     logctx_init_logkey(__CTX__, cast(uint64_t, E), build_sizeinfo(0, strlen(E)));\
-    __VA_ARGS__;\
-} while (0)
-
-#define lstate_record(R, ...) do {\
-    static void *__LOGDATA__ = NULL;\
-    logctx_t *__CTX__ = cast(logctx_t *, R);\
-    logctx_init_logkey(__CTX__, R->state, 0);\
     __VA_ARGS__;\
 } while (0)
 
