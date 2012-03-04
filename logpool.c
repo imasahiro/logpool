@@ -40,7 +40,6 @@ void logctx_format_flush(logctx_t *ctx)
     size_t i, size = ctx->logfmt_size;
     if (ctx->is_flushed)
         return;
-    cast(struct logctx *, ctx)->is_flushed = 1;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     if (size) {
         void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
@@ -55,6 +54,7 @@ void logctx_format_flush(logctx_t *ctx)
         cast(struct logctx *, ctx)->logfmt_size = 0;
     }
     ++(cast(struct logctx *, ctx)->logkey.k.seq);
+    cast(struct logctx *, ctx)->is_flushed = 1;
 }
 
 void logctx_flush(logctx_t *ctx, void **args)

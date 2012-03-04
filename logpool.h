@@ -144,8 +144,9 @@ int  logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
 #define ltrace_record(T, PRIORITY, E, ...) do {\
     static void *__LOGDATA__ = NULL;\
     logctx_t *__CTX__ = cast(logctx_t *, T);\
-    logctx_init_logkey(__CTX__, PRIORITY, cast(uint64_t, E), build_sizeinfo(0, strlen(E)));\
-    __VA_ARGS__;\
+    if (logctx_init_logkey(__CTX__, PRIORITY, cast(uint64_t, E), build_sizeinfo(0, strlen(E)))) {\
+        __VA_ARGS__;\
+    }\
 } while (0)
 
 #define LOG_END       logctx_flush(__CTX__, &__LOGDATA__);

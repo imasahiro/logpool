@@ -18,7 +18,6 @@ static char *logpool_Filter_fn_key(logctx_t *ctx, uint64_t v, uint64_t seq, size
     char *ret;
     filter_t *filter = cast(filter_t *, ctx->connection);
     cast(struct logctx *, ctx)->connection = filter->connection;
-    asm volatile("int3");
     ret = filter->fn_key(ctx, v, seq, info);
     cast(struct logctx *, ctx)->connection = filter;
     return ret;
@@ -56,7 +55,7 @@ static void logpool_Filter_flush(logctx_t *ctx, void **args __UNUSED__)
 static int logpool_Filter_priority(logctx_t *ctx, int priority)
 {
     filter_t *filter = cast(filter_t *, ctx->connection);
-    return (filter->priority < priority);
+    return (priority <= filter->priority);
 }
 
 static void logpool_Filter_null(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
