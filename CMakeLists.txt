@@ -40,7 +40,7 @@ set(LOGPOOL_SRC
 	plugins/memcache.c
 	plugins/syslog.c
 	plugins/filter.c
-	plugins/multiapi.c
+	plugins/multiplexer.c
 )
 
 set(LLVM_LOGPOOL_SRC
@@ -163,7 +163,7 @@ add_executable(test_syslog   test/syslog.c)
 add_executable(test_cpp      test/cpp.cpp)
 add_executable(test_largefmt test/large_fmtdata.c)
 add_executable(test_filter   test/filter.c)
-add_executable(test_multi    test/multiapi.c)
+add_executable(test_multi    test/multiplex.c)
 
 set(TestLibs logpool)
 if(HAVE_LIBDL)
