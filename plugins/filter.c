@@ -29,7 +29,7 @@ static void *logpool_Filter_init(logctx_t *ctx, logpool_param_t *p)
     filter_t *filter = cast(filter_t *, malloc(sizeof(*filter)));
     filter->api = args->api;
     filter->priority   = args->priority;
-    filter->connection = args->api->fn_init(ctx, &args->param);
+    filter->connection = args->api->fn_init(ctx, args->param);
     filter->fn_key = ctx->fn_key;
     cast(struct logctx *, ctx)->fn_key = logpool_Filter_fn_key;
     return cast(void *, filter);

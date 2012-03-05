@@ -57,18 +57,21 @@ struct logpool_param_memcache {
 };
 
 struct logpool_param_filter {
+    int logfmt_capacity;
     int priority;
     logapi_t *api;
-    struct logpool_param param;
+    struct logpool_param *param;
 };
 
-#define LOGPOOL_PARAM_FILTER_T(T) logpool_param_filter_##T##_t
-#define DEF_LOGPOOL_PARAM_FILTER(T) \
-typedef struct LOGPOOL_PARAM_FILTER_T(T) {\
-    int priority;\
-    logapi_t *api;\
-    struct logpool_param_##T param;\
-} LOGPOOL_PARAM_FILTER_T(T)
+#define LOGPOOL_MULTIPLEXER_MAX 4
+struct logpool_param_multiplexer {
+    int logfmt_capacity;
+    int argc;
+    struct plugin_param {
+        logapi_t *api;
+        struct logpool_param *param;
+    } args[LOGPOOL_MULTIPLEXER_MAX];
+};
 
 /* log formatter API */
 typedef void  (*logFn)(logctx_t *, const char *K, uint64_t v, sizeinfo_t info);

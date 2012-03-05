@@ -40,7 +40,9 @@ set(LOGPOOL_SRC
 	plugins/memcache.c
 	plugins/syslog.c
 	plugins/filter.c
+	plugins/multiapi.c
 )
+
 set(LLVM_LOGPOOL_SRC
 	jit/llvm.cpp
 	jit/bc.cpp
@@ -161,6 +163,7 @@ add_executable(test_syslog   test/syslog.c)
 add_executable(test_cpp      test/cpp.cpp)
 add_executable(test_largefmt test/large_fmtdata.c)
 add_executable(test_filter   test/filter.c)
+add_executable(test_multi    test/multiapi.c)
 
 set(TestLibs logpool)
 if(HAVE_LIBDL)
@@ -173,6 +176,7 @@ target_link_libraries(test_syslog   ${TestLibs})
 target_link_libraries(test_cpp      ${TestLibs})
 target_link_libraries(test_largefmt ${TestLibs})
 target_link_libraries(test_filter   ${TestLibs})
+target_link_libraries(test_multi    ${TestLibs})
 
 # test cases
 enable_testing()
@@ -183,6 +187,7 @@ add_test(test_syslog   test_syslog)
 add_test(test_cpp      test_cpp)
 add_test(test_largefmt test_largefmt)
 add_test(test_filter   test_filter)
+add_test(test_multi    test_multi)
 
 if(LOGPOOL_USE_LLVM)
 add_executable(test_llvm test/llvm.c)
