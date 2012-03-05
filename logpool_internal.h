@@ -42,6 +42,11 @@ __UNUSED__ static int logpool_default_priority(logctx_t *ctx __UNUSED__, int pri
     return 1;
 }
 
+static inline void logpool_context_switch(logctx_t *ctx, void *connection)
+{
+    cast(struct logctx *, ctx)->connection = connection;
+}
+
 #ifdef __cplusplus
 }
 #endif

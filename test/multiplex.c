@@ -2,7 +2,9 @@
 #include "logpool.h"
 extern logapi_t STRING_API;
 extern logapi_t FILE2_API;
+extern logapi_t FILTER_API;
 extern logapi_t MULTIPLEX_API;
+
 static struct logpool_param_string STRING_API_PARAM = {8, 1024};
 static struct logpool_param_file FILE_API_PARAM = {
     8,
@@ -11,16 +13,28 @@ static struct logpool_param_file FILE_API_PARAM = {
 };
 
 static struct logpool_param_multiplexer MULTIPREXED_STRING_FILE_API_PARAM = {
-    8,
-    2,
+    8, 2,
     {
         {&STRING_API, (struct logpool_param*)&STRING_API_PARAM},
         {&FILE2_API,  (struct logpool_param*)&FILE_API_PARAM}
     }
 };
 
+static struct logpool_param_filter FILTERED_STRING_API_PARAM = {
+    8, LOG_NOTICE, &STRING_API, (struct logpool_param *) &STRING_API_PARAM
+};
+
+static struct logpool_param_multiplexer MULTIPREXED_STRING_FILTERED_STRING_API_PARAM = {
+    8, 2,
+    {
+        {&STRING_API, (struct logpool_param*)&STRING_API_PARAM},
+        {&FILTER_API, (struct logpool_param*)&FILTERED_STRING_API_PARAM}
+    }
+};
+
+
 #define LOGAPI_PARAM  cast(logpool_param_t *, &MULTIPREXED_STRING_FILE_API_PARAM)
-#define LOGAPI_PARAM2 cast(logpool_param_t *, &MULTIPREXED_STRING_FILE_API_PARAM)
+#define LOGAPI_PARAM2 cast(logpool_param_t *, &MULTIPREXED_STRING_FILTERED_STRING_API_PARAM)
 #include <stdbool.h>
 
 static void ltrace_test_write0(ltrace_t *ltrace)

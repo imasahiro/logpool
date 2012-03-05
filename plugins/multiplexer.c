@@ -39,9 +39,9 @@ static void *logpool_Multiplexer_init(logctx_t *ctx, logpool_param_t *p)
     mul->size  = argc;
     mul->entries = cast(struct plugin_entry *, malloc(sizeof(struct plugin_entry)*argc));
     for (i = 0; i < argc; ++i) {
-        mul->entries[i].api = args->args[i].api;
-        mul->entries[i].connection = args->args[i].api->fn_init(ctx,
-                args->args[i].param);
+        struct plugin_param *pa = args->args+i;
+        mul->entries[i].api = pa->api;
+        mul->entries[i].connection = pa->api->fn_init(ctx, pa->param);
         mul->entries[i].fn_key = ctx->fn_key;
     }
     cast(struct logctx *, ctx)->fn_key = logpool_Multiplexer_fn_key;

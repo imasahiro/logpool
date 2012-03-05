@@ -76,14 +76,14 @@ void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, 
 
 int logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
 {
-    int doLog = ctx->formatter->fn_priority(ctx, priority);
-    if (doLog) {
+    int emitLog = ctx->formatter->fn_priority(ctx, priority);
+    if (emitLog) {
         struct logctx *lctx = cast(struct logctx *, ctx);
         lctx->logkey.v.u = v;
         lctx->logkey.siz = siz;
         lctx->logfmt_size = 0;
     }
-    return doLog;
+    return emitLog;
 }
 
 ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *p)

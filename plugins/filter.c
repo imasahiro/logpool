@@ -8,6 +8,7 @@ extern "C" {
 
 typedef struct filter {
     int   priority;
+    int   emitLog;
     void *connection;
     logapi_t *api;
     keyFn     fn_key;
@@ -28,6 +29,7 @@ static void *logpool_Filter_init(logctx_t *ctx, logpool_param_t *p)
     struct logpool_param_filter *args = cast(struct logpool_param_filter *, p);
     filter_t *filter = cast(filter_t *, malloc(sizeof(*filter)));
     filter->api = args->api;
+    filter->emitLog    = 1;
     filter->priority   = args->priority;
     filter->connection = args->api->fn_init(ctx, args->param);
     filter->fn_key = ctx->fn_key;
@@ -43,19 +45,22 @@ static void logpool_Filter_close(logctx_t *ctx)
     free(filter);
 }
 
-static void logpool_Filter_flush(logctx_t *ctx, void **args __UNUSED__)
+static void logpool_Filter_flush(logctx_t *ctx, void **args)
 {
     filter_t *filter = cast(filter_t *, ctx->connection);
-    logctx_format_flush(ctx);
-    cast(struct logctx *, ctx)->connection = filter->connection;
-    filter->api->fn_flush(ctx, args);
-    cast(struct logctx *, ctx)->connection = filter;
+    if (filter->emitLog) {
+        logctx_format_flush(ctx);
+        cast(struct logctx *, ctx)->connection = filter->connection;
+        filter->api->fn_flush(ctx, args);
+        cast(struct logctx *, ctx)->connection = filter;
+    }
 }
 
 static int logpool_Filter_priority(logctx_t *ctx, int priority)
 {
     filter_t *filter = cast(filter_t *, ctx->connection);
-    return (priority <= filter->priority);
+    filter->emitLog  = (priority <= filter->priority);
+    return filter->emitLog;
 }
 
 static void logpool_Filter_null(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
@@ -69,9 +74,9 @@ static void logpool_Filter_null(logctx_t *ctx, const char *key, uint64_t v, size
 static void logpool_Filter_bool(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
 {
     filter_t *filter = cast(filter_t *, ctx->connection);
-    cast(struct logctx *, ctx)->connection = filter->connection;
+    logpool_context_switch(ctx, filter->connection);
     filter->api->fn_bool(ctx, key, v, info);
-    cast(struct logctx *, ctx)->connection = filter;
+    logpool_context_switch(ctx, filter);
 }
 
 static void logpool_Filter_int(logctx_t *ctx, const char *key, uint64_t v, sizeinfo_t info)
