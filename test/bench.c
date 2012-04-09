@@ -317,7 +317,7 @@ uint64_t logpool_ntrace_jit1(ltrace_t *ltrace)
 
 extern logapi_t FILE2_API;
 extern logapi_t LLVM_FILE2_API;
-void logpool_init(enum LOGPOOL_EXEC_MODE mode);
+void logpool_init(int mode);
 int main(int argc, const char *argv[])
 {
     static struct logpool_param_file ARGS = {

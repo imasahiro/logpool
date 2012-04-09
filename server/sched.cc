@@ -3,6 +3,44 @@
 #include <pthread.h>
 
 namespace logpool {
+
+class Task {
+public:
+    virtual void Run() = 0;
+    bool *join;
+#ifdef DEBUG
+    virtual void dump() { fprintf(stderr, "{Task %p}\n", this); }
+#endif
+};
+
+class JoinTask : Task {
+    void Run() { *join = true; }
+#ifdef DEBUG
+    virtual void dump() { fprintf(stderr, "{Join %p}\n", this); }
+#endif
+};
+
+struct Scheduler {
+public:
+    Scheduler(size_t num_workers);
+    ~Scheduler();
+    void enqueue(Task *task);
+    void join();
+
+private:
+    struct Worker {
+        pthread_t thread;
+        bool join_;
+        Queue *q_;
+        Worker(Queue *q) : join_(false), q_(q) {}
+        static void *exec(void *arg);
+    };
+    ThreadContext ctx;
+    size_t active_workers;
+    Queue *q;
+    std::vector<Worker*> workers;
+};
+
 Scheduler::Scheduler(size_t num_workers) : active_workers(0)
 {
     q = new Queue();
@@ -69,7 +107,7 @@ class MyTask : public Task {
 };
 
 #define MAX 20000000
-#define CORE 8
+#define CORE 4
 int main(int argc, char const* argv[])
 {
     Scheduler sched(CORE);

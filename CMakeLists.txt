@@ -41,6 +41,7 @@ set(LOGPOOL_SRC
 	plugins/syslog.c
 	plugins/filter.c
 	plugins/multiplexer.c
+	plugins/event.c
 )
 
 set(LLVM_LOGPOOL_SRC
@@ -53,6 +54,17 @@ set(LLVM_LOGPOOL_SRC
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
 find_library(HAVE_LIBMEMCACHED NAMES memcached)
+find_library(HAVE_LIBEVENT     NAMES event)
+find_library(HAVE_PTREAD       NAMES pthread)
+find_path(HAVE_PTREAD_H   pthread.h      PATHS ${include_locations})
+find_path(HAVE_LIBEVENT_H event2/event.h PATHS ${include_locations})
+
+if (NOT HAVE_PTHREAD_H)
+    message(FATAL ERROR "pthread.h not found")
+endif (NOT HAVE_PTHREAD_H)
+if (NOT HAVE_LIBEVENT_H)
+    message(FATAL ERROR "event2/event.h not found")
+endif (NOT HAVE_LIBEVENT_H)
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)
@@ -61,12 +73,18 @@ check_type_size(float    SIZEOF_FLOAT)
 check_type_size(double   SIZEOF_DOUBLE)
 
 set(ExtraLibs)
-set(MessageLibs)
 
 if(HAVE_LIBMEMCACHED)
 	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
-	set(MessageLibs ${MessageLibs} memcached)
 endif(HAVE_LIBMEMCACHED)
+
+if(HAVE_PTHREAD)
+	set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
+endif(HAVE_PTHREAD)
+
+if(HAVE_LIBEVENT)
+	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
+endif(HAVE_LIBEVENT)
 
 option(USE_LLVM "Use llvm" on)
 if(USE_LLVM)

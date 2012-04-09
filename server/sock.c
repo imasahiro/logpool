@@ -5,20 +5,9 @@
 #include <event2/dns.h>
 #include <event2/bufferevent.h>
 
-void readcb(struct bufferevent *bev, void *ptr)
-{
-    char buf[16];
-    int n;
-    while ((n = bufferevent_read(bev, buf, sizeof(buf))) > 0) {
-        char buf2[16] = {0};
-        memcpy(buf2, buf, n);
-        fprintf(stderr, "write::size=%d, '%s'\n", n, buf2);
-    }
-    fprintf(stderr, "%s:%d bev=%p\n", __func__, __LINE__, bev);
-    fprintf(stderr, "write end\n");
-}
+#define EV_BUFSIZE 128
 
-void eventcb(struct bufferevent *bev, short events, void *ptr)
+static void eventcb(struct bufferevent *bev, short events, void *ptr)
 {
     fprintf(stderr, "ev: %d\n", (int)events);
     if (events & BEV_EVENT_CONNECTED) {
@@ -37,18 +26,17 @@ void eventcb(struct bufferevent *bev, short events, void *ptr)
 }
 
 struct lev {
-    struct event_base *base;
     struct bufferevent *buff;
 };
 
 void ev_init(struct lev *ev)
 {
+    struct event_base *base = event_base_new();
     struct evdns_base *dns_base;
-    ev->base = event_base_new();
-    ev->buff = bufferevent_socket_new(ev->base, -1, BEV_OPT_CLOSE_ON_FREE);
-    bufferevent_setcb(ev->buff, NULL, readcb, eventcb, ev->base);
+    ev->buff = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
+    bufferevent_setcb(ev->buff, NULL, NULL, eventcb, base);
     bufferevent_enable(ev->buff, EV_READ|EV_WRITE);
-    dns_base = evdns_base_new(ev->base, 1);
+    dns_base = evdns_base_new(base, 1);
     bufferevent_socket_connect_hostname(
             ev->buff, dns_base, AF_INET, "127.0.0.1", 10000);
 }
@@ -60,14 +48,14 @@ void *event_main(void *args)
     fprintf(stderr, "thread start\n");
     const char text[] = "123456789012345hello";
     bufferevent_write(ev->buff, text, strlen(text));
-    event_base_dispatch(ev->base);
+    event_base_dispatch(bufferevent_get_base(ev->buff));
     fprintf(stderr, "thread finish\n");
     return 0;
 }
 
 int main(int argc, const char *argv[])
 {
-    struct lev ev;
+    struct lev ev = {};
     pthread_t thread;
     pthread_create(&thread, NULL, event_main, &ev);
     while (ev.buff == NULL) {}
@@ -78,11 +66,6 @@ int main(int argc, const char *argv[])
         if (bufferevent_write(ev.buff, text, strlen(text)) != 0) {
             fprintf(stderr, "write error\n");
         }
-    }
-
-    fprintf(stderr, "flush\n");
-    if (bufferevent_flush(ev.buff, EV_WRITE, BEV_EVENT_EOF) == -1) {
-        fprintf(stderr, "flush failure\n");
     }
     pthread_join(thread, NULL);
     return 0;

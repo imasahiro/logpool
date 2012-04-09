@@ -128,22 +128,33 @@ void ltrace_close(ltrace_t *p)
 extern struct keyapi *logpool_llvm_api_init(void);
 #endif
 extern struct keyapi *logpool_string_api_init(void);
-void logpool_init(enum LOGPOOL_EXEC_MODE mode)
+extern struct keyapi *logpool_event_api_init(void);
+static int exec_mode = 0;
+void logpool_init(int mode)
 {
+    assert(exec_mode == 0);
+    exec_mode = mode;
     if (mode == LOGPOOL_JIT) {
 #ifdef LOGPOOL_USE_LLVM
         KeyAPI = logpool_llvm_api_init();
 #else
         assert(0 && "please enable USE_LLVM flag");
 #endif
+    } else if (mode == LOGPOOL_EVENT) {
+        KeyAPI = logpool_event_api_init();
     } else {
         KeyAPI = logpool_string_api_init();
     }
 }
 
+extern void logpool_event_api_deinit(void);
 void logpool_exit(void)
 {
-    /* TODO */
+    assert(exec_mode != 0);
+    if (exec_mode == LOGPOOL_EVENT) {
+        logpool_event_api_deinit();
+    }
+    exec_mode = 0;
 }
 
 #ifdef __cplusplus

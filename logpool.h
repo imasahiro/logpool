@@ -56,6 +56,13 @@ struct logpool_param_memcache {
     long port;
 };
 
+struct logpool_param_logpool {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+    const char *host;
+    long port;
+};
+
 struct logpool_param_filter {
     int logfmt_capacity;
     int priority;
@@ -108,11 +115,12 @@ struct logapi {
 };
 
 enum LOGPOOL_EXEC_MODE {
-    LOGPOOL_DEFAULT,
-    LOGPOOL_JIT
+    LOGPOOL_DEFAULT = 1,
+    LOGPOOL_JIT     = 2,
+    LOGPOOL_EVENT   = 4
 };
 
-void logpool_init(enum LOGPOOL_EXEC_MODE mode);
+void logpool_init(int mode);
 void logpool_exit(void);
 
 struct logctx {

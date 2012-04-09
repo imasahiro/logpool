@@ -8,17 +8,16 @@
 #define SERVER_PORT    10000
 #define BUFF_SIZE      1024
 
-static void read_cb(struct bufferevent *bev, void *ctx) {
-    char buff[BUFF_SIZE];
-    int len;
-
-    memset(buff, 0, sizeof(buff));
-
-    /* Read data */
-    len = bufferevent_read(bev, buff, sizeof(buff));
+static void read_cb(struct bufferevent *bev, void *ctx)
+{
+    char buff[BUFF_SIZE] = {0};
+    int  len = bufferevent_read(bev, buff, sizeof(buff));
     fprintf(stderr,"read: len=[%d] data=[%s]\n", len, buff);
+    //TODO(imasahiro)
+    // If you want to disconnect a session,
+    // comment out it.
+    //bufferevent_free(bev);
 }
-
 
 static void event_cb(struct bufferevent *bev, short events, void *ctx) {
     if (events & BEV_EVENT_EOF) {
@@ -32,6 +31,7 @@ static void event_cb(struct bufferevent *bev, short events, void *ctx) {
         bufferevent_free(bev);
     }
 }
+
 struct lpevent {
     struct event_base *base;
     lpevent(const char *server, int port) {
@@ -85,7 +85,6 @@ void lpevent::accept_cb(struct evconnlistener *lev, evutil_socket_t fd,
             inet_ntoa(((struct sockaddr_in *) sa)->sin_addr),
             (unsigned short) ntohs(((struct sockaddr_in *) sa)->sin_port), fd);
 
-    /* Create socket-based buffer event */
     bev = bufferevent_socket_new(evbase, fd, BEV_OPT_CLOSE_ON_FREE);
     if (bev == NULL) {
         fprintf(stderr,"bufferevent_socket_new() failed\n");
@@ -93,7 +92,6 @@ void lpevent::accept_cb(struct evconnlistener *lev, evutil_socket_t fd,
         return;
     }
 
-    /* Set up callback function */
     bufferevent_setcb(bev, read_cb, NULL, event_cb, NULL);
 
     /* Set up timeout for data read */
@@ -101,11 +99,9 @@ void lpevent::accept_cb(struct evconnlistener *lev, evutil_socket_t fd,
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     bufferevent_set_timeouts(bev, &tv, NULL);
-
-    /* Enable read event */
     bufferevent_enable(bev, EV_READ);
+    bufferevent_disable(bev, EV_WRITE);
 }
-
 
 int main(int argc, char const* argv[])
 {

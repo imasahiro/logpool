@@ -15,6 +15,10 @@ using namespace llvm;
 
 namespace logpool {
 
+#ifndef LOGPOOL_USE_LLVM_31
+#undef HAVE_CLANG
+#endif
+
 #ifdef HAVE_CLANG
 #include "./llvm_bc.h"
 #endif
