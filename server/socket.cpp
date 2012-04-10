@@ -28,6 +28,7 @@ struct lpevent {
     static void read_cb(struct bufferevent *bev, void *ctx);
     static void event_cb(struct bufferevent *bev, short events, void *ctx);
 };
+
 #define DEBUG 0
 
 #define debug_print(...) do {\
