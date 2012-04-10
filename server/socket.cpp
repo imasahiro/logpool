@@ -15,7 +15,7 @@ struct lpevent {
     char buf[BUFF_SIZE];
     char *last_buf;
     int shift;
-    lpevent(const char *server, int port) : last_buf(NULL) {
+    lpevent(const char *server, int port) : last_buf(NULL), shift(0) {
         init(server, port);
     }
     bool init(const char *server, int port);
@@ -78,8 +78,8 @@ struct log_stream {
     ~log_stream() {
         lp_->shift = len;
         lp_->last_buf = cur;
-
     }
+
     void debug(int len) {
 #if 0
         if (len >= (int)sizeof(logpool_protocol)) {
@@ -90,7 +90,7 @@ struct log_stream {
 #endif
     }
 
-    void reset() {
+    bool reset(int request_size) {
         int old_len = len;
         debug(old_len);
         if (len) {
@@ -100,18 +100,22 @@ struct log_stream {
         debug(old_len);
         cur  = lp_->buf;
         debug_print("reset %d=>%d\n", old_len, len);
+        return len >= request_size;
     }
     int size() const {
         return evbuffer_get_length(bufferevent_get_input(bev_));
     }
     bool empty() const {
-        debug_print("empty %d, %d\n", len, size());
+        debug_print("empty %d, %d, %d\n", len, size(), len >= 0);
+        assert(len >= 0);
         return len == 0 && size() == 0;
     }
     char *next(size_t offset) {
         char *d = cur;
         offset += sizeof(logpool_protocol);
+        debug_print("next offset=%lu, old_len=%d\n", offset, len);
         len -= offset;
+        assert(len >= 0);
         cur += offset;
         return d;
     }
@@ -122,21 +126,28 @@ struct log_stream {
                 debug_print("fetch protocol failed\n");
                 return NULL;
             }
-            reset();
+            if (!reset(sizeof(logpool_protocol))) {
+                return NULL;
+            }
         }
         debug_print("len=%d\n", len);
         while (len > 0) {
             log_t *d = (log_t *) cur;
             uint16_t klen, vlen;
+            int reqsize;
             klen = d->klen;
             vlen = d->vlen;
-            if (len < (int)(sizeof(logpool_protocol) + klen + vlen)) {
+            reqsize = (int)(sizeof(logpool_protocol) + klen + vlen);
+            debug_print("%d, %d, check=%d\n", len, klen+vlen, len < reqsize);
+            if (len < reqsize) {
                 debug_print("fetch body\n");
                 if (size() <= 0) {
                     debug_print("fetch body failed\n");
                     return NULL;
                 }
-                reset();
+                if (!reset(reqsize)) {
+                    return NULL;
+                }
             }
             return (log_t*) next(klen + vlen);
         }

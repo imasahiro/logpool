@@ -89,7 +89,7 @@ static void logpool_LogPool_flush(logctx_t *ctx, void **args __UNUSED__)
     }
     vlen = (char*) lp->buf - p;
     logpool_write_protocol(buf_orig, LOGPOOL_EVENT_WRITE, klen, vlen);
-#if 1
+#if 0
     {
         static int __debug__ = 0;
         fprintf(stderr, "%d, '%s'\n", __debug__++, buf_orig+sizeof(struct logpool_protocol));
@@ -153,7 +153,7 @@ void logpool_event_api_deinit(void)
 
 static void eventcb(struct bufferevent *bev, short events, void *ptr)
 {
-#if 1
+#if 0
     fprintf(stderr, "ev: %d\n", (int)events);
 #endif
     if (events & BEV_EVENT_CONNECTED) {
@@ -206,7 +206,9 @@ static int event_init(char *host, int port)
 {
     memset(&g_event, 0, sizeof(struct lev));
     pthread_create(&g_event.thread, NULL, event_main, &g_event);
-    do {} while (g_event.buff == NULL);
+    while (g_event.buff == NULL) {
+        asm volatile ("" ::: "memory");
+    }
     return 0;
 }
 
