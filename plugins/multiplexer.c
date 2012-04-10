@@ -19,7 +19,6 @@ typedef struct mul {
 static char *logpool_Multiplexer_fn_key(logctx_t *ctx, uint64_t v, uint64_t seq, sizeinfo_t info)
 {
     int i;
-    char *ret;
     mul_t *mul = cast(mul_t *, ctx->connection);
     for (i = 0; i < mul->size; ++i) {
         struct plugin_entry *e = mul->entries+i;
@@ -27,7 +26,7 @@ static char *logpool_Multiplexer_fn_key(logctx_t *ctx, uint64_t v, uint64_t seq,
         e->fn_key(ctx, v, seq, info);
     }
     cast(struct logctx *, ctx)->connection = mul;
-    return ret;
+    return NULL;
 }
 
 static void *logpool_Multiplexer_init(logctx_t *ctx, logpool_param_t *p)

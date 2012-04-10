@@ -130,7 +130,7 @@ struct keyapi *logpool_event_api_init(void)
 {
     char *serverinfo = getenv("LOGPOOL_SERVER");
     char host[128] = {0};
-    int  port;
+    int  port = DEFAULT_PORT;
     if (serverinfo) {
         char *pos;
         if ((pos = strchr(serverinfo, ':')) != NULL) {
@@ -138,7 +138,6 @@ struct keyapi *logpool_event_api_init(void)
             memcpy(host, serverinfo, pos - serverinfo);
         } else {
             memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
-            port = DEFAULT_PORT;
         }
     }
     fprintf(stderr,"connect to [%s:%u]\n", host, port);
