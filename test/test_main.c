@@ -19,7 +19,7 @@ static void ltrace_test_write(ltrace_t *ltrace)
             LOG_i("int",   i),
             LOG_i("int",   i+1),
             LOG_i("int",   i*10),
-            //LOG_s("string", s),
+            LOG_s("string", s),
             LOG_END
             );
     n++;

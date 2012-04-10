@@ -30,15 +30,15 @@ struct lpevent {
 };
 #define DEBUG 0
 
-#define debug_print(fmt, ...) do {\
+#define debug_print(...) do {\
     if (DEBUG) {\
-        fprintf(stderr, fmt, # __VA_ARGS__);\
+        fprintf(stderr, ## __VA_ARGS__);\
     }\
 } while (0)
 
 struct logpool_event_data {
     struct logpool_protocol base;
-    char data[];
+    char data[0];
 };
 
 int total_log_count = 0;

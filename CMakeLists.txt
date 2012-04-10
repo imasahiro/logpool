@@ -27,7 +27,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 SET(CMAKE_C_FLAGS         "-Wall -Wno-variadic-macros -pedantic")
-SET(CMAKE_CXX_FLAGS       "-Wall -Wno-variadic-macros -pedantic")
+SET(CMAKE_CXX_FLAGS       "-Wall -Wno-variadic-macros")
 SET(CMAKE_C_FLAGS_RELEASE "-O2 -g")
 SET(CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
 SET(CMAKE_CXX_FLAGS_RELEASE "-Wall -O2 -g")
@@ -51,20 +51,24 @@ set(LLVM_LOGPOOL_SRC
 	jit/llvm_memcache.cpp
 )
 
+set(LOGPOOL_DAEMON_SRC
+	server/socket.cpp)
+
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
 find_library(HAVE_LIBMEMCACHED NAMES memcached)
 find_library(HAVE_PTREAD       NAMES pthread)
 find_library(HAVE_LIBEVENT     NAMES event)
 find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
-find_path(HAVE_PTREAD_H   pthread.h      PATHS ${include_locations})
-find_path(HAVE_LIBEVENT_H event2/event.h PATHS ${include_locations})
+check_include_files(pthread.h      HAVE_PTHREAD_H)
+check_include_files(event2/event.h HAVE_LIBEVENT_H)
 
 if (NOT HAVE_PTHREAD_H)
-	message(FATAL ERROR "pthread.h not found")
+	message(FATAL_ERROR "pthread.h not found: ${HAVE_PTHREAD_H}")
 endif (NOT HAVE_PTHREAD_H)
+
 if (NOT HAVE_LIBEVENT_H)
-	message(FATAL ERROR "event2/event.h not found")
+	message(FATAL_ERROR "event2/event.h not found")
 endif (NOT HAVE_LIBEVENT_H)
 
 check_type_size("void *" SIZEOF_VOIDP)
@@ -178,6 +182,9 @@ set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${
 
 # test cases
 enable_testing()
+
+add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
+target_link_libraries(logpoold ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})
