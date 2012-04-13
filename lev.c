@@ -43,6 +43,7 @@ static void lev_thread_init(struct lev *ev)
     dns_base = evdns_base_new(base, 1);
     bufferevent_socket_connect_hostname(buff,
             dns_base, AF_INET, "127.0.0.1", 10000);
+    bufferevent_setwatermark(buff, EV_READ|EV_WRITE, 1024/2, 1024);
     ev->buff = buff;
 }
 
@@ -70,6 +71,12 @@ struct lev *lev_new(char *host, int port)
         asm volatile ("" ::: "memory");
     }
     return ev;
+}
+
+int lev_write(struct lev *ev, char *packed_data, size_t klen, size_t vlen, uint32_t flags)
+{
+    lev_set_protocol(packed_data, LOGPOOL_EVENT_WRITE, klen, vlen);
+    return lev_append(ev, packed_data, sizeof(struct logpool_protocol) + klen + vlen, flags);
 }
 
 int lev_append(struct lev *ev, char *value, size_t vlen, uint32_t flags)

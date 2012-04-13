@@ -15,8 +15,6 @@ struct logpool_protocol {
     uint16_t protocol, klen;
     uint16_t vlen;
 };
-#define DEFAULT_SERVER "127.0.0.1"
-#define DEFAULT_PORT   10000
 
 struct lev {
     struct bufferevent *buff;
@@ -24,6 +22,7 @@ struct lev {
 };
 
 struct lev *lev_new(char *host, int port);
+int lev_write(struct lev *ev, char *packed_data, size_t klen, size_t vlen, uint32_t flags);
 int lev_append(struct lev *ev, char *value, size_t vlen, uint32_t flags);
 int lev_quit(struct lev *ev);
 int lev_destory(struct lev *ev);

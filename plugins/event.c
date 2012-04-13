@@ -1,21 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
-#include <event2/thread.h>
-#include <event2/buffer.h>
-#include <event2/dns.h>
-#include <event2/bufferevent.h>
-#include <event2/bufferevent_struct.h>
 #include "logpool.h"
 #include "lpstring.h"
 #include "logpool_internal.h"
 #include "logpool_event.h"
 
+#define DEFAULT_SERVER "127.0.0.1"
+#define DEFAULT_PORT   10000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static int logpool_append(struct lev *ev, char *value, size_t vlen, uint32_t flags);
 static struct lev *g_ev = NULL;
 
 typedef struct lp {
@@ -24,38 +20,24 @@ typedef struct lp {
     char base[1];
 } lp_t;
 
-
 static void *logpool_LogPool_init(logctx_t *ctx, logpool_param_t *p)
 {
-    /*
-     * struct logpool_param_logpool *args = cast(struct logpool_param_logpool *, p);
-     * const char *host = args->host;
-     * long port = args->port;
-     */
     lp_t *lp = cast(lp_t *, logpool_string_init(ctx, p));
     lp->ev = g_ev;
-    fprintf(stderr, "%p\n", lp->ev);
     return cast(void *, lp);
-}
-
-static char *logpool_write_protocol(char *p, uint16_t protocol, size_t klen, size_t vlen)
-{
-    struct logpool_protocol *buf = (struct logpool_protocol *) p;
-    buf->protocol = protocol;
-    buf->klen = (uint16_t) klen;
-    buf->vlen = (uint16_t) vlen;
-    return p + sizeof(struct logpool_protocol);
 }
 
 static void logpool_LogPool_flush(logctx_t *ctx, void **args __UNUSED__)
 {
     lp_t *lp = cast(lp_t *, ctx->connection);
     char *buf_orig = lp->buf, *p;
-    uint32_t flags = 0;
-    struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
-    size_t klen, vlen, i, size = ctx->logfmt_size;
+    size_t klen, vlen, size;
+    struct logfmt *fmt, *fmte;
     int ret;
 
+    size = ctx->logfmt_size;
+    fmt = cast(struct logctx *, ctx)->fmt;
+    fmte = fmt + size;
     lp->buf = lp->buf + sizeof(struct logpool_protocol);
     p = ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
     klen = p - (char*) buf_orig - sizeof(struct logpool_protocol);
@@ -63,21 +45,15 @@ static void logpool_LogPool_flush(logctx_t *ctx, void **args __UNUSED__)
         void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
         fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
         ++fmt;
-        for (i = 1; i < size; ++i, ++fmt) {
+        while (fmt < fmte) {
             fn_delim(ctx);
             fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+            ++fmt;
         }
         cast(struct logctx *, ctx)->logfmt_size = 0;
     }
     vlen = (char*) lp->buf - p;
-    logpool_write_protocol(buf_orig, LOGPOOL_EVENT_WRITE, klen, vlen);
-#if 0
-    {
-        static int __debug__ = 0;
-        fprintf(stderr, "%d, '%s'\n", __debug__++, buf_orig+sizeof(struct logpool_protocol));
-    }
-#endif
-    ret = logpool_append(lp->ev, buf_orig, sizeof(struct logpool_protocol)+klen+vlen, flags);
+    ret = lev_write(lp->ev, buf_orig, klen, vlen, 0);
     if (ret != LOGPOOL_SUCCESS) {
         /* TODO Error */
         fprintf(stderr, "Error!!\n");
@@ -126,11 +102,6 @@ struct keyapi *logpool_event_api_init(void)
 void logpool_event_api_deinit(void)
 {
     lev_destory(g_ev);
-}
-
-static int logpool_append(struct lev *ev, char *value, size_t vlen, uint32_t flags)
-{
-    return lev_append(ev, value, vlen, flags);
 }
 
 #ifdef __cplusplus

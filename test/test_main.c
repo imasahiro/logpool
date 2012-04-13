@@ -31,8 +31,8 @@ int main(void)
     logpool_init(LOGAPI_INIT_FLAG);
     {
         ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
-        int i;
-        for (i = 0; i < LOGPOOL_TEST_COUNT; ++i) {
+        int i, size = LOGPOOL_TEST_COUNT;
+        for (i = 0; i < size; ++i) {
             ltrace_test_write(ltrace);
         }
         ltrace_close(ltrace);

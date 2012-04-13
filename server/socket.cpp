@@ -39,12 +39,12 @@ struct lpevent {
 
 struct logpool_event_data {
     struct logpool_protocol base;
-    char data[0];
+    char data[1];
 };
 
 int total_log_count = 0;
 
-struct log_t : public logpool_protocol {
+struct log : public logpool_protocol {
     char data[128];
     bool process() {
         switch (protocol) {
@@ -67,94 +67,92 @@ struct log_t : public logpool_protocol {
 };
 
 struct log_stream {
+private:
     lpevent *lp_;
     struct bufferevent *bev_;
     char *cur;
     int len;
+public:
     explicit log_stream(lpevent *lp, struct bufferevent *bev) : lp_(lp), bev_(bev) {
         cur = (lp_->last_buf)?lp_->last_buf:lp_->buf;
         len = lp_->shift;
         lp_->shift = 0;
     }
-    ~log_stream() {
+    virtual ~log_stream() {
         lp_->shift = len;
         lp_->last_buf = cur;
     }
-
-    void debug(int len) {
-#if 0
-        if (len >= (int)sizeof(logpool_protocol)) {
-            debug_print("0:%p, '%s', cur=%p, '%s'\n",
-                    lp_->buf, lp_->buf+sizeof(logpool_protocol),
-                    cur, cur+sizeof(logpool_protocol));
-        }
-#endif
-    }
-
-    bool reset(int request_size) {
-        int old_len = len;
-        debug(old_len);
-        if (len) {
-            memmove(lp_->buf, cur, len);
-        }
-        len += bufferevent_read(bev_, lp_->buf + len, BUFF_SIZE - len);
-        debug(old_len);
-        cur  = lp_->buf;
-        debug_print("reset %d=>%d\n", old_len, len);
-        return len >= request_size;
-    }
-    int size() const {
-        return evbuffer_get_length(bufferevent_get_input(bev_));
-    }
-    bool empty() const {
-        debug_print("empty %d, %d, %d\n", len, size(), len >= 0);
-        assert(len >= 0);
-        return len == 0 && size() == 0;
-    }
-    char *next(size_t offset) {
-        char *d = cur;
-        offset += sizeof(logpool_protocol);
-        debug_print("next offset=%lu, old_len=%d\n", offset, len);
-        len -= offset;
-        assert(len >= 0);
-        cur += offset;
-        return d;
-    }
-    log_t *get() {
-        if (len < (int) sizeof(logpool_protocol)) {
-            debug_print("fetch protocol\n");
-            if (size() <= 0) {
-                debug_print("fetch protocol failed\n");
-                return NULL;
-            }
-            if (!reset(sizeof(logpool_protocol))) {
-                return NULL;
-            }
-        }
-        debug_print("len=%d\n", len);
-        while (len > 0) {
-            log_t *d = (log_t *) cur;
-            uint16_t klen, vlen;
-            int reqsize;
-            klen = d->klen;
-            vlen = d->vlen;
-            reqsize = (int)(sizeof(logpool_protocol) + klen + vlen);
-            debug_print("%d, %d, check=%d\n", len, klen+vlen, len < reqsize);
-            if (len < reqsize) {
-                debug_print("fetch body\n");
-                if (size() <= 0) {
-                    debug_print("fetch body failed\n");
-                    return NULL;
-                }
-                if (!reset(reqsize)) {
-                    return NULL;
-                }
-            }
-            return (log_t*) next(klen + vlen);
-        }
-        return NULL;
-    }
+    log *get();
+    bool empty() const;
+private:
+    bool reset(int request_size);
+    int size() const;
+    char *next(size_t offset);
 };
+
+bool log_stream::reset(int request_size)
+{
+    int old_len = len;
+    if (len) {
+        memmove(lp_->buf, cur, len);
+    }
+    len += bufferevent_read(bev_, lp_->buf + len, BUFF_SIZE - len);
+    cur  = lp_->buf;
+    debug_print("reset %d=>%d\n", old_len, len);
+    return len >= request_size;
+}
+int log_stream::size() const {
+    return evbuffer_get_length(bufferevent_get_input(bev_));
+}
+
+bool log_stream::empty() const {
+    debug_print("empty %d, %d, %d\n", len, size(), len >= 0);
+    assert(len >= 0);
+    return len == 0 && size() == 0;
+}
+char *log_stream::next(size_t offset) {
+    char *d = cur;
+    offset += sizeof(logpool_protocol);
+    debug_print("next offset=%lu, old_len=%d\n", offset, len);
+    len -= offset;
+    assert(len >= 0);
+    cur += offset;
+    return d;
+}
+log *log_stream::get() {
+    if (len < (int) sizeof(logpool_protocol)) {
+        debug_print("fetch protocol\n");
+        if (size() <= 0) {
+            debug_print("fetch protocol failed\n");
+            return NULL;
+        }
+        if (!reset(sizeof(logpool_protocol))) {
+            return NULL;
+        }
+    }
+    debug_print("len=%d\n", len);
+    while (len > 0) {
+        log *d = (log *) cur;
+        uint16_t klen, vlen;
+        int reqsize;
+        klen = d->klen;
+        vlen = d->vlen;
+        reqsize = (int)(sizeof(logpool_protocol) + klen + vlen);
+        debug_print("%d, %d, check=%d\n", len, klen+vlen, len < reqsize);
+        if (len < reqsize) {
+            debug_print("fetch body\n");
+            if (size() <= 0) {
+                debug_print("fetch body failed\n");
+                return NULL;
+            }
+            if (!reset(reqsize)) {
+                return NULL;
+            }
+        }
+        return (log*) next(klen + vlen);
+    }
+    return NULL;
+}
 
 void lpevent::read_cb(struct bufferevent *bev, void *ctx)
 {
@@ -163,7 +161,7 @@ void lpevent::read_cb(struct bufferevent *bev, void *ctx)
     debug_print("read_cb\n");
     while (!logs.empty()) {
         debug_print("!empty\n");
-        log_t *log = logs.get();
+        log *log = logs.get();
         if (!log) {
             break;
         }
@@ -223,6 +221,7 @@ bool lpevent::init(const char *server, int port)
 void lpevent::accept_cb(struct evconnlistener *lev, evutil_socket_t fd,
         struct sockaddr *sa, int socklen, void *ctx)
 {
+    (void)lev;(void)socklen;
     lpevent *lp = reinterpret_cast<lpevent *>(ctx);
     struct event_base *evbase = lp->base;
     struct bufferevent *bev;
@@ -252,6 +251,7 @@ void lpevent::accept_cb(struct evconnlistener *lev, evutil_socket_t fd,
 
 int main(int argc, char const* argv[])
 {
+    (void)argc;(void)argv;
     lpevent ev(SERVER_IP, SERVER_PORT);
     ev.exec();
     return 0;

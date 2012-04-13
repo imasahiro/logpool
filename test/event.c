@@ -1,6 +1,7 @@
 /*event api test*/
 #include "logpool.h"
 #include <stdlib.h>
+#include <stdio.h>
 static struct logpool_param_memcache EVENT_API_PARAM = {
     8,
     1024,
@@ -14,10 +15,9 @@ static struct logpool_param_memcache EVENT_API_PARAM = {
 static int get_count(void)
 {
     char *env = getenv("LOGPOOL_TESTCASE_SIZE");
-    if (env) {
-        return strtol(env, NULL, 10);
-    }
-    return 100;
+    env = (env) ? env : "100";
+    fprintf(stderr, "%s:%d test_size=%s\n", __FILE__, __LINE__, env);
+    return strtol(env, NULL, 10);
 }
 #include "test_main.c"
 
