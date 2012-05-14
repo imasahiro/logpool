@@ -7,19 +7,26 @@
 #define LOGPOOL_TEST_COUNT 5
 #endif
 extern logapi_t LOGAPI;
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
+
+#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+
 
 int n = 0;
-static void ltrace_test_write(ltrace_t *ltrace)
+static void logpool_test_write(logpool_t *logpool)
 {
-    double f = n + 0.14;
+    //double f = n + 0.14;
     long   i = n;
     const char *s = "hello world";
-    ltrace_record(ltrace, LOG_NOTICE, "event",
-            LOG_f("float", f),
-            LOG_i("int",   i),
-            LOG_i("int",   i+1),
-            LOG_i("int",   i*10),
-            LOG_s("string", s),
+    void *args;
+    logpool_record(logpool, &args, LOG_NOTICE, "event",
+            KEYVALUE_u("uint",   i),
+            KEYVALUE_u("uint",   i+1),
+            KEYVALUE_u("uint",   i*10),
+            KEYVALUE_s("string", s),
             LOG_END
             );
     n++;
@@ -30,12 +37,12 @@ int main(void)
 {
     logpool_init(LOGAPI_INIT_FLAG);
     {
-        ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
+        logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
         int i, size = LOGPOOL_TEST_COUNT;
         for (i = 0; i < size; ++i) {
-            ltrace_test_write(ltrace);
+            logpool_test_write(logpool);
         }
-        ltrace_close(ltrace);
+        logpool_close(logpool);
     }
     logpool_exit();
     return 0;

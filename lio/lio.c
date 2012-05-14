@@ -70,6 +70,14 @@ int lio_dispatch(struct lio *lio)
     return 0;
 }
 
+struct lio *lio_open_trace(char *host, int port)
+{
+    extern struct lio_api trace_api;
+    struct lio *lio = lio_open(host, port,
+            LIO_MODE_READ|LIO_MODE_WRITE, &trace_api);
+    return lio;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -141,6 +141,7 @@ static char *write_seq(buffer_t *buf, uint64_t seq)
 char *logpool_key_hex(logpool_t *ctx, uint64_t v, uint64_t seq, short klen __UNUSED__)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf_put_string(buf, "TraceID", strlen("TraceID"));
     buf_put_char2(buf, '0' ,'x');
     buf->buf = put_hex(buf->buf, v);
     return write_seq(buf, seq);
@@ -149,6 +150,7 @@ char *logpool_key_hex(logpool_t *ctx, uint64_t v, uint64_t seq, short klen __UNU
 char *logpool_key_string(logpool_t *ctx, uint64_t v, uint64_t seq, short klen)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
+    buf_put_string(buf, "TraceID", strlen("TraceID"));
     char *s = cast(char *, v);
     buf_put_string(buf, s, klen);
     return write_seq(buf, seq);

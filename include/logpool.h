@@ -35,46 +35,11 @@ struct logpool_param_string {
     uintptr_t buffer_size;
 };
 
-struct logpool_param_syslog {
-    int logfmt_capacity;
-    uintptr_t buffer_size;
-};
-
-struct logpool_param_file {
-    int logfmt_capacity;
-    uintptr_t buffer_size;
-    const char *fname;
-};
-
-struct logpool_param_memcache {
+struct logpool_param_trace {
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *host;
     long port;
-};
-
-struct logpool_param_logpool {
-    int logfmt_capacity;
-    uintptr_t buffer_size;
-    const char *host;
-    long port;
-};
-
-struct logpool_param_filter {
-    int logfmt_capacity;
-    int priority;
-    logapi_t *api;
-    struct logpool_param *param;
-};
-
-#define LOGPOOL_MULTIPLEXER_MAX 4
-struct logpool_param_multiplexer {
-    int logfmt_capacity;
-    int argc;
-    struct plugin_param {
-        logapi_t *api;
-        struct logpool_param *param;
-    } args[LOGPOOL_MULTIPLEXER_MAX];
 };
 
 /* log formatter API */
@@ -113,10 +78,9 @@ struct logapi {
 };
 
 enum LOGPOOL_EXEC_MODE {
-    LOGPOOL_DEFAULT = 1
-#if 0
-    LOGPOOL_JIT     = 2
-#endif
+    LOGPOOL_DEFAULT = 1,
+    LOGPOOL_JIT     = 2,
+    LOGPOOL_TRACE   = 4
 };
 
 void logpool_init(int mode);
@@ -135,6 +99,7 @@ struct logpool {
 };
 
 logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *);
+logpool_t *logpool_open_trace(logpool_t *parent, char *host, int port);
 void logpool_close(logpool_t *p);
 
 void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
