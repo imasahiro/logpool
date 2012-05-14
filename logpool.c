@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdarg.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -12,12 +13,6 @@ extern "C" {
 
 static struct keyapi *KeyAPI = NULL;
 
-logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *);
-void logpool_close(logpool_t *p);
-
-void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
-int  logpool_check_priority(logpool_t *logpool, int priority);
-
 static void logpool_new(logpool_t *ctx, struct logapi *api, logpool_param_t *param)
 {
     struct logpool *lctx = cast(struct logpool *, ctx);
@@ -28,6 +23,61 @@ static void logpool_new(logpool_t *ctx, struct logapi *api, logpool_param_t *par
     lctx->logkey.k.seq = 0;
     lctx->logfmt_size  = 0;
     lctx->is_flushed   = 0;
+}
+
+static void append_fmtdata(logpool_t *ctx, const char *key, uint64_t v, logFn f, short klen, short vlen)
+{
+    struct logpool *lctx = cast(struct logpool *, ctx);
+    assert(lctx->logfmt_size < lctx->logfmt_capacity);
+    lctx->fmt[lctx->logfmt_size].fn    = f;
+    lctx->fmt[lctx->logfmt_size].k.key = key;
+    lctx->fmt[lctx->logfmt_size].v.u   = v;
+    lctx->fmt[lctx->logfmt_size].klen  = klen;
+    lctx->fmt[lctx->logfmt_size].vlen  = vlen;
+    ++lctx->logfmt_size;
+}
+
+static void logpool_flush(logpool_t *ctx, void *args)
+{
+    cast(struct logpool *, ctx)->is_flushed = 0;
+    ctx->formatter->fn_flush(ctx, args);
+}
+
+/* @see konoha2/logger.h */
+static const int logfn_index[] = {
+    /* LOG_END */ -1,
+    /* LOG_s */    6,
+    /* LOG_u */    2,
+    /* LOG_i */    2,
+    /* LOG_b */    1,
+    /* LOG_f */    4,
+    /* LOG_x */    3,
+    /* LOG_n */    0,
+    /* LOG_r */    7,
+};
+
+void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ...)
+{
+    va_list ap;
+    va_start(ap, trace_id);
+    long klen, vlen;
+    char *key, *val;
+    int i, type;
+    logFn f;
+
+    for (i = 0; i < ctx->logfmt_capacity; ++i) {
+        type = va_arg(ap, int);
+        if (type == 0)
+            break;
+        klen = va_arg(ap, long);
+        vlen = va_arg(ap, long);
+        key  = va_arg(ap, char *);
+        val  = va_arg(ap, char *);
+        f = ((logFn*)ctx->formatter)[logfn_index[type]];
+        append_fmtdata(ctx, key, (uint64_t)val, f, klen, vlen);
+    }
+    va_end(ap);
+    logpool_flush(ctx, args);
 }
 
 void logpool_format_flush(logpool_t *ctx)
@@ -51,24 +101,6 @@ void logpool_format_flush(logpool_t *ctx)
     }
     ++(cast(struct logpool *, ctx)->logkey.k.seq);
     cast(struct logpool *, ctx)->is_flushed = 1;
-}
-
-void logpool_flush(logpool_t *ctx, void **args)
-{
-    cast(struct logpool *, ctx)->is_flushed = 0;
-    ctx->formatter->fn_flush(ctx, args);
-}
-
-void logpool_append_fmtdata(logpool_t *ctx, const char *key, uint64_t v, logFn f, short klen, short vlen)
-{
-    struct logpool *lctx = cast(struct logpool *, ctx);
-    assert(lctx->logfmt_size < lctx->logfmt_capacity);
-    lctx->fmt[lctx->logfmt_size].fn    = f;
-    lctx->fmt[lctx->logfmt_size].k.key = key;
-    lctx->fmt[lctx->logfmt_size].v.u   = v;
-    lctx->fmt[lctx->logfmt_size].klen  = klen;
-    lctx->fmt[lctx->logfmt_size].vlen  = vlen;
-    ++lctx->logfmt_size;
 }
 
 int logpool_init_logkey(logpool_t *ctx, int priority, uint64_t v, short klen, short vlen)

@@ -45,6 +45,8 @@ static inline void logpool_context_switch(logpool_t *ctx, void *connection)
     cast(struct logpool *, ctx)->connection = connection;
 }
 
+void logpool_format_flush(logpool_t *ctx);
+
 #ifdef __cplusplus
 }
 #endif

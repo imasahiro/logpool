@@ -79,7 +79,7 @@ struct logpool_param_multiplexer {
 
 /* log formatter API */
 typedef void  (*logFn)(logpool_t *, const char *k, uint64_t v, short klen, short vlen);
-typedef char *(*keyFn)(logpool_t *, uint64_t v, uint64_t seq, long len);
+typedef char *(*keyFn)(logpool_t *, uint64_t v, uint64_t seq, short len);
 
 struct logfmt {
     logFn fn;

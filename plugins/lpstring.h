@@ -57,8 +57,8 @@ void logpool_string_string(logpool_t *logpool, const char *key, uint64_t v, shor
 void logpool_string_raw(logpool_t *logpool, const char *key, uint64_t v, short klen, short vlen);
 void logpool_string_delim(logpool_t *logpool);
 void logpool_string_flush(logpool_t *logpool);
-char *logpool_key_string(logpool_t *logpool, uint64_t v, uint64_t seq, short klen, short vlen);
-char *logpool_key_hex(logpool_t *logpool, uint64_t v, uint64_t seq, short klen, short vlen);
+char *logpool_key_hex(logpool_t *ctx, uint64_t v, uint64_t seq, short klen);
+char *logpool_key_string(logpool_t *ctx, uint64_t v, uint64_t seq, short klen);
 
 static inline void logpool_string_reset(logpool_t *logpool)
 {

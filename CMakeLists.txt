@@ -27,7 +27,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" )
 endif()
 
-SET(CMAKE_C_FLAGS         "-Wall -Wno-variadic-macros -pedantic")
+SET(CMAKE_C_FLAGS         "-Wall -Wno-variadic-macros")
 SET(CMAKE_CXX_FLAGS       "-Wall -Wno-variadic-macros")
 SET(CMAKE_C_FLAGS_RELEASE "-O2 -g")
 SET(CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
@@ -36,7 +36,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	logpool.c
-#	plugins/lpstring.c
+	plugins/lpstring.c
 #	plugins/file2.c
 #	plugins/memcache.c
 #	plugins/syslog.c
