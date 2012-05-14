@@ -1,0 +1,20 @@
+message Log
+    u16:protocol
+    u16:logsize
+    u16:klen
+    u16:vlen
+    string:data
+
+message Query
+    u16:protocol
+    u16:logsize
+    u16:klen
+    u16:vlen
+    string:data
+
+
+service LogStore
+    void:set(log l)
+
+service LogQuery
+    Log:get(string q)
