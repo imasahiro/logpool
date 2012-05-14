@@ -51,6 +51,8 @@ set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+set(LIO_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 #		${CMAKE_CURRENT_BINARY_DIR}/config.h)
 #add_definitions(-DHAVE_CONFIG_H)

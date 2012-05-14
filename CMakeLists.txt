@@ -36,14 +36,13 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	logpool.c
-	lev.c
-	plugins/lpstring.c
-	plugins/file2.c
-	plugins/memcache.c
-	plugins/syslog.c
-	plugins/filter.c
-	plugins/multiplexer.c
-	plugins/event.c
+#	plugins/lpstring.c
+#	plugins/file2.c
+#	plugins/memcache.c
+#	plugins/syslog.c
+#	plugins/filter.c
+#	plugins/multiplexer.c
+	plugins/lio_plugin.c
 )
 
 set(LLVM_LOGPOOL_SRC
@@ -53,9 +52,7 @@ set(LLVM_LOGPOOL_SRC
 	jit/llvm_memcache.cpp
 )
 
-set(LOGPOOL_DAEMON_SRC
-	logpoold.cpp
-	server/socket.cpp)
+set(LOGPOOL_DAEMON_SRC)
 
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
@@ -95,89 +92,93 @@ if(HAVE_LIBEVENT)
 	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
 endif(HAVE_LIBEVENT)
 
-option(USE_LLVM "Use llvm" on)
-if(USE_LLVM)
-set(LOGPOOL_USE_LLVM true)
-endif(USE_LLVM)
-
-if(LOGPOOL_USE_LLVM)
-find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
-find_program(HAVE_CLANG   NAMES clang DOC "clang")
-if(NOT LLVM_CONFIG)
-set(LOGPOOL_USE_LLVM false)
-endif(NOT LLVM_CONFIG)
-endif(LOGPOOL_USE_LLVM)
-
-if(LLVM_CONFIG)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --version
-		OUTPUT_VARIABLE LLVM_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-if(${LLVM_VERSION} VERSION_GREATER "3.0")
-set(LOGPOOL_USE_LLVM_31 1)
-endif(${LLVM_VERSION} VERSION_GREATER "3.0")
-
-set(LOGPOOL_USE_LLVM 1)
-set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
-
-execute_process(
-		COMMAND ${LLVM_CONFIG} --cppflags
-		OUTPUT_VARIABLE LLVM_CFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --cxxflags
-		OUTPUT_VARIABLE LLVM_CXXFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --ldflags
-		OUTPUT_VARIABLE LLVM_LDFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-execute_process(
-	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo engine interpreter
-	OUTPUT_VARIABLE LLVM_JIT_LIBS
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --libdir
-		OUTPUT_VARIABLE LLVM_LIBDIR
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
-string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
-link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
-set(ExtraLibs ${ExtraLibs} ${v})
-
-add_executable(ConvertBC ./jit/tohex.c)
-if(HAVE_CLANG)
-	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-	set(_cflag "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TYPE}}")
-	set(_tmp "${_cflag} -g0")
-	set(_output ${CMAKE_CURRENT_BINARY_DIR}/puts.bc)
-	add_custom_command(
-		OUTPUT  ${_output}
-		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
-		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
-		${LLVM_C_FLAGS} -emit-llvm -c -o
-		${_output})
-	add_custom_command(
-		OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h
-		DEPENDS ConvertBC ${_output}
-		COMMAND ConvertBC ${_output})
-	set(LOGPOOL_SRC ${LOGPOOL_SRC} ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h)
-endif(HAVE_CLANG)
-
-endif(LLVM_CONFIG)
+#option(USE_LLVM "Use llvm" on)
+#if(USE_LLVM)
+#set(LOGPOOL_USE_LLVM true)
+#endif(USE_LLVM)
+#
+#if(LOGPOOL_USE_LLVM)
+#find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
+#find_program(HAVE_CLANG   NAMES clang DOC "clang")
+#if(NOT LLVM_CONFIG)
+#set(LOGPOOL_USE_LLVM false)
+#endif(NOT LLVM_CONFIG)
+#endif(LOGPOOL_USE_LLVM)
+#
+#if(LLVM_CONFIG)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --version
+#		OUTPUT_VARIABLE LLVM_VERSION
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#
+#if(${LLVM_VERSION} VERSION_GREATER "3.0")
+#set(LOGPOOL_USE_LLVM_31 1)
+#endif(${LLVM_VERSION} VERSION_GREATER "3.0")
+#
+#set(LOGPOOL_USE_LLVM 1)
+#set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
+#
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --cppflags
+#		OUTPUT_VARIABLE LLVM_CFLAGS
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --cxxflags
+#		OUTPUT_VARIABLE LLVM_CXXFLAGS
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --ldflags
+#		OUTPUT_VARIABLE LLVM_LDFLAGS
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#execute_process(
+#	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo engine interpreter
+#	OUTPUT_VARIABLE LLVM_JIT_LIBS
+#	OUTPUT_STRIP_TRAILING_WHITESPACE
+#	)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --libdir
+#		OUTPUT_VARIABLE LLVM_LIBDIR
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#
+#set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
+#string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
+#link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
+#set(ExtraLibs ${ExtraLibs} ${v})
+#
+#add_executable(ConvertBC ./jit/tohex.c)
+#if(HAVE_CLANG)
+#	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+#	set(_cflag "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TYPE}}")
+#	set(_tmp "${_cflag} -g0")
+#	set(_output ${CMAKE_CURRENT_BINARY_DIR}/puts.bc)
+#	add_custom_command(
+#		OUTPUT  ${_output}
+#		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
+#		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
+#		${LLVM_C_FLAGS} -emit-llvm -c -o
+#		${_output})
+#	add_custom_command(
+#		OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h
+#		DEPENDS ConvertBC ${_output}
+#		COMMAND ConvertBC ${_output})
+#	set(LOGPOOL_SRC ${LOGPOOL_SRC} ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h)
+#endif(HAVE_CLANG)
+#
+#endif(LLVM_CONFIG)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_definitions(-DHAVE_CONFIG_H)
+
+add_subdirectory(lio)
+set(ExtraLibs ${ExtraLibs} lio)
+include_directories(lio ${LIO_INCLUDE_DIRECTORIES})
 
 add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
@@ -186,8 +187,8 @@ set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${
 # test cases
 enable_testing()
 
-add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
-target_link_libraries(logpoold ${ExtraLibs})
+#add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
+#target_link_libraries(logpoold ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})

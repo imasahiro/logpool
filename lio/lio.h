@@ -27,6 +27,8 @@ typedef int (*lio_cb)(struct lio *lio, const void *data, uint32_t nbyte);
 
 struct query_list;
 struct qengine;
+struct bufferevent;
+
 struct lio {
     lio_cb f_read;
     lio_cb f_write;
@@ -52,6 +54,7 @@ struct lio_api {
 };
 
 extern struct lio *lio_open(char *host, int port, int mode, struct lio_api *api);
+extern struct lio *lio_open_trace(char *host, int port);
 extern int lio_close(struct lio *lio);
 extern int lio_write(struct lio *lio, const void *data, uint32_t nbyte);
 extern int lio_read(struct lio *lio, void *data, uint32_t nbyte);

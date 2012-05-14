@@ -33,16 +33,18 @@ struct logpool_plugin_header {
 
 typedef void logplugin_t;
 
+void logctx_format_flush(logctx_t *ctx);
+
 #define __UNUSED__ __attribute__((unused))
 
-__UNUSED__ static int logpool_default_priority(logpool_t *ctx __UNUSED__, int priority __UNUSED__)
+__UNUSED__ static int logpool_default_priority(logctx_t *ctx __UNUSED__, int priority __UNUSED__)
 {
     return 1;
 }
 
-static inline void logpool_context_switch(logpool_t *ctx, void *connection)
+static inline void logpool_context_switch(logctx_t *ctx, void *connection)
 {
-    cast(struct logpool *, ctx)->connection = connection;
+    cast(struct logctx *, ctx)->connection = connection;
 }
 
 #ifdef __cplusplus

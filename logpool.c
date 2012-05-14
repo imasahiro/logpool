@@ -11,13 +11,16 @@ extern "C" {
 #endif
 
 static struct keyapi *KeyAPI = NULL;
-extern struct logapi SYSLOG_API;
-extern struct logapi FILE2_API;
-extern struct logapi MEMCACHE_API;
 
-static void logctx_init(logctx_t *ctx, struct logapi *api, logpool_param_t *param)
+logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *);
+void logpool_close(logpool_t *p);
+
+void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
+int  logpool_check_priority(logpool_t *logpool, int priority);
+
+static void logpool_new(logpool_t *ctx, struct logapi *api, logpool_param_t *param)
 {
-    struct logctx *lctx = cast(struct logctx *, ctx);
+    struct logpool *lctx = cast(struct logpool *, ctx);
     lctx->logfmt_capacity = param->logfmt_capacity;
     lctx->fmt = cast(logfmt_t *, malloc(sizeof(logfmt_t) * lctx->logfmt_capacity));
     lctx->formatter   = api;
@@ -27,100 +30,75 @@ static void logctx_init(logctx_t *ctx, struct logapi *api, logpool_param_t *para
     lctx->is_flushed   = 0;
 }
 
-static void logctx_close(logctx_t *ctx)
+void logpool_format_flush(logpool_t *ctx)
 {
-    struct logctx *lctx = cast(struct logctx *, ctx);
-    free(lctx->fmt);
-    lctx->fmt = NULL;
-}
-
-void logctx_format_flush(logctx_t *ctx)
-{
-    struct logfmt *fmt = cast(struct logctx *, ctx)->fmt;
+    struct logfmt *fmt = cast(struct logpool *, ctx)->fmt;
     size_t i, size = ctx->logfmt_size;
     if (ctx->is_flushed)
         return;
-    ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.siz);
+    ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.klen);
     if (size) {
-        void (*fn_delim)(logctx_t *) = ctx->formatter->fn_delim;
+        void (*fn_delim)(logpool_t *) = ctx->formatter->fn_delim;
         /* unroled */
         fn_delim(ctx);
-        fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+        fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->klen, fmt->vlen);
         ++fmt;
         for (i = 1; i < size; ++i, ++fmt) {
             fn_delim(ctx);
-            fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->siz);
+            fmt->fn(ctx, fmt->k.key, fmt->v.u, fmt->klen, fmt->vlen);
         }
-        cast(struct logctx *, ctx)->logfmt_size = 0;
+        cast(struct logpool *, ctx)->logfmt_size = 0;
     }
-    ++(cast(struct logctx *, ctx)->logkey.k.seq);
-    cast(struct logctx *, ctx)->is_flushed = 1;
+    ++(cast(struct logpool *, ctx)->logkey.k.seq);
+    cast(struct logpool *, ctx)->is_flushed = 1;
 }
 
-void logctx_flush(logctx_t *ctx, void **args)
+void logpool_flush(logpool_t *ctx, void **args)
 {
-    cast(struct logctx *, ctx)->is_flushed = 0;
+    cast(struct logpool *, ctx)->is_flushed = 0;
     ctx->formatter->fn_flush(ctx, args);
 }
 
-void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t siz)
+void logpool_append_fmtdata(logpool_t *ctx, const char *key, uint64_t v, logFn f, short klen, short vlen)
 {
-    struct logctx *lctx = cast(struct logctx *, ctx);
+    struct logpool *lctx = cast(struct logpool *, ctx);
     assert(lctx->logfmt_size < lctx->logfmt_capacity);
     lctx->fmt[lctx->logfmt_size].fn    = f;
     lctx->fmt[lctx->logfmt_size].k.key = key;
     lctx->fmt[lctx->logfmt_size].v.u   = v;
-    lctx->fmt[lctx->logfmt_size].siz   = siz;
+    lctx->fmt[lctx->logfmt_size].klen  = klen;
+    lctx->fmt[lctx->logfmt_size].vlen  = vlen;
     ++lctx->logfmt_size;
 }
 
-int logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz)
+int logpool_init_logkey(logpool_t *ctx, int priority, uint64_t v, short klen, short vlen)
 {
     int emitLog = ctx->formatter->fn_priority(ctx, priority);
     if (emitLog) {
-        struct logctx *lctx = cast(struct logctx *, ctx);
+        struct logpool *lctx = cast(struct logpool *, ctx);
         lctx->logkey.v.u = v;
-        lctx->logkey.siz = siz;
+        lctx->logkey.klen = klen;
+        lctx->logkey.vlen = vlen;
         lctx->logfmt_size = 0;
     }
     return emitLog;
 }
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *p)
+logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *p)
 {
-    struct ltrace *l = cast(struct ltrace *, malloc(sizeof(*l)));
+    struct logpool *l = cast(struct logpool *, malloc(sizeof(*l)));
     l->parent = parent;
-    l->ctx.fn_key = KeyAPI->str;
-    logctx_init(cast(logctx_t *, l), api, p);
+    l->fn_key = KeyAPI->str;
+    logpool_new(cast(logpool_t *, l), api, p);
     return l;
 }
 
-ltrace_t *ltrace_open_syslog(ltrace_t *parent)
+void logpool_close(logpool_t *p)
 {
-    struct logpool_param_syslog param = {8, 1024};
-    return ltrace_open(parent, &SYSLOG_API, (logpool_param_t *) &param);
-}
-
-ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename)
-{
-    struct logpool_param_file param = {8, 1024};
-    param.fname = (const char *) filename;
-    return ltrace_open(parent, &FILE2_API,  (struct logpool_param*) &param);
-}
-
-ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip)
-{
-    struct logpool_param_memcache param = {8, 1024};
-    param.host = host;
-    param.port = ip;
-    return ltrace_open(parent, &MEMCACHE_API, (struct logpool_param*) &param);
-}
-
-void ltrace_close(ltrace_t *p)
-{
-    struct ltrace *l = cast(struct ltrace *, p);
-    cast(logctx_t *, l)->formatter->fn_close(cast(logctx_t *, l));
-    logctx_close(cast(logctx_t *, l));
+    struct logpool *l = cast(struct logpool *, p);
+    cast(logpool_t *, l)->formatter->fn_close(cast(logpool_t *, l));
+    free(l->fmt);
+    l->fmt = NULL;
     free(l);
 }
 
@@ -130,10 +108,12 @@ extern struct keyapi *logpool_llvm_api_init(void);
 extern struct keyapi *logpool_string_api_init(void);
 extern struct keyapi *logpool_event_api_init(void);
 static int exec_mode = 0;
+
 void logpool_init(int mode)
 {
     assert(exec_mode == 0);
     exec_mode = mode;
+#if 0
     if (mode == LOGPOOL_JIT) {
 #ifdef LOGPOOL_USE_LLVM
         KeyAPI = logpool_llvm_api_init();
@@ -145,15 +125,20 @@ void logpool_init(int mode)
     } else {
         KeyAPI = logpool_string_api_init();
     }
+#else
+    KeyAPI = logpool_string_api_init();
+#endif
 }
 
 extern void logpool_event_api_deinit(void);
 void logpool_exit(void)
 {
     assert(exec_mode != 0);
+#if 0
     if (exec_mode == LOGPOOL_EVENT) {
         logpool_event_api_deinit();
     }
+#endif
     exec_mode = 0;
 }
 

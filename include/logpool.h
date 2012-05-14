@@ -9,11 +9,8 @@
 extern "C" {
 #endif
 
-struct logctx;
-struct ltrace;
-typedef long sizeinfo_t;
-typedef const struct logctx logctx_t;
-typedef const struct ltrace ltrace_t;
+struct logpool;
+typedef const struct logpool logpool_t;
 typedef struct logapi logapi_t;
 typedef struct logfmt logfmt_t;
 
@@ -81,8 +78,8 @@ struct logpool_param_multiplexer {
 };
 
 /* log formatter API */
-typedef void  (*logFn)(logctx_t *, const char *K, uint64_t v, sizeinfo_t info);
-typedef char *(*keyFn)(logctx_t *, uint64_t v, uint64_t seq, sizeinfo_t size);
+typedef void  (*logFn)(logpool_t *, const char *k, uint64_t v, short klen, short vlen);
+typedef char *(*keyFn)(logpool_t *, uint64_t v, uint64_t seq, long len);
 
 struct logfmt {
     logFn fn;
@@ -95,7 +92,8 @@ struct logfmt {
         double f;
         char *s;
     } v;
-    sizeinfo_t siz;
+    short klen;
+    short vlen;
 };
 
 struct logapi {
@@ -107,23 +105,24 @@ struct logapi {
     logFn fn_char;
     logFn fn_string;
     logFn fn_raw;
-    void  (*fn_delim)(logctx_t *);
-    void  (*fn_flush)(logctx_t *, void**);
-    void *(*fn_init) (logctx_t *, logpool_param_t *);
-    void  (*fn_close)(logctx_t *);
-    int   (*fn_priority)(logctx_t *, int);
+    void  (*fn_delim)(logpool_t *);
+    void  (*fn_flush)(logpool_t *, void**);
+    void *(*fn_init) (logpool_t *, logpool_param_t *);
+    void  (*fn_close)(logpool_t *);
+    int   (*fn_priority)(logpool_t *, int);
 };
 
 enum LOGPOOL_EXEC_MODE {
-    LOGPOOL_DEFAULT = 1,
-    LOGPOOL_JIT     = 2,
-    LOGPOOL_EVENT   = 4
+    LOGPOOL_DEFAULT = 1
+#if 0
+    LOGPOOL_JIT     = 2
+#endif
 };
 
 void logpool_init(int mode);
 void logpool_exit(void);
 
-struct logctx {
+struct logpool {
     void *connection;
     keyFn     fn_key;
     logapi_t *formatter;
@@ -132,58 +131,16 @@ struct logctx {
     long logfmt_size;
     long logfmt_capacity;
     uintptr_t is_flushed;
+    logpool_t *parent;
 };
 
-/* ltrace API */
-struct ltrace {
-    struct logctx ctx;
-    ltrace_t *parent;
-};
+logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *);
+void logpool_close(logpool_t *p);
 
-ltrace_t *ltrace_open(ltrace_t *parent, struct logapi *api, logpool_param_t *);
-ltrace_t *ltrace_open_syslog(ltrace_t *parent);
-ltrace_t *ltrace_open_file(ltrace_t *parent, char *filename);
-ltrace_t *ltrace_open_memcache(ltrace_t *parent, char *host, long ip);
-void ltrace_close(ltrace_t *p);
-
-void logctx_flush(logctx_t *ctx, void **args);
-void logctx_append_fmtdata(logctx_t *ctx, const char *key, uint64_t v, logFn f, sizeinfo_t info);
-int  logctx_init_logkey(logctx_t *ctx, int priority, uint64_t v, sizeinfo_t siz);
+void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
+int  logpool_check_priority(logpool_t *logpool, int priority);
 
 #define cast(T, V) ((T)(V))
-
-#define ltrace_record(T, PRIORITY, E, ...) do {\
-    static void *__LOGDATA__ = NULL;\
-    logctx_t *__CTX__ = cast(logctx_t *, T);\
-    if (logctx_init_logkey(__CTX__, PRIORITY, cast(uint64_t, E), build_sizeinfo(0, strlen(E)))) {\
-        __VA_ARGS__;\
-    }\
-} while (0)
-
-#define LOG_END       logctx_flush(__CTX__, &__LOGDATA__);
-#define LOG_s(K,V)    __extension__(({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
-            __CTX__->formatter->fn_string,\
-            build_sizeinfo(strlen(V), strlen(__K__)));}))
-#define LOG_i(K,V)    __extension__(({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
-            __CTX__->formatter->fn_int, build_sizeinfo(0, strlen(__K__)));}))
-#define LOG_f(K,V)    __extension__(({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, f2u(V),\
-            __CTX__->formatter->fn_float, build_sizeinfo(0, strlen(__K__)));}))
-#define LOG_p(K,V)    __extension__(({\
-        static const char __K__[] = K ":";\
-        logctx_append_fmtdata(__CTX__, __K__, cast(uint64_t, V),\
-            __CTX__->formatter->fn_hex, build_sizeinfo(0, strlen(__K__)));}))
-
-/* inline functions */
-static inline sizeinfo_t build_sizeinfo(short s1, short s2)
-{
-    return s1 << (sizeof(short) * 8) | s2;
-}
 
 static inline uint64_t f2u(double f)
 {
