@@ -4,7 +4,7 @@
 #error define LOGAPI && LOGAPI_PARAM
 #endif
 #ifndef LOGPOOL_TEST_COUNT
-#define LOGPOOL_TEST_COUNT 5
+#define LOGPOOL_TEST_COUNT(argc, argv) 5
 #endif
 extern logapi_t LOGAPI;
 #define LOG_END 0
@@ -33,17 +33,15 @@ static void logpool_test_write(logpool_t *logpool)
 
 }
 
-int main(void)
+int main(int argc, char const* argv[])
 {
     logpool_init(LOGAPI_INIT_FLAG);
-    {
-        logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
-        int i, size = LOGPOOL_TEST_COUNT;
-        for (i = 0; i < size; ++i) {
-            logpool_test_write(logpool);
-        }
-        logpool_close(logpool);
+    logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
+    int i, size = LOGPOOL_TEST_COUNT(argc, argv);
+    for (i = 0; i < size; ++i) {
+        logpool_test_write(logpool);
     }
+    logpool_close(logpool);
     logpool_exit();
     return 0;
 }
