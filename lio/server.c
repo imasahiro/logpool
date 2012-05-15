@@ -14,12 +14,13 @@ extern "C" {
 
 static void server_event_callback(struct bufferevent *bev, short events, void *ctx)
 {
-    (void)ctx;
+    struct lio *lio = (struct lio *) ctx;
     if (events & BEV_EVENT_EOF) {
         debug_print(1, "client disconnect");
+        lio->shift = 0;
+        lio->last_buf = lio->buffer;
         bufferevent_free(bev);
     } else if (events & BEV_EVENT_TIMEOUT) {
-        struct lio *lio = (struct lio *) ctx;
         debug_print(1, "client timeout e=%p, events=%x", bev, events);
         query_delete_connection(lio->q, bev);
         bufferevent_free(bev);
@@ -48,7 +49,7 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
             query_add(lio->engine, (struct Query*) log, bev, lio->q);
             break;
         case LOGPOOL_EVENT_WRITE:
-            dump_log(stderr, "W ", (struct Log *) log, "\n");
+            dump_log(stderr, "W ", (struct Log *) log, "\n", 0);
             query_exec((struct Log *) log, log_size, lio->q);
             break;
         case LOGPOOL_EVENT_QUIT:

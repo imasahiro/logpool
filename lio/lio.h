@@ -62,7 +62,7 @@ extern int lio_sync(struct lio *lio);
 extern int lio_dispatch(struct lio *lio);
 
 #define LIO_DEBUG 1
-#define LIO_DEBUG_LEVEL 1
+#define LIO_DEBUG_LEVEL 0
 #define debug_print(level, ...) do {\
     if (level >= LIO_DEBUG_LEVEL) {\
         if (LIO_DEBUG) {\

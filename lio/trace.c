@@ -37,12 +37,12 @@ static void tracer_cb_event(struct bufferevent *bev, short events, void *ctx)
 
 static void tracer_cb_read(struct bufferevent *bev, void *ctx)
 {
-    debug_print(0, "read_cb");
+    //debug_print(0, "read_cb");
 }
 
 static void tracer_cb_write(struct bufferevent *bev, void *ctx)
 {
-    debug_print(0, "write_cb");
+    //debug_print(0, "write_cb");
 }
 
 static void lio_thread_start(struct lio *lio);
