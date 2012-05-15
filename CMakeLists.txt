@@ -195,6 +195,7 @@ add_clib_test(test_string   test/string.c)
 #add_clib_test(test_multi    test/multiplex.c)
 #add_clib_test(test_event    test/event.c)
 add_clib_test(test_trace   test/trace.c)
+add_clib_test(test_trace2  test/trace2.c)
 
 if(LOGPOOL_USE_LLVM)
 add_clib_test(test_llvm    test/llvm.c)

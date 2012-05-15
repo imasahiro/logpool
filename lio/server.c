@@ -33,7 +33,7 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
 static void server_read_callback(struct bufferevent *bev, void *ctx)
 {
     struct lio *lio = (struct lio *) ctx;
-    debug_print(0, "read_cb bev=%p", bev);
+    //debug_print(0, "read_cb bev=%p", bev);
     struct chunk_stream stream, *cs = chunk_stream_init(&stream, lio, bev);
     while (!chunk_stream_empty(cs)) {
         int log_size;
@@ -70,7 +70,7 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
 
 static void server_write_callback(struct bufferevent *bev, void *ctx)
 {
-    debug_print(0, "write_cb bev=%p", bev);
+    //debug_print(0, "write_cb bev=%p", bev);
 }
 
 static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t fd,
