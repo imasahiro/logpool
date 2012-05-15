@@ -43,6 +43,7 @@ int main(int argc, char **argv)
                     KEYVALUE_s(argv[3], argv[4]),
                     KEYVALUE_s(argv[5], argv[6]),
                     LOG_END);
+            break;
         case 9:
             logpool_record(logpool, &logpool_args, LOG_NOTICE, "logput",
                     KEYVALUE_s(argv[1], argv[2]),

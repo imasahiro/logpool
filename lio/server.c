@@ -48,7 +48,7 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
             query_add(lio->engine, (struct Query*) log, bev, lio->q);
             break;
         case LOGPOOL_EVENT_WRITE:
-            debug_print(1, "W %d, %d, '%s'", log->klen, log->vlen, data);
+            dump_log(stderr, "W ", (struct Log *) log, "\n");
             query_exec((struct Log *) log, log_size, lio->q);
             break;
         case LOGPOOL_EVENT_QUIT:

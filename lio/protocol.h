@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "message.idl.data.h"
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
@@ -55,6 +56,34 @@ static inline uint16_t log_get_length(struct Log *log, uint16_t idx)
 {
     int offset = LOG_PROTOCOL_FIELDS+idx;
     return ((uint16_t*)log)[offset];
+}
+
+static inline char *log_iterator(struct Log *log, char *cur, uint16_t idx)
+{
+    uint16_t klen = log_get_length(log, idx*2+0);
+    uint16_t vlen = log_get_length(log, idx*2+1);
+    return cur + klen + vlen;
+}
+
+static inline void dump_log(FILE *fp, char *prefix, struct Log *log, char *suffix)
+{
+    int i;
+    char *data = log_get_data(log);
+    uint16_t klen, vlen;
+    fprintf(fp, "%s", prefix);
+    for (i = 0; i < log->logsize; ++i) {
+        char kbuf[64] = {};
+        char vbuf[64] = {};
+        char *next = log_iterator(log, data, i);
+        klen = log_get_length(log, i*2+0);
+        vlen = log_get_length(log, i*2+1);
+        memcpy(kbuf, data,klen);
+        memcpy(vbuf, data+klen, vlen);
+        fprintf(fp, "%d, %d, '%s': '%s' ",
+                klen, vlen, kbuf, vbuf);
+        data = next;
+    }
+    fprintf(fp, "%s", suffix);
 }
 
 #endif /* end of include guard */
