@@ -52,24 +52,11 @@ set(LLVM_LOGPOOL_SRC
 	jit/llvm_memcache.cpp
 )
 
-set(LOGPOOL_DAEMON_SRC)
+set(LOGPOOL_DAEMON_SRC util/logpoold.c)
+set(LOGPOOL_LOGPUT_SRC util/logput.c)
 
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
-#find_library(HAVE_LIBMEMCACHED NAMES memcached)
-#find_library(HAVE_PTREAD       NAMES pthread)
-#find_library(HAVE_LIBEVENT     NAMES event)
-#find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
-#check_include_files(pthread.h      HAVE_PTHREAD_H)
-#check_include_files(event2/event.h HAVE_LIBEVENT_H)
-#
-#if (NOT HAVE_PTHREAD_H)
-#	message(FATAL_ERROR "pthread.h not found: ${HAVE_PTHREAD_H}")
-#endif (NOT HAVE_PTHREAD_H)
-#
-#if (NOT HAVE_LIBEVENT_H)
-#	message(FATAL_ERROR "event2/event.h not found")
-#endif (NOT HAVE_LIBEVENT_H)
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)
@@ -83,15 +70,6 @@ set(ExtraLibs)
 #	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
 #endif(HAVE_LIBMEMCACHED)
 #
-#if(HAVE_PTHREAD)
-#	set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
-#endif(HAVE_PTHREAD)
-#
-#if(HAVE_LIBEVENT)
-#	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
-#	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
-#endif(HAVE_LIBEVENT)
-
 #option(USE_LLVM "Use llvm" on)
 #if(USE_LLVM)
 #set(LOGPOOL_USE_LLVM true)
@@ -187,8 +165,11 @@ set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${
 # test cases
 enable_testing()
 
-#add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
-#target_link_libraries(logpoold ${ExtraLibs})
+add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
+target_link_libraries(logpoold logpool ${ExtraLibs})
+
+add_executable(logput ${LOGPOOL_LOGPUT_SRC})
+target_link_libraries(logput logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})

@@ -76,6 +76,14 @@ static void logpool_lio_flush(logpool_t *logpool, void **args __UNUSED__)
 }
 
 static void logpool_lio_delim(logpool_t *ctx) {}
+static void logpool_lio_string(logpool_t *ctx, const char *key, uint64_t v, short klen, short vlen)
+{
+    buffer_t *buf = cast(buffer_t *, ctx->connection);
+    char *s = cast(char *, v);
+    buf_put_string(buf, key, klen);
+    buf_put_string(buf, s, vlen);
+}
+
 
 struct logapi TRACE_API = {
     logpool_string_null,
@@ -84,7 +92,7 @@ struct logapi TRACE_API = {
     logpool_string_hex,
     logpool_string_float,
     logpool_string_char,
-    logpool_string_string,
+    logpool_lio_string,
     logpool_string_raw,
     logpool_lio_delim,
     logpool_lio_flush,
@@ -120,6 +128,13 @@ void logpool_trace_api_deinit(void)
     lio_close(g_lio);
 }
 
+int logpoold_start(char *host, int port)
+{
+    extern struct lio_api server_api;
+    struct lio *lio = lio_open(host, port,
+            LIO_MODE_READ|LIO_MODE_WRITE, &server_api);
+    return lio_dispatch(lio);
+}
 #ifdef __cplusplus
 }
 #endif
