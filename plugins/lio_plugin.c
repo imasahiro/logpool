@@ -5,6 +5,7 @@
 #include "logpool_internal.h"
 #include "../lio/lio.h"
 #include "../lio/protocol.h"
+#include "../lio/util.h"
 
 enum {
     LOGPOOL_FAILURE = -1,
@@ -25,9 +26,19 @@ struct lio_plugin {
     char base[1];
 };
 
+static uint16_t *emit_header(char *buf, int protocol, int logsize)
+{
+    uint16_t *loginfo = ((uint16_t*)buf);
+    loginfo[0] = LOGPOOL_EVENT_WRITE;
+    loginfo[1] = logsize;
+    loginfo += LOG_PROTOCOL_FIELDS;
+    return loginfo;
+}
+
 static void *logpool_lio_init(logpool_t *logpool, logpool_param_t *p)
 {
-    struct lio_plugin *lp = cast(struct lio_plugin *, logpool_string_init(logpool, p));
+    struct lio_plugin *lp;
+    lp = cast(struct lio_plugin *, logpool_string_init(logpool, p));
     lp->lio = g_lio;
     return cast(void *, lp);
 }
@@ -44,10 +55,7 @@ static void logpool_lio_flush(logpool_t *logpool, void **args __UNUSED__)
     size = logpool->logfmt_size + 1;
     fmt = cast(struct logpool *, logpool)->fmt;
     fmte = fmt + size - 1;
-    loginfo = ((uint16_t*)lp->buf);
-    loginfo[0] = LOGPOOL_EVENT_WRITE;
-    loginfo[1] = size;
-    loginfo += LOG_PROTOCOL_FIELDS;
+    loginfo = emit_header(lp->buf, LOGPOOL_EVENT_WRITE, size);
     lp->buf = (char *)(loginfo + size * 2);
     char *p = lp->buf;
     logpool->fn_key(logpool, logpool->logkey.v.u,
@@ -83,7 +91,6 @@ static void logpool_lio_string(logpool_t *ctx, const char *key, uint64_t v, shor
     buf_put_string(buf, key, klen);
     buf_put_string(buf, s, vlen);
 }
-
 
 struct logapi TRACE_API = {
     logpool_string_null,
@@ -135,6 +142,68 @@ int logpoold_start(char *host, int port)
             LIO_MODE_READ|LIO_MODE_WRITE, &server_api);
     return lio_dispatch(lio);
 }
+
+
+static void *logpool_lio_client_init(logpool_t *logpool, logpool_param_t *p)
+{
+    extern struct lio_api client_api;
+    struct lio_plugin *lp;
+    struct logpool_param_trace *args = cast(struct logpool_param_trace *, p);
+    char *host = (char*) args->host;
+    long port = args->port;
+
+    lp = cast(struct lio_plugin *, logpool_string_init(logpool, p));
+    lp->lio = lio_open(host, port, LIO_MODE_READ|LIO_MODE_WRITE, &client_api);
+    return cast(void *, lp);
+}
+static void logpool_lio_client_close(logpool_t *ctx)
+{
+    struct lio_plugin *lp = cast(struct lio_plugin *, ctx->connection);
+    logpool_string_close(ctx);
+    lio_close(lp->lio);
+}
+
+static struct logapi CLIENT_API = {
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    logpool_lio_client_init,
+    logpool_lio_client_close,
+    NULL
+};
+
+logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
+{
+    struct logpool_param_trace param = {8, 1024};
+    logpool_init(0);
+    param.host = host;
+    param.port = port;
+    return logpool_open(parent, &CLIENT_API, (struct logpool_param*) &param);
+}
+
+void logpool_query(logpool_t *logpool, char *q)
+{
+    struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
+    char buf[128] = {};
+    size_t len = emit_message(buf, LOGPOOL_EVENT_READ, 1,
+            0, strlen(q), NULL, q);
+    assert(lio_write(lp->lio, buf, len) == LIO_OK);
+}
+
+void *logpool_client_get(logpool_t *logpool, void *logbuf, size_t bufsize)
+{
+    struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
+    lio_read(lp->lio, (char*) logbuf, bufsize);
+    return (void*) logbuf;
+}
+
 #ifdef __cplusplus
 }
 #endif

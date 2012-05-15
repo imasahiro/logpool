@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 struct logpool;
-typedef const struct logpool logpool_t;
+typedef struct logpool logpool_t;
 typedef struct logapi logapi_t;
 typedef struct logfmt logfmt_t;
 
