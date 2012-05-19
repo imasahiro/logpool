@@ -67,14 +67,14 @@ unsigned int crc_table[256] = {
 
 unsigned int crc32(unsigned char *block, int len)
 {
-    int i;
     unsigned int c = 0xffffffff;
-    for (i = 0; i < len; ++i) {
-        c = ((c >> 8) & 0xffffff) ^ crc_table[(c ^ *block++) & 0xff];
+    for (; len--; block++) {
+        c = ((c >> 8) & 0xffffff) ^ crc_table[(c ^ *block) & 0xff];
     }
     return (c ^ 0xffffffff);
 }
 
+#if TEST
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -87,3 +87,4 @@ int main(int argc, char const* argv[])
     assert(3964322768 == crc);
     return 0;
 }
+#endif

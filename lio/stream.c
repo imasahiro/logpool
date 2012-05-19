@@ -13,17 +13,17 @@ struct chunk_stream *chunk_stream_new(struct lio *lio, struct bufferevent *bev)
     struct chunk_stream *cs = malloc(sizeof(*cs));
     cs->lio = lio;
     cs->bev = bev;
-    cs->cur = malloc(LIO_BUFFER_SIZE);
     cs->len = 0;
-    cs->buffer = cs->cur;
-    debug_print(0, "*New* len=%d", cs->len);
+    cs->buffer = malloc(LIO_BUFFER_SIZE);
+    cs->cur = cs->buffer;
+    debug_print(0, "*New* len=%d, buffer=%p", cs->len, cs->buffer);
     return cs;
 }
 
 void chunk_stream_delete(struct chunk_stream *cs)
 {
-    debug_print(0, "*Del* len=%d", cs->len);
-    free(cs->cur);
+    debug_print(0, "*Del* len=%d, buffer=%p", cs->len, cs->buffer);
+    free(cs->buffer);
     bzero(cs, sizeof(*cs));
 }
 

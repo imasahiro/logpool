@@ -171,7 +171,7 @@ target_link_libraries(logpoold logpool ${ExtraLibs})
 add_executable(logput ${LOGPOOL_LOGPUT_SRC})
 target_link_libraries(logput logpool ${ExtraLibs})
 
-add_executable(logtail ./util/logclient.c)
+add_executable(logtail util/logtail.c)
 target_link_libraries(logtail logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
