@@ -36,12 +36,11 @@ int n = 0;
 static void logpool_test_write(logpool_t *logpool)
 {
     long   i = n;
-    const char *s = "hello world";
+    const char *s = "Good Bye";
     void *args;
-    logpool_record(logpool, &args, LOG_NOTICE, "event",
-            KEYVALUE_u("uint",   i),
-            KEYVALUE_u("tid",   i%10),
+    logpool_record(logpool, &args, LOG_NOTICE, "check",
             KEYVALUE_s("string", s),
+            KEYVALUE_u("tid",   i%10),
             LOG_END
             );
     n++;

@@ -8,10 +8,6 @@
 #include "lio/lio.h"
 #include "lio/protocol.h"
 #include "lio/message.idl.data.h"
-//static void read_log(struct lio *lio, struct Log *tmp)
-//{
-//    lio_read(lio, (char*) tmp, 128);
-//}
 
 int main(int argc, char **argv)
 {

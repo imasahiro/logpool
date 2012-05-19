@@ -109,11 +109,16 @@ static int lio_client_write(struct lio *lio, const void *data, uint32_t nbyte)
 
 static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
 {
+    struct chunk_stream *cs;
+    if (lio->cs == NULL) {
+        cs = chunk_stream_new(lio, lio->bev);
+        lio->cs = cs;
+    } else {
+        cs = lio->cs;
+    }
     if (lio->bev) {
         int log_size;
         struct log_data *log;
-        struct chunk_stream stream, *cs;
-        cs = chunk_stream_init(&stream, lio, lio->bev);
         L_redo:;
         while (chunk_stream_empty(cs)) {
             usleep(1);
@@ -126,11 +131,9 @@ static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
         if (log_data_process(log) == LOGPOOL_EVENT_QUIT) {
             bufferevent_free(lio->bev);
             debug_print(1, "stream connection close");
-            chunk_stream_deinit(cs);
             return LIO_FAILED;
         }
         memcpy((void*)data, log, nbyte);
-        chunk_stream_deinit(cs);
         return LIO_OK;
     }
     debug_print(1, "stream was not connected");

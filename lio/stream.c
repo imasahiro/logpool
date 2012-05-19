@@ -8,24 +8,43 @@
 extern "C" {
 #endif
 
-struct chunk_stream *chunk_stream_init(struct chunk_stream *cs, struct lio *lio, struct bufferevent *bev)
+struct chunk_stream *chunk_stream_new(struct lio *lio, struct bufferevent *bev)
 {
+    struct chunk_stream *cs = malloc(sizeof(*cs));
     cs->lio = lio;
     cs->bev = bev;
-    cs->cur = (lio->last_buf)?lio->last_buf:lio->buffer;
-    cs->len = lio->shift;
-    lio->shift = 0;
-    debug_print(0, "*I* len=%d", cs->len);
+    cs->cur = malloc(LIO_BUFFER_SIZE);
+    cs->len = 0;
+    cs->buffer = cs->cur;
+    debug_print(0, "*New* len=%d", cs->len);
     return cs;
 }
 
-void chunk_stream_deinit(struct chunk_stream *cs)
+void chunk_stream_delete(struct chunk_stream *cs)
 {
-    cs->lio->shift = cs->len;
-    cs->lio->last_buf = cs->cur;
-    debug_print(0, "*D* len=%d", cs->len);
+    debug_print(0, "*Del* len=%d", cs->len);
+    free(cs->cur);
+    bzero(cs, sizeof(*cs));
 }
 
+//struct chunk_stream *chunk_stream_init(struct chunk_stream *cs, struct lio *lio, struct bufferevent *bev)
+//{
+//    cs->lio = lio;
+//    cs->bev = bev;
+//    cs->cur = (lio->last_buf)?lio->last_buf:lio->buffer;
+//    cs->len = lio->shift;
+//    lio->shift = 0;
+//    debug_print(0, "*I* len=%d", cs->len);
+//    return cs;
+//}
+//
+//void chunk_stream_deinit(struct chunk_stream *cs)
+//{
+//    cs->lio->shift = cs->len;
+//    cs->lio->last_buf = cs->cur;
+//    debug_print(0, "*D* len=%d", cs->len);
+//}
+//
 static int chunk_stream_size(struct chunk_stream *cs)
 {
     return evbuffer_get_length(bufferevent_get_input(cs->bev));
@@ -41,15 +60,28 @@ int chunk_stream_empty(struct chunk_stream *cs)
     return cs->len == 0 && chunk_stream_size(cs) == 0;
 }
 
+//static int chunk_stream_reset(struct chunk_stream *cs, int request_size)
+//{
+//    int old_len = cs->len;
+//    if (cs->len) {
+//        memmove(cs->lio->buffer, cs->cur, cs->len);
+//    }
+//    cs->len += bufferevent_read(cs->bev,
+//            cs->lio->buffer + cs->len, LIO_BUFFER_SIZE - cs->len);
+//    cs->cur  = cs->lio->buffer;
+//    debug_print(0, "reset %d=>%d", old_len, cs->len);
+//    return cs->len >= request_size;
+//}
+
 static int chunk_stream_reset(struct chunk_stream *cs, int request_size)
 {
     int old_len = cs->len;
     if (cs->len) {
-        memmove(cs->lio->buffer, cs->cur, cs->len);
+        memmove(cs->buffer, cs->cur, cs->len);
     }
     cs->len += bufferevent_read(cs->bev,
-            cs->lio->buffer + cs->len, LIO_BUFFER_SIZE - cs->len);
-    cs->cur  = cs->lio->buffer;
+            cs->buffer + cs->len, LIO_BUFFER_SIZE - cs->len);
+    cs->cur  = cs->buffer;
     debug_print(0, "reset %d=>%d", old_len, cs->len);
     return cs->len >= request_size;
 }

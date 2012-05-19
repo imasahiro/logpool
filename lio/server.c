@@ -14,11 +14,11 @@ extern "C" {
 
 static void server_event_callback(struct bufferevent *bev, short events, void *ctx)
 {
-    struct lio *lio = (struct lio *) ctx;
+    struct chunk_stream *cs = (struct chunk_stream *) ctx;
+    struct lio *lio = cs->lio;
     if (events & BEV_EVENT_EOF) {
         debug_print(1, "client disconnect");
-        lio->shift = 0;
-        lio->last_buf = lio->buffer;
+        chunk_stream_delete(cs);
         bufferevent_free(bev);
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(1, "client timeout e=%p, events=%x", bev, events);
@@ -32,9 +32,9 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
 
 static void server_read_callback(struct bufferevent *bev, void *ctx)
 {
-    struct lio *lio = (struct lio *) ctx;
-    //debug_print(0, "read_cb bev=%p", bev);
-    struct chunk_stream stream, *cs = chunk_stream_init(&stream, lio, bev);
+    struct chunk_stream *cs = (struct chunk_stream *) ctx;
+    struct lio *lio = cs->lio;
+    debug_print(0, "read_cb bev=%p", bev);
     while (!chunk_stream_empty(cs)) {
         int log_size;
         struct log_data *log = chunk_stream_get(cs, &log_size);
@@ -64,7 +64,6 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
         }
     }
     L_exit:;
-    chunk_stream_deinit(cs);
     return;
 }
 
@@ -77,6 +76,7 @@ static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t f
         struct sockaddr *sa, int socklen, void *ctx)
 {
     (void)socklen;
+    struct lio *lio = (struct lio *) ctx;
     struct event_base *base = evconnlistener_get_base(lev);
     struct bufferevent *bev;
 
@@ -91,8 +91,9 @@ static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t f
         return;
     }
 
+    struct chunk_stream *cs = chunk_stream_new(lio, bev);
     bufferevent_setcb(bev, server_read_callback,
-            server_write_callback, server_event_callback, ctx);
+            server_write_callback, server_event_callback, cs);
 
     bufferevent_enable(bev, EV_READ|EV_WRITE);
 

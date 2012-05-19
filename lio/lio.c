@@ -29,9 +29,6 @@ struct lio *lio_open(char *host, int port, int mode, struct lio_api *api)
     lio->f_read  = api->f_read;
     lio->f_write = api->f_write;
     lio->f_close = api->f_close;
-    lio->buffer  = malloc(LIO_BUFFER_SIZE);
-    lio->shift   = 0;
-    lio->last_buf = NULL;
     api->f_init(lio, host, port, ev_mode);
     return lio;
 }
@@ -39,7 +36,6 @@ struct lio *lio_open(char *host, int port, int mode, struct lio_api *api)
 int lio_close(struct lio *lio)
 {
     lio->f_close(lio);
-    free(lio->buffer);
     bzero(lio, sizeof(*lio));
     free(lio);
     return LIO_OK;

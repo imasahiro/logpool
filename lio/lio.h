@@ -27,6 +27,7 @@ typedef int (*lio_cb)(struct lio *lio, const void *data, uint32_t nbyte);
 
 struct query_list;
 struct qengine;
+struct chunk_stream;
 struct bufferevent;
 
 struct lio {
@@ -35,12 +36,10 @@ struct lio {
     uint32_t flags;
     uint32_t host;
     struct bufferevent *bev;
-    int   shift;
-    char *last_buf;
-    char *buffer;
     struct query_list *q;
     struct qengine *engine;
     struct event_base *base;
+    struct chunk_stream *cs; // use this at client
     pthread_t thread;
     int (*f_close)(struct lio *lio);
 };
