@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <stdio.h>
 #include <pthread.h>
 
 #ifndef LIO_H

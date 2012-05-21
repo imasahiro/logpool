@@ -1,8 +1,8 @@
 #include "lio.h"
 #include "stream.h"
 #include <assert.h>
-#include <string.h>
 #include <event2/buffer.h>
+#include <event2/bufferevent.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,24 +27,6 @@ void chunk_stream_delete(struct chunk_stream *cs)
     bzero(cs, sizeof(*cs));
 }
 
-//struct chunk_stream *chunk_stream_init(struct chunk_stream *cs, struct lio *lio, struct bufferevent *bev)
-//{
-//    cs->lio = lio;
-//    cs->bev = bev;
-//    cs->cur = (lio->last_buf)?lio->last_buf:lio->buffer;
-//    cs->len = lio->shift;
-//    lio->shift = 0;
-//    debug_print(0, "*I* len=%d", cs->len);
-//    return cs;
-//}
-//
-//void chunk_stream_deinit(struct chunk_stream *cs)
-//{
-//    cs->lio->shift = cs->len;
-//    cs->lio->last_buf = cs->cur;
-//    debug_print(0, "*D* len=%d", cs->len);
-//}
-//
 static int chunk_stream_size(struct chunk_stream *cs)
 {
     return evbuffer_get_length(bufferevent_get_input(cs->bev));

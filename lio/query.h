@@ -16,13 +16,6 @@ struct query_entry {
     struct qcode *code;
 };
 
-//enum QUERY_TYPE {
-//    QUERY_FIND_ID   = (1L << 0),
-//    QUERY_FIND_KEY  = (1L << 1),
-//    QUERY_FIND_VAL  = (1L << 2),
-//    QUERY_USE_REGEX = (1L << 31),
-//};
-
 struct query_list {
     struct query_entry *list;
     int size;

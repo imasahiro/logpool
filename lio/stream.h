@@ -1,10 +1,10 @@
 #include "protocol.h"
-#include <event2/bufferevent.h>
 
 #ifndef LIO_STREAM_H
 #define LIO_STREAM_H
 
 struct lio;
+struct bufferevent;
 struct chunk_stream {
     struct lio *lio;
     struct bufferevent *bev;

@@ -1,7 +1,5 @@
 #include "query.h"
 #include "protocol.h"
-#include <string.h>
-#include <stdarg.h>
 #include <event2/bufferevent.h>
 
 #ifndef LIO_UTIL_H

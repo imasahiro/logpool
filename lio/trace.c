@@ -1,15 +1,10 @@
 #include "lio.h"
 #include "stream.h"
 #include "util.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 #include <errno.h>
 #include <event2/event.h>
 #include <event2/dns.h>
-#include <event2/buffer.h>
-#include <event2/bufferevent.h>
 
 #ifdef __cplusplus
 extern "C" {

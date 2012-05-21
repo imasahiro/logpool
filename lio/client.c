@@ -1,9 +1,6 @@
 #include "lio.h"
 #include "stream.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <event2/event.h>

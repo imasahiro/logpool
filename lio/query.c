@@ -1,9 +1,7 @@
 #include "lio.h"
 #include "util.h"
 #include "query.h"
-#include <stdlib.h>
 #include <assert.h>
-#include <event2/bufferevent.h>
 
 #ifdef __cplusplus
 extern "C" {

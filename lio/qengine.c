@@ -1,10 +1,7 @@
 #include "qengine.h"
 #include "lio.h"
 #include "protocol.h"
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
-#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
