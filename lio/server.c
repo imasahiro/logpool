@@ -36,7 +36,7 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
     debug_print(0, "read_cb bev=%p", bev);
     while (!chunk_stream_empty(cs)) {
         int log_size;
-        struct log_data *log = chunk_stream_get(cs, &log_size);
+        struct Log *log = chunk_stream_get(cs, &log_size);
         if (log == NULL) {
             break;
         }

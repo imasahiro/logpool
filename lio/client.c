@@ -115,7 +115,7 @@ static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
     }
     if (lio->bev) {
         int log_size;
-        struct log_data *log;
+        struct Log *log;
         L_redo:;
         while (chunk_stream_empty(cs)) {
             usleep(1);

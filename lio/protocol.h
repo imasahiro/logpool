@@ -12,19 +12,20 @@ enum LOGPOOL_EVENT_PROTOCOL {
     LOGPOOL_EVENT_QUIT
 };
 
-struct log_data {
-    uint16_t protocol, logsize, klen, vlen;
-    char data[128];
-};
-#define LOG_PROTOCOL_FIELDS 2
-#define LOG_PROTOCOL_SIZE (sizeof(uint16_t)*LOG_PROTOCOL_FIELDS)
+//struct log_data {
+//    uint32_t crc32;
+//    uint16_t protocol, logsize, klen, vlen;
+//    char data[128];
+//};
+#define LOG_PROTOCOL_FIELDS 4
+#define LOG_PROTOCOL_SIZE (sizeof(struct Message))
 
-static inline enum LOGPOOL_EVENT_PROTOCOL log_data_protocol(struct log_data *data)
+static inline enum LOGPOOL_EVENT_PROTOCOL log_data_protocol(struct Log *data)
 {
     return (enum LOGPOOL_EVENT_PROTOCOL) data->protocol;
 }
 
-static inline uint16_t log_data_process(struct log_data *data)
+static inline uint16_t log_data_process(struct Log *data)
 {
     uint16_t protocol = log_data_protocol(data);
     switch (protocol) {

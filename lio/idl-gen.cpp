@@ -88,6 +88,9 @@ public:
         if (type == "u16") {
             os() << "uint16_t";
         }
+        if (type == "u32") {
+            os() << "uint32_t";
+        }
         else if (type == "string") {
             os() << "char";
         }

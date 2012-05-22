@@ -91,7 +91,7 @@ static int chunk_stream_check_size(struct chunk_stream *cs, int reqsize)
     return 1;
 }
 
-struct log_data *chunk_stream_get(struct chunk_stream *cs, int *log_size)
+struct Log *chunk_stream_get(struct chunk_stream *cs, int *log_size)
 {
     if (!chunk_stream_check_size(cs, LOG_PROTOCOL_SIZE)) {
         return NULL;
@@ -99,7 +99,7 @@ struct log_data *chunk_stream_get(struct chunk_stream *cs, int *log_size)
     debug_print(0, "len=%d", cs->len);
     assert(cs->len >= LOG_PROTOCOL_SIZE);
     uint16_t klen = 0, vlen = 0, i, logsize, *logp = NULL;
-    struct log_data *d = (struct log_data *) cs->cur;
+    struct Log *d = (struct Log *) cs->cur;
     int reqsize = 0;
     logsize = d->logsize;
     if (!chunk_stream_check_size(cs, LOG_PROTOCOL_SIZE + sizeof(uint16_t) * logsize * 2)) {
@@ -109,7 +109,7 @@ struct log_data *chunk_stream_get(struct chunk_stream *cs, int *log_size)
      * If we call check_size(), cs->cur may be changed.
      * So, 'd' and 'logp' must be reassigned
      */
-    d = (struct log_data *) cs->cur;
+    d = (struct Log *) cs->cur;
     logp = ((uint16_t *) d) + LOG_PROTOCOL_FIELDS;
     for (i = 0; i < logsize; ++i) {
         klen += logp[0];
@@ -123,7 +123,7 @@ struct log_data *chunk_stream_get(struct chunk_stream *cs, int *log_size)
         return NULL;
     }
     *log_size = reqsize;
-    return (struct log_data*) chunk_stream_next(cs, reqsize);
+    return (struct Log *) chunk_stream_next(cs, reqsize);
 }
 
 #ifdef __cplusplus

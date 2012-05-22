@@ -28,11 +28,12 @@ struct lio_plugin {
 
 static uint16_t *emit_header(char *buf, int protocol, int logsize)
 {
-    uint16_t *loginfo = ((uint16_t*)buf);
-    loginfo[0] = LOGPOOL_EVENT_WRITE;
-    loginfo[1] = logsize;
-    loginfo += LOG_PROTOCOL_FIELDS;
-    return loginfo;
+    struct Message *msg = ((struct Message*)buf);
+    msg->crc32 = 0;
+    msg->protocol = LOGPOOL_EVENT_WRITE;
+    msg->logsize  = logsize;
+    buf += LOG_PROTOCOL_SIZE;
+    return (uint16_t *) buf;
 }
 
 static void *logpool_lio_init(logpool_t *logpool, logpool_param_t *p)

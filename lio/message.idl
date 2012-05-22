@@ -1,4 +1,10 @@
+message Message
+    u32:crc32
+    u16:protocol
+    u16:logsize
+
 message Log
+    u32:crc32
     u16:protocol
     u16:logsize
     u16:klen
@@ -6,6 +12,7 @@ message Log
     string:data
 
 message Query
+    u32:crc32
     u16:protocol
     u16:logsize
     u16:klen
