@@ -52,7 +52,7 @@ struct logfmt {
         uint64_t seq;
         const char *key;
     } k;
-    union logdata {
+    union logval {
         uint64_t u;
         double f;
         char *s;
@@ -104,6 +104,16 @@ void logpool_close(logpool_t *p);
 
 void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
 int  logpool_check_priority(logpool_t *logpool, int priority);
+
+struct logdata {
+    long  type;
+    short klen;
+    short vlen;
+    char *key;
+    char *val;
+};
+
+void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs);
 
 #define cast(T, V) ((T)(V))
 

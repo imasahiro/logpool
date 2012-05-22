@@ -17,6 +17,7 @@ static void logpool_new(logpool_t *ctx, struct logapi *api, logpool_param_t *par
 {
     struct logpool *lctx = cast(struct logpool *, ctx);
     lctx->logfmt_capacity = param->logfmt_capacity;
+    assert(lctx->logfmt_capacity > 0);
     lctx->fmt = cast(logfmt_t *, malloc(sizeof(logfmt_t) * lctx->logfmt_capacity));
     lctx->formatter   = api;
     lctx->connection  = api->fn_init(ctx, param);
@@ -68,6 +69,29 @@ static const int logfn_index[] = {
     /* LOG_n */    0,
     /* LOG_r */    7,
 };
+
+void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs)
+{
+    long klen, vlen;
+    char *key, *val;
+    int i, type;
+    logFn f;
+
+    logpool_init_logkey(ctx, priority, (uintptr_t) trace_id, strlen(trace_id));
+    for (i = 0; i < ctx->logfmt_capacity; ++i) {
+        type = logs->type;
+        if (type == 0)
+            break;
+        key  = logs->key;
+        klen = logs->klen;
+        val  = logs->val;
+        vlen = logs->vlen;
+        f = ((logFn*)ctx->formatter)[logfn_index[type]];
+        append_fmtdata(ctx, key, (uint64_t)val, f, klen, vlen);
+        ++logs;
+    }
+    logpool_flush(ctx, args);
+}
 
 void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ...)
 {

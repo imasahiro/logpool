@@ -57,7 +57,7 @@ static int lio_tracer_init(struct lio *lio, char *host, int port, int ev_mode)
         lio->bev = NULL;
         return LIO_FAILED;
     }
-    bufferevent_setwatermark(bev, ev_mode, 1024/2, 1024);
+    //bufferevent_setwatermark(bev, ev_mode, 1024/2, 1024);
 
     struct timeval tv;
     tv.tv_sec = 20;
