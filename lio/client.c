@@ -14,13 +14,16 @@ extern "C" {
 
 static void client_cb_event(struct bufferevent *bev, short events, void *ctx)
 {
-    struct event_base *base = ctx;
+    struct lio *lio = (struct lio *) ctx;
+    struct event_base *base = lio->base;
     if (events & BEV_EVENT_CONNECTED) {
         debug_print(0, "Connect okay.");
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(0, "server timeout");
         bufferevent_free(bev);
         event_base_loopexit(base, NULL);
+        lio->base = NULL;
+        lio->bev  = NULL;
     } else if (events & (BEV_EVENT_ERROR|BEV_EVENT_EOF)) {
         if (events & BEV_EVENT_ERROR) {
             int err = bufferevent_socket_get_dns_error(bev);
@@ -50,8 +53,10 @@ static int lio_client_init(struct lio *lio, char *host, int port, int ev_mode)
     struct bufferevent *bev;
     bev = bufferevent_socket_new(base, -1,
             BEV_OPT_CLOSE_ON_FREE|BEV_OPT_THREADSAFE);
+    lio->bev  = bev;
+    lio->base = base;
     bufferevent_setcb(bev, client_cb_read,
-            client_cb_write, client_cb_event, base);
+            client_cb_write, client_cb_event, lio);
 
     bufferevent_enable(bev, ev_mode);
     dns_base = evdns_base_new(base, 1);
@@ -68,7 +73,6 @@ static int lio_client_init(struct lio *lio, char *host, int port, int ev_mode)
     tv.tv_usec = 0;
     bufferevent_set_timeouts(bev, NULL, &tv);
 
-    lio->bev = bev;
     lio_thread_start(lio);
     return LIO_OK;
 }
@@ -97,7 +101,7 @@ static void lio_thread_start(struct lio *lio)
 
 static int lio_client_write(struct lio *lio, const void *data, uint32_t nbyte)
 {
-    if (bufferevent_write(lio->bev, data, nbyte) != 0) {
+    if (lio->bev == NULL || bufferevent_write(lio->bev, data, nbyte) != 0) {
         fprintf(stderr, "write error, v=('%p', %u)\n", data, nbyte);
         return LIO_FAILED;
     }

@@ -2,11 +2,19 @@ LOGPOOL
 =========================
 
 Logging API
-
-...
-
+  logpool_t *logpool_open_trace(logpool_t *parent, char *host, int port);
+  void logpool_close(logpool_t *p);
+  void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
+  struct logdata {
+      long  type;
+      short klen;
+      short vlen;
+      char *key;
+      char *val;
+  };
+  void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs);
 
 ENV
-$LOGPOOL_SERVER_NAME LogPool Server
-$LOGPOOL_SERVER_PORT LogPool Port
-$LOGPOOL_THREAD
+  $LOGPOOL_SERVER_NAME LogPool Server
+  $LOGPOOL_SERVER_PORT LogPool Port
+  $LOGPOOL_THREAD

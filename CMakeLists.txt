@@ -43,6 +43,7 @@ set(LOGPOOL_SRC
 #	plugins/filter.c
 #	plugins/multiplexer.c
 	plugins/lio_plugin.c
+	pool.c
 )
 
 set(LLVM_LOGPOOL_SRC
@@ -196,6 +197,9 @@ add_clib_test(test_string   test/string.c)
 #add_clib_test(test_event    test/event.c)
 add_clib_test(test_trace   test/trace.c)
 add_clib_test(test_trace2  test/trace2.c)
+add_executable(test_map    test/map.c)
+target_link_libraries(test_map ${TestLibs})
+add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
 if(LOGPOOL_USE_LLVM)
 add_clib_test(test_llvm    test/llvm.c)
