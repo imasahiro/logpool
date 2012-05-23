@@ -12,20 +12,16 @@ extern "C" {
 #define cast(T, V) ((T)(V))
 #define CLZ(n) __builtin_clzl(n)
 #define BITS (sizeof(void*) * 8)
+#define SizeToKlass(N) ((uint32_t)(BITS - CLZ(N - 1)))
 
 static size_t malloced_size = 0;
 #define CHECK_MALLOCED_SIZE()      assert(malloced_size == 0)
 #define CHECK_MALLOCED_INC_SIZE(n) (malloced_size += (n))
 #define CHECK_MALLOCED_DEC_SIZE(n) (malloced_size -= (n))
 
-uint32_t djbhash(const char *p, uint32_t len)
+static uint32_t djbhash(const char *p, uint32_t len)
 {
     uint32_t hash = 5381;
-    //uint32_t i;
-    //for(i = 0; i < len; ++i) {
-    //    hash = ((hash << 5) + hash) + *p++;
-    //}
-    //return (hash & 0x7fffffff);
     uint32_t n = (len + 3) / 4;
     /* Duff's device */
     switch(len%4){
@@ -56,11 +52,6 @@ static inline void do_free(void *ptr, size_t size)
     do_bzero(ptr, size);
     CHECK_MALLOCED_DEC_SIZE(size);
     free(ptr);
-}
-
-static inline uint32_t SizeToKlass(size_t n)
-{
-    return (BITS - CLZ(n - 1));
 }
 
 static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
@@ -168,9 +159,9 @@ void poolmap_delete(poolmap_t *m)
     do_free(m, sizeof(*m));
 }
 
-pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t tlen)
+pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t klen)
 {
-    uint32_t hash = djbhash(key, tlen);
+    uint32_t hash = djbhash(key, klen);
     pmap_record_t *r = pmap_get_(m, hash, (uintptr_t)key);
     return r;
 }
