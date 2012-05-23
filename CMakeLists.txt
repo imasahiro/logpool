@@ -43,7 +43,7 @@ set(LOGPOOL_SRC
 #	plugins/filter.c
 #	plugins/multiplexer.c
 	plugins/lio_plugin.c
-	pool.c
+	map.c
 )
 
 set(LLVM_LOGPOOL_SRC

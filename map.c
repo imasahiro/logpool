@@ -1,4 +1,4 @@
-#include "pool.h"
+#include "map.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -206,6 +206,7 @@ int pool_global_init(void)
     malloced_size = 0;
     return 0;
 }
+
 int pool_global_deinit(void)
 {
     CHECK_MALLOCED_SIZE();
