@@ -47,11 +47,17 @@ static void entry_free(pmap_record_t *r)
     free(str);
 }
 
+static uintptr_t entry_keygen(char *key, uint32_t len)
+{
+    return (uintptr_t) key;
+}
+
+
 int main(int argc, char const* argv[])
 {
     int i;
     pool_global_init();
-    poolmap_t *map = poolmap_new(4, entry_key_eq, entry_free);
+    poolmap_t *map = poolmap_new(4, entry_keygen, entry_key_eq, entry_free);
     assert(argc == 2);
     for (i = 0; i < 100; ++i) {
         load(map, argv[1]);

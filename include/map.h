@@ -13,10 +13,12 @@ typedef struct poolmap_record {
     uintptr_t v;
 } pmap_record_t;
 
+typedef uintptr_t (*fn_keygen)(char *key, uint32_t klen);
 typedef int  (*fn_keycmp)(uintptr_t k0, uintptr_t k1);
 typedef void (*fn_efree)(pmap_record_t *r);
 typedef struct poolmap_t {
     pmap_record_t *records;
+    fn_keygen fkey;
     fn_keycmp fcmp;
     fn_efree  ffree;
     uint32_t mask;
@@ -35,7 +37,7 @@ static inline uint32_t poolmap_size(poolmap_t *m)
 
 int pool_global_init(void);
 int pool_global_deinit(void);
-poolmap_t* poolmap_new(uint32_t init, fn_keycmp fcmp, fn_efree ffree);
+poolmap_t* poolmap_new(uint32_t init, fn_keygen fkey, fn_keycmp fcmp, fn_efree ffree);
 void poolmap_delete(poolmap_t *m);
 pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t tlen);
 void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val);

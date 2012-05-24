@@ -13,10 +13,10 @@
 
 #define RENGINE_ENTRY_INITSIZE 16
 #define cast(T, V) ((T)(V))
-#define TEST_ENTRY   1000000
+#define TEST_ENTRY   10
 #define TEST_WATCHER 100000
 #define TEST_LOG     100000
-#define TEST_WATCHER_PER_ENTRY 100
+#define TEST_WATCHER_PER_ENTRY 10
 
 struct filter;
 struct LogEntry {
@@ -48,8 +48,6 @@ DEF_ARRAY_T_OP(reaction_entry_t);
 typedef struct react_engine {
     poolmap_t *pmap;
     poolmap_t *react_entries;
-    //ARRAY(reaction_entry_t) entries;
-    void *memory;
 } react_engine_t;
 
 static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)
@@ -97,15 +95,19 @@ void react_engine_append(react_engine_t *re, char *key, uint32_t klen, reaction_
     reaction_entry_t *e = cast(reaction_entry_t *, do_malloc(sizeof(*e)));
     memcpy(e, entry, sizeof(*e));
     poolmap_set(re->react_entries, key, klen, e);
-    //ARRAY_add(reaction_entry_t, &re->entries, entry);
     ARRAY_init(react_watcher_t, &e->watcher, 1);
 }
 
 static int entry_key_cmp(uintptr_t k0, uintptr_t k1)
 {
-    char *s0 = (char *) k0;
-    char *s1 = (char *) k1;
-    return strcmp(s0, s1) == 0;
+    return k0 == k1;
+}
+
+static uintptr_t entry_keygen(char *key, uint32_t klen)
+{
+    uint32_t ukey = *(uint32_t *) key;
+    uint32_t mask = ~(((uint32_t)-1) << (klen * 8));
+    return hash0(ukey & mask, key, klen);
 }
 
 static void entry_free(pmap_record_t *r)
@@ -120,18 +122,17 @@ react_engine_t *react_engine_new(unsigned int entry_size)
     react_engine_t *re = cast(react_engine_t *, do_malloc(sizeof(*re)));
     if (entry_size < RENGINE_ENTRY_INITSIZE)
         entry_size = RENGINE_ENTRY_INITSIZE;
-    re->react_entries = poolmap_new(entry_size, entry_key_cmp, entry_free);
+    re->react_entries = poolmap_new(entry_size, entry_keygen, entry_key_cmp, entry_free);
     return re;
 }
 
 void react_engine_delete(react_engine_t *re)
 {
-    uint32_t i;
-    struct reaction_entry *e;
     poolmap_delete(re->react_entries);
     do_free(re, sizeof(react_engine_t));
 }
 
+/* test */
 static void watcher_watch(uintptr_t data)
 {
     intptr_t *sum = (intptr_t *) data;
