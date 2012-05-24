@@ -29,7 +29,7 @@ static void load(poolmap_t *m, const char *fname)
         char *s = malloc(len);
         bzero(s, len);
         memcpy(s, buffer, len-1);
-        poolmap_set(m, s, len, s, len);
+        poolmap_set(m, s, len, s);
     }
     fclose(fp);
 }

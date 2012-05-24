@@ -1,3 +1,7 @@
+#define MEMORY_PREFIX map
+#include "memory.h"
+#undef MEMORY_PREFIX
+
 #include "hash.h"
 #include "map.h"
 #include <stdio.h>
@@ -14,31 +18,6 @@ extern "C" {
 #define CLZ(n) __builtin_clzl(n)
 #define BITS (sizeof(void*) * 8)
 #define SizeToKlass(N) ((uint32_t)(BITS - CLZ(N - 1)))
-
-static size_t malloced_size = 0;
-#define CHECK_MALLOCED_SIZE()      assert(malloced_size == 0)
-#define CHECK_MALLOCED_INC_SIZE(n) (malloced_size += (n))
-#define CHECK_MALLOCED_DEC_SIZE(n) (malloced_size -= (n))
-
-static inline void do_bzero(void *ptr, size_t size)
-{
-    memset(ptr, 0, size);
-}
-
-static inline void *do_malloc(size_t size)
-{
-    void *ptr = malloc(size);
-    do_bzero(ptr, size);
-    CHECK_MALLOCED_INC_SIZE(size);
-    return ptr;
-}
-
-static inline void do_free(void *ptr, size_t size)
-{
-    do_bzero(ptr, size);
-    CHECK_MALLOCED_DEC_SIZE(size);
-    free(ptr);
-}
 
 static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
 {
@@ -74,6 +53,7 @@ static void pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
             return;
         }
         if (r->hash == rec->hash && m->fcmp(r->k, rec->k)) {
+            m->ffree(r);
             r->v = rec->v;
             return;
         }
@@ -91,7 +71,6 @@ static void pmap_record_resize(poolmap_t *m)
         pmap_record_t *r = old + i;
         if (r->hash) {
             pmap_set_no_resize(m, r);
-            do_bzero(r, sizeof(*r));
         }
     }
     do_free(old, oldsize*sizeof(pmap_record_t));
@@ -152,7 +131,7 @@ pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t klen)
     return r;
 }
 
-void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val, uint32_t vlen)
+void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val)
 {
     pmap_record_t r;
     r.k = cast(uintptr_t, key);
@@ -189,13 +168,12 @@ pmap_record_t *poolmap_next(poolmap_t *m, poolmap_iterator *itr)
 
 int pool_global_init(void)
 {
-    malloced_size = 0;
     return 0;
 }
 
 int pool_global_deinit(void)
 {
-    CHECK_MALLOCED_SIZE();
+    CHECK_MALLOCED_SIZE(map);
     return 0;
 }
 
