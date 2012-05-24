@@ -201,6 +201,11 @@ add_executable(test_map    test/map.c)
 target_link_libraries(test_map ${TestLibs})
 add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
+add_executable(test_react reactive.c)
+target_link_libraries(test_react ${TestLibs})
+add_test(test_react test_react)
+
+
 if(LOGPOOL_USE_LLVM)
 add_clib_test(test_llvm    test/llvm.c)
 endif(LOGPOOL_USE_LLVM)
