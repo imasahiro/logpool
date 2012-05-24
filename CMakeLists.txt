@@ -44,6 +44,7 @@ set(LOGPOOL_SRC
 #	plugins/multiplexer.c
 	plugins/lio_plugin.c
 	map.c
+	reactive.c
 )
 
 set(LLVM_LOGPOOL_SRC
@@ -202,7 +203,7 @@ add_executable(test_map    test/map.c)
 target_link_libraries(test_map ${TestLibs})
 add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
-add_executable(test_react reactive.c)
+add_executable(test_react test/react.c)
 target_link_libraries(test_react ${TestLibs})
 add_test(test_react test_react)
 

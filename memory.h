@@ -4,6 +4,7 @@
 #ifndef LOGPOOL_MEMORY_H
 #define LOGPOOL_MEMORY_H
 
+#define cast(T, V) ((T)(V))
 #ifdef USE_NO_CHECK_MALLOC
 #define CHECK_MALLOC(PREFIX)
 #define CHECK_MALLOCED_SIZE(PREFIX)
@@ -37,10 +38,5 @@ static inline void do_free(void *ptr, size_t size)
     CHECK_MALLOCED_DEC_SIZE(MEMORY_PREFIX, size);
     free(ptr);
 }
-
-static inline void check_memory()
-{
-}
-
 
 #endif /* end of include guard */

@@ -62,8 +62,11 @@ static inline void ARRAY_##T##_dispose(ARRAY(T) *a) {\
 	ARRAY_add(T, a, e1);\
 } while(0)
 
-#define FOR_EACH_ARRAY(a, x, i) \
+#define FOR_EACH_ARRAY_(a, x, i) \
 		for(i=0, x = ARRAY_n(a, i); i < ARRAY_size(a); x = ARRAY_n(a,(++i)))
+
+#define FOR_EACH_ARRAY(a, x, e) \
+		for(x = ARRAY_n(a, 0), e = ARRAY_last(a)+1; x != e; ++x)
 
 #ifdef __cplusplus
 }

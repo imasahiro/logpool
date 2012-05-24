@@ -21,9 +21,13 @@ extern "C" {
 
 static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
 {
+#if 0
     dst->hash = src->hash;
     dst->k    = src->k;
     dst->v    = src->v;
+#else
+    memcpy(dst, src, sizeof(pmap_record_t));
+#endif
 }
 
 static inline pmap_record_t *pmap_at(poolmap_t *m, uint32_t idx)
@@ -49,7 +53,7 @@ static void pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
         r = m->records+idx;
         if (r->hash == 0) {
             pmap_record_copy(r, rec);
-            m->used_size++;
+            ++m->used_size;
             return;
         }
         if (r->hash == rec->hash && m->fcmp(r->k, rec->k)) {
