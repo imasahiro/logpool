@@ -5,10 +5,12 @@
 #ifndef LIO_UTIL_H
 #define LIO_UTIL_H
 
+#ifndef LOGPOOL_MEMORY_H
 static inline void do_bzero(void *ptr, size_t size)
 {
     memset(ptr, 0, size);
 }
+#endif
 
 static inline int emit_message(char *buf, uint16_t protocol, uint16_t logsize, ...)
 {

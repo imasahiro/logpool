@@ -65,6 +65,12 @@ static inline char *log_iterator(struct Log *log, char *cur, uint16_t idx)
     return cur + klen + vlen;
 }
 
+static inline char *log_get_trace(struct Log *log)
+{
+    char *traceID = log_get_data(log) + log_get_length(log, 1);
+    return traceID;
+}
+
 static inline void dump_log(FILE *fp, char *prefix, struct Log *log, char *suffix, int force)
 {
     if (LIO_DEBUG || force) {
