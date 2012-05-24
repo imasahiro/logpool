@@ -1,3 +1,4 @@
+#include "hash.h"
 #include "map.h"
 #include <stdio.h>
 #include <string.h>
@@ -18,21 +19,6 @@ static size_t malloced_size = 0;
 #define CHECK_MALLOCED_SIZE()      assert(malloced_size == 0)
 #define CHECK_MALLOCED_INC_SIZE(n) (malloced_size += (n))
 #define CHECK_MALLOCED_DEC_SIZE(n) (malloced_size -= (n))
-
-static uint32_t djbhash(const char *p, uint32_t len)
-{
-    uint32_t hash = 5381;
-    uint32_t n = (len + 3) / 4;
-    /* Duff's device */
-    switch(len%4){
-    case 0: do{ hash = ((hash << 5) + hash) + *p++;
-    case 3:     hash = ((hash << 5) + hash) + *p++;
-    case 2:     hash = ((hash << 5) + hash) + *p++;
-    case 1:     hash = ((hash << 5) + hash) + *p++;
-            } while(--n>0);
-    }
-    return (hash & 0x7fffffff);
-}
 
 static inline void do_bzero(void *ptr, size_t size)
 {
