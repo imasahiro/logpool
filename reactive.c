@@ -111,7 +111,7 @@ static int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
     union u32 val;
     val.v = rec->v2;
     char *d0 = (char *) log + val.t[0];
-    return val.t[1] == vlen && memcmp(d0, d1, vlen);
+    return val.t[1] != vlen || memcmp(d0, d1, vlen);
 }
 
 static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)

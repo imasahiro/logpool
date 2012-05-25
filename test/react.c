@@ -10,6 +10,7 @@
 #define TEST_LOG     100000000
 #define TEST_WATCHER_PER_ENTRY 100
 #define TEST_TIME    100
+#define TEST_SAMPLE  100000
 
 static void watcher_watch(uintptr_t data, struct LogEntry *e)
 {
@@ -23,12 +24,26 @@ static void watcher_remove(uintptr_t data)
     *sum -= 1;
 }
 
+static void emit_log2(react_engine_t *re, int i, int v)
+{
+    char buf[1024];
+    char data[128];
+    snprintf(data, 128, "%d", i);
+    char data2[128];
+    snprintf(data2, 128, "%d", v);
+    int len = strlen(data);
+    int logSize = emit_message(buf, LOGPOOL_EVENT_WRITE, 2,
+            strlen("TraceID"), len, "TraceID", data,
+            strlen("key0"), strlen(data2), "key0", data2);
+    react_engine_append_log(re, (struct Log *) buf, logSize);
+}
+
 static void emit_log(react_engine_t *re, int i)
 {
     char buf[1024];
     char data[128];
     snprintf(data, 128, "%d", i);
-    int logSize = emit_message(buf, LOGPOOL_EVENT_WRITE, 3,
+    int logSize = emit_message(buf, LOGPOOL_EVENT_WRITE, 4,
             strlen("TraceID"), strlen(data), "TraceID", data,
             strlen("key0"), strlen("val0"), "key0", "val0",
             strlen("key1"), strlen("val1"), "key1", "val1",
@@ -51,16 +66,19 @@ int main(int argc, char const* argv[])
     }
     fprintf(stderr, "mapsize=%d\n", poolmap_size(re->react_entries));
     for (i = 0; i < TEST_WATCHER; ++i) {
-        //if (i % 100 == 0) fprintf(stderr, "W:%d\n", i);
+        //if (i % TEST_SAMPLE == 0) fprintf(stderr, "W:%d\n", i);
         char data[128] = {};
         snprintf(data, 128, "%d", i % TEST_WATCHER_PER_ENTRY);
         react_engine_append_watcher(re, data, strlen(data), &w);
     }
     for (i = 0; i < TEST_LOG; ++i) {
-        //if (i % 100 == 0) fprintf(stderr, "L:%d\n", i);
-        emit_log(re, i % TEST_WATCHER_PER_ENTRY);
+        if (i % TEST_SAMPLE == 0) {
+            emit_log2(re, i % TEST_WATCHER_PER_ENTRY, i);
+            fprintf(stderr, "L:%d\n", i);
+        } else {
+            emit_log(re, i % TEST_WATCHER_PER_ENTRY);
+        }
     }
-
     react_engine_delete(re);
     fprintf(stderr, "sum=%ld\n", sum);
     //assert(sum == 0);
