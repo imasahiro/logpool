@@ -136,8 +136,19 @@ void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val)
 {
     pmap_record_t r;
     r.hash = djbhash(key, klen);
-    r.k = m->fkey(key, klen);
-    r.v = cast(uintptr_t, val);
+    r.k  = m->fkey(key, klen);
+    r.v  = cast(uintptr_t, val);
+    r.v2 = 0;
+    pmap_set_(m, &r);
+}
+
+void poolmap_set2(poolmap_t *m, char *key, uint32_t klen, void *v1, uint32_t v2)
+{
+    pmap_record_t r;
+    r.hash = djbhash(key, klen);
+    r.k  = m->fkey(key, klen);
+    r.v  = cast(uintptr_t, v1);
+    r.v2 = v2;
     pmap_set_(m, &r);
 }
 

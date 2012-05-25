@@ -9,6 +9,7 @@
 #define TEST_WATCHER 10000
 #define TEST_LOG     100000000
 #define TEST_WATCHER_PER_ENTRY 100
+#define TEST_TIME    100
 
 static void watcher_watch(uintptr_t data)
 {
@@ -40,7 +41,8 @@ int main(int argc, char const* argv[])
     react_engine_t *re = react_engine_new(4);
     reaction_entry_t e = {};
     intptr_t sum = 0;
-    react_watcher_t  w = {(intptr_t)&sum, 10, watcher_watch, watcher_remove};
+    react_watcher_t  w = {(intptr_t)&sum, TEST_TIME,
+        watcher_watch, watcher_remove};
     int i;
     for (i = 0; i < TEST_ENTRY; ++i) {
         char data[128] = {};

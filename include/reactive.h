@@ -34,6 +34,7 @@ typedef struct reaction_entry {
     uint64_t expire_time;
     ARRAY(react_watcher_t) watcher;
     struct LogList logs;
+    poolmap_t *map;
 } reaction_entry_t;
 
 DEF_ARRAY_STRUCT0(reaction_entry_t, uint32_t);

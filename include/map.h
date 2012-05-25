@@ -9,6 +9,7 @@ extern "C" {
 
 typedef struct poolmap_record {
     uint32_t hash;
+    uint32_t v2;
     uintptr_t k;
     uintptr_t v;
 } pmap_record_t;
@@ -41,6 +42,7 @@ poolmap_t* poolmap_new(uint32_t init, fn_keygen fkey, fn_keycmp fcmp, fn_efree f
 void poolmap_delete(poolmap_t *m);
 pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t tlen);
 void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val);
+void poolmap_set2(poolmap_t *m, char *key, uint32_t klen, void *v1, uint32_t v2);
 void poolmap_remove(poolmap_t *m, char *key, uint32_t klen);
 pmap_record_t *poolmap_next(poolmap_t *m, poolmap_iterator *itr);
 
