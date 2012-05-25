@@ -23,16 +23,6 @@ DEF_ARRAY_OP(reaction_entry_t);
 #define DecRC(e)    ((e)->h.refc -= 1)
 #define RC0(e)      ((e)->h.refc <  0)
 
-struct LogEntry {
-    struct LogHead {
-        struct LogEntry *next;
-        uint64_t time;
-        uint16_t size;
-        int16_t  refc;
-    } h;
-    struct Message data;
-};
-
 static struct LogEntry *LogEntry_new(uint32_t logsize, uint64_t time)
 {
     uint32_t size = 1U << SizeToKlass(sizeof(struct LogHead) + logsize);
@@ -115,12 +105,12 @@ union u32 {
     uint16_t t[2];
 };
 
-static inline int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
+static int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
 {
     struct LogEntry *log = cast(struct LogEntry *, rec->v);
     union u32 val;
     val.v = rec->v2;
-    char *d0 = (char *)log + val.t[0];
+    char *d0 = (char *) log + val.t[0];
     return val.t[1] == vlen && memcmp(d0, d1, vlen);
 }
 
@@ -144,12 +134,17 @@ static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, stru
         val.t[0] = (data+klen/*=val*/) - ((char*)tail);
         val.t[1] = vlen;
 
-        update |= poolmap_set2(e->map, data, klen, tail, val.v) != POOLMAP_FAILED;
+        pmap_record_t r;
+        r.v  = cast(uintptr_t, tail);
+        r.v2 = cast(uint32_t,  val.v);
+        if (poolmap_set2(e->map, data, klen, &r) == POOLMAP_UPDATE) {
+            update |= pmap_record_val_eq(&r, data+klen, vlen);
+        }
         data = next;
     }
     if (update) {
         FOR_EACH_ARRAY(e->watcher, w, we) {
-            w->watch(w->data);
+            w->watch(w->data, e->logs.head->h.next);
         }
     }
 }

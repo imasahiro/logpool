@@ -4,6 +4,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdint.h>
+#include "lio/lio.h"
+#include "lio/protocol.h"
 
 #ifndef LOGPOOL_REACTIVE_H
 #define LOGPOOL_REACTIVE_H
@@ -13,10 +15,20 @@ extern "C" {
 #endif
 
 struct Log;
+struct LogEntry {
+    struct LogHead {
+        struct LogEntry *next;
+        uint64_t time;
+        uint16_t size;
+        int16_t  refc;
+    } h;
+    struct Message data;
+};
+
 typedef struct react_watcher {
     uintptr_t data;
     uintptr_t expire_time;
-    void (*watch) (uintptr_t);
+    void (*watch) (uintptr_t, struct LogEntry *);
     void (*remove)(uintptr_t);
 } react_watcher_t;
 

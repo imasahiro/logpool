@@ -11,7 +11,7 @@
 #define TEST_WATCHER_PER_ENTRY 100
 #define TEST_TIME    100
 
-static void watcher_watch(uintptr_t data)
+static void watcher_watch(uintptr_t data, struct LogEntry *e)
 {
     intptr_t *sum = (intptr_t *) data;
     *sum += 1;

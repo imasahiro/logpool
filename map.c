@@ -13,18 +13,18 @@
 extern "C" {
 #endif
 
-#define POOLMAP_INITSIZE      16
+#define POOLMAP_INITSIZE      4
 
 static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
 {
-#if 0
-    dst->hash = src->hash;
-    dst->k    = src->k;
-    dst->v    = src->v;
-#else
     memcpy(dst, src, sizeof(pmap_record_t));
-#endif
 }
+static void pmap_record_copy_data(pmap_record_t *dst, const pmap_record_t *src)
+{
+    dst->v2 = src->v2;
+    dst->v  = src->v;
+}
+
 
 static inline pmap_record_t *pmap_at(poolmap_t *m, uint32_t idx)
 {
@@ -53,8 +53,12 @@ static pmap_status_t pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
             return POOLMAP_ADDED;
         }
         if (r->hash == rec->hash && m->fcmp(r->k, rec->k)) {
+            uintptr_t old0 = r->v;
+            uint32_t  old1 = r->v2;
             m->ffree(r);
-            r->v = rec->v;
+            pmap_record_copy_data(r, rec);
+            rec->v  = old0;
+            rec->v2 = old1;
             return POOLMAP_UPDATE;
         }
         idx = (idx + 1) & m->mask;
@@ -143,14 +147,11 @@ pmap_status_t poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val)
     return pmap_set_(m, &r);
 }
 
-pmap_status_t poolmap_set2(poolmap_t *m, char *key, uint32_t klen, void *v1, uint32_t v2)
+pmap_status_t poolmap_set2(poolmap_t *m, char *key, uint32_t klen, pmap_record_t *r)
 {
-    pmap_record_t r;
-    r.hash = djbhash(key, klen);
-    r.k  = m->fkey(key, klen);
-    r.v  = cast(uintptr_t, v1);
-    r.v2 = v2;
-    return pmap_set_(m, &r);
+    r->k  = m->fkey(key, klen);
+    r->hash = djbhash(key, klen);
+    return pmap_set_(m, r);
 }
 
 void poolmap_remove(poolmap_t *m, char *key, uint32_t klen)
