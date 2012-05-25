@@ -19,6 +19,8 @@ extern "C" {
 DEF_ARRAY_OP(react_watcher_t);
 DEF_ARRAY_OP(reaction_entry_t);
 
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+
 #define RefInit(e)  ((e)->h.refc =  1)
 #define IncRC(e, N) ((e)->h.refc += N)
 #define DecRC(e)    ((e)->h.refc -= 1)
@@ -119,6 +121,20 @@ static void LogList_dispose(struct LogList *list)
     }
 }
 
+union u32 {
+    uint32_t v;
+    uint16_t t[2];
+};
+
+static inline int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
+{
+    struct LogEntry *log = cast(struct LogEntry *, rec->v);
+    union u32 val;
+    val.v = rec->v2;
+    char *d0 = (char *)log + val.t[0];
+    return val.t[1] == vlen && memcmp(d0, d1, vlen);
+}
+
 static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)
 {
     char *data;
@@ -130,31 +146,39 @@ static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, stru
     struct Log *log = (struct Log *)&(tail->data);
     data = log_get_data(log);
     IncRC(tail, log->logsize);
+    int update = 0;
     for (i = 0; i < log->logsize; ++i) {
+        union u32 val;
         char *next = log_iterator(log, data, i);
         klen = log_get_length(log, i*2+0);
         vlen = log_get_length(log, i*2+1);
-        poolmap_set2(e->map, data, klen, tail, i);
+        val.t[0] = (data+klen/*=val*/) - ((char*)tail);
+        val.t[1] = vlen;
+
+        pmap_record_t *rec;
+        rec = poolmap_get(e->map, data, klen);
+        update |= (rec)?pmap_record_val_eq(rec, (char*)tail, val.v) : 1;
+        poolmap_set2(e->map, data, klen, tail, val.v);
         data = next;
     }
-    FOR_EACH_ARRAY(e->watcher, w, we) {
-        w->watch(w->data);
+    if (update) {
+        FOR_EACH_ARRAY(e->watcher, w, we) {
+            w->watch(w->data);
+        }
     }
 }
 
-void react_engine_append_log(react_engine_t *re, struct Log *logbuf, uint32_t logsize)
+void react_engine_append_log(react_engine_t *re, struct Log *log, uint32_t logsize)
 {
-    uint16_t traceLen  = log_get_length(logbuf, 1);
-    char    *traceName = log_get_data(logbuf) + log_get_length(logbuf, 0);
+    uint16_t traceLen  = log_get_length(log, 1);
+    char    *traceName = log_get_data(log) + log_get_length(log, 0);
 
     pmap_record_t *rec;
     if ((rec = poolmap_get(re->react_entries, traceName, traceLen))) {
         struct reaction_entry *e = (struct reaction_entry *) rec->v;
-        react_entry_append_log(re, e, logbuf, logsize);
+        react_entry_append_log(re, e, log, logsize);
     }
 }
-
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 void react_engine_append_watcher(react_engine_t *re, char *key, uint32_t klen, react_watcher_t *watcher)
 {
