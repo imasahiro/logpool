@@ -51,11 +51,13 @@ int main(int argc, char const* argv[])
     }
     fprintf(stderr, "mapsize=%d\n", poolmap_size(re->react_entries));
     for (i = 0; i < TEST_WATCHER; ++i) {
+        //if (i % 100 == 0) fprintf(stderr, "W:%d\n", i);
         char data[128] = {};
         snprintf(data, 128, "%d", i % TEST_WATCHER_PER_ENTRY);
         react_engine_append_watcher(re, data, strlen(data), &w);
     }
     for (i = 0; i < TEST_LOG; ++i) {
+        //if (i % 100 == 0) fprintf(stderr, "L:%d\n", i);
         emit_log(re, i % TEST_WATCHER_PER_ENTRY);
     }
 

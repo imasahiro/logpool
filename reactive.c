@@ -6,9 +6,6 @@
 #include "reactive.h"
 #include "lio/lio.h"
 #include "lio/protocol.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 #define RENGINE_ENTRY_INITSIZE 16
 
@@ -56,14 +53,13 @@ static void LogList_init(struct LogList *list)
 
 static void LogList_check_timer(struct LogList *list, uint64_t current, uint64_t interval)
 {
-    struct LogEntry *next, *head;
+    struct LogEntry *head;
     head = list->head->h.next;
     while (head) {
-        next = head->h.next;
         if (current - head->h.time < interval)
             break;
         DecRC(head);
-        head = next;
+        head = head->h.next;
     }
 }
 
@@ -106,18 +102,11 @@ static void LogList_append(struct LogList *list, struct Log *log, uint32_t logsi
 
 static void LogList_dispose(struct LogList *list)
 {
-    struct LogEntry *e = list->head, *tmp;
+    struct LogEntry *e = list->head, *next;
     while (e) {
-        tmp = e->h.next;
-#if 0
-        struct Log *log = (struct Log *) &e->data;
-        uint16_t traceLen  = log_get_length(log, 1);
-        char    *traceName = log_get_data(log) + log_get_length(log, 0);
-        char buf[10] = {};
-        memcpy(buf, traceName, traceLen);
-#endif
+        next = e->h.next;
         react_do_free(e, e->h.size);
-        e = tmp;
+        e = next;
     }
 }
 
@@ -155,10 +144,7 @@ static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, stru
         val.t[0] = (data+klen/*=val*/) - ((char*)tail);
         val.t[1] = vlen;
 
-        pmap_record_t *rec;
-        rec = poolmap_get(e->map, data, klen);
-        update |= (rec)?pmap_record_val_eq(rec, (char*)tail, val.v) : 1;
-        poolmap_set2(e->map, data, klen, tail, val.v);
+        update |= poolmap_set2(e->map, data, klen, tail, val.v) != POOLMAP_FAILED;
         data = next;
     }
     if (update) {
@@ -197,8 +183,8 @@ static void reaction_entry_reset(struct reaction_entry *entry)
         w->remove(w->data);
     }
     ARRAY_dispose(react_watcher_t, &entry->watcher);
-    LogList_dispose(&entry->logs);
     poolmap_delete(entry->map);
+    LogList_dispose(&entry->logs);
 }
 
 static int entry_key_cmp(uintptr_t k0, uintptr_t k1)
@@ -236,9 +222,9 @@ void react_engine_append(react_engine_t *re, char *key, uint32_t klen, reaction_
 {
     reaction_entry_t *e = cast(reaction_entry_t *, react_do_malloc(sizeof(*e)));
     memcpy(e, entry, sizeof(*e));
-    poolmap_set(re->react_entries, key, klen, e);
     ARRAY_init(react_watcher_t, &e->watcher, 2);
     LogList_init(&e->logs);
+    poolmap_set(re->react_entries, key, klen, e);
     e->map = poolmap_new(4, entry_keygen, entry_key_cmp, entry_log_free);
 }
 

@@ -41,7 +41,7 @@ static void pmap_record_reset(poolmap_t *m, size_t newsize)
     m->mask = m->record_size - 1;
 }
 
-static void pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
+static pmap_status_t pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
 {
     uint32_t i = 0, idx = rec->hash & m->mask;
     pmap_record_t *r;
@@ -50,15 +50,16 @@ static void pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
         if (r->hash == 0) {
             pmap_record_copy(r, rec);
             ++m->used_size;
-            return;
+            return POOLMAP_ADDED;
         }
         if (r->hash == rec->hash && m->fcmp(r->k, rec->k)) {
             m->ffree(r);
             r->v = rec->v;
-            return;
+            return POOLMAP_UPDATE;
         }
         idx = (idx + 1) & m->mask;
     } while (i++ < m->used_size);
+    assert(0);
 }
 
 static void pmap_record_resize(poolmap_t *m)
@@ -76,12 +77,12 @@ static void pmap_record_resize(poolmap_t *m)
     map_do_free(old, oldsize*sizeof(pmap_record_t));
 }
 
-static void pmap_set_(poolmap_t *m, pmap_record_t *rec)
+static pmap_status_t pmap_set_(poolmap_t *m, pmap_record_t *rec)
 {
     if (m->used_size > m->record_size * 3 / 4) {
         pmap_record_resize(m);
     }
-    pmap_set_no_resize(m, rec);
+    return pmap_set_no_resize(m, rec);
 }
 
 static pmap_record_t *pmap_get_(poolmap_t *m, uint32_t hash, uintptr_t key)
@@ -132,24 +133,24 @@ pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t klen)
     return r;
 }
 
-void poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val)
+pmap_status_t poolmap_set(poolmap_t *m, char *key, uint32_t klen, void *val)
 {
     pmap_record_t r;
     r.hash = djbhash(key, klen);
     r.k  = m->fkey(key, klen);
     r.v  = cast(uintptr_t, val);
     r.v2 = 0;
-    pmap_set_(m, &r);
+    return pmap_set_(m, &r);
 }
 
-void poolmap_set2(poolmap_t *m, char *key, uint32_t klen, void *v1, uint32_t v2)
+pmap_status_t poolmap_set2(poolmap_t *m, char *key, uint32_t klen, void *v1, uint32_t v2)
 {
     pmap_record_t r;
     r.hash = djbhash(key, klen);
     r.k  = m->fkey(key, klen);
     r.v  = cast(uintptr_t, v1);
     r.v2 = v2;
-    pmap_set_(m, &r);
+    return pmap_set_(m, &r);
 }
 
 void poolmap_remove(poolmap_t *m, char *key, uint32_t klen)
