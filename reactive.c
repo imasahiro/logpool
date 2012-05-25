@@ -25,8 +25,8 @@ struct LogEntry {
     struct LogHead {
         struct LogEntry *next;
         uint64_t time;
-        uint32_t size;
-        uint32_t flag;
+        uint32_t size:30;
+        uint32_t flag:2;
     } h;
     struct Message data;
 };
@@ -54,12 +54,10 @@ static void LogList_check_timer(struct LogList *list, uint64_t current, uint64_t
     head = list->head->h.next;
     while (head) {
         next = head->h.next;
-        //fprintf(stderr, "%p %ld %ld %d\n", head, current, head->h.time, (current - head->h.time > interval));
-        if (current - head->h.time < interval) {
+        if (current - head->h.time < interval)
             break;
-        }
+        /* Logical remove */
         mark_free(head);
-        //do_free(head, head->h.size);
         head = next;
     }
 }
@@ -70,7 +68,7 @@ static struct LogList *LogList_check_interval(struct LogList *list)
     e    = list->head->h.next;
     prev = list->head;
     if (is_marked(list->tail)) {
-#if 0
+#ifdef DEBUG
         struct LogEntry *head = e;
         while (head) {
             assert(is_marked(head));
@@ -80,10 +78,9 @@ static struct LogList *LogList_check_interval(struct LogList *list)
         list->tail = list->head;
     }
     while (e) {
-        next = e->h.next;
-        if (!is_marked(e)) {
+        if (!is_marked(e))
             break;
-        }
+        next = e->h.next;
         react_do_free(e, e->h.size);
         e = next;
     }
@@ -96,9 +93,9 @@ static void LogList_append(struct LogList *list, struct Log *log, uint32_t logsi
     struct LogEntry *e;
     uint64_t current = TimeMilliSecond();
     LogList_check_timer(list, current, interval);
+    LogList_check_interval(list);
     e = LogEntry_new(logsize, current);
     memcpy(&e->data, log, logsize);
-    LogList_check_interval(list);
     list->tail->h.next = e;
     list->tail = e;
 }
@@ -212,7 +209,6 @@ void react_engine_delete(react_engine_t *re)
 {
     poolmap_delete(re->react_entries);
     react_do_free(re, sizeof(react_engine_t));
-    fprintf(stderr, "malloced=%ld\n", react_malloced_size);
     CHECK_MALLOCED_SIZE(react);
 }
 
