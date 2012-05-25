@@ -14,10 +14,6 @@ extern "C" {
 #endif
 
 #define POOLMAP_INITSIZE      16
-#define cast(T, V) ((T)(V))
-#define CLZ(n) __builtin_clzl(n)
-#define BITS (sizeof(void*) * 8)
-#define SizeToKlass(N) ((uint32_t)(BITS - CLZ(N - 1)))
 
 static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
 {
@@ -41,7 +37,7 @@ static void pmap_record_reset(poolmap_t *m, size_t newsize)
     uint32_t alloc_size = sizeof(pmap_record_t) * newsize;
     m->used_size = 0;
     m->record_size = newsize;
-    m->records = cast(pmap_record_t *, do_malloc(alloc_size));
+    m->records = cast(pmap_record_t *, map_do_malloc(alloc_size));
     m->mask = m->record_size - 1;
 }
 
@@ -77,7 +73,7 @@ static void pmap_record_resize(poolmap_t *m)
             pmap_set_no_resize(m, r);
         }
     }
-    do_free(old, oldsize*sizeof(pmap_record_t));
+    map_do_free(old, oldsize*sizeof(pmap_record_t));
 }
 
 static void pmap_set_(poolmap_t *m, pmap_record_t *rec)
@@ -104,7 +100,7 @@ static pmap_record_t *pmap_get_(poolmap_t *m, uint32_t hash, uintptr_t key)
 
 poolmap_t* poolmap_new(uint32_t init, fn_keygen fkey, fn_keycmp fcmp, fn_efree ffree)
 {
-    poolmap_t *m = cast(poolmap_t *, do_malloc(sizeof(*m)));
+    poolmap_t *m = cast(poolmap_t *, map_do_malloc(sizeof(*m)));
     if (init < POOLMAP_INITSIZE)
         init = POOLMAP_INITSIZE;
     pmap_record_reset(m, 1U << (SizeToKlass(init)));
@@ -125,8 +121,8 @@ void poolmap_delete(poolmap_t *m)
         }
     }
 
-    do_free(m->records, m->record_size * sizeof(pmap_record_t));
-    do_free(m, sizeof(*m));
+    map_do_free(m->records, m->record_size * sizeof(pmap_record_t));
+    map_do_free(m, sizeof(*m));
 }
 
 pmap_record_t *poolmap_get(poolmap_t *m, char *key, uint32_t klen)
