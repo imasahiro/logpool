@@ -113,19 +113,13 @@ static int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
     char *d0 = (char *) log + val.t[0];
     return val.t[1] != vlen || memcmp(d0, d1, vlen);
 }
-
-static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)
+static int update_current_data(poolmap_t *map, struct LogEntry *tail)
 {
-    char *data;
     uint16_t i, klen, vlen;
-    react_watcher_t *w, *we;
-    LogList_append(&e->logs, logbuf, logsize, e->expire_time);
-
-    struct LogEntry *tail = e->logs.tail;
-    struct Log *log = (struct Log *)&(tail->data);
-    data = log_get_data(log);
-    IncRC(tail, log->logsize);
     int update = 0;
+    struct Log *log = (struct Log *)&(tail->data);
+    char *data = log_get_data(log);
+    IncRC(tail, log->logsize);
     for (i = 0; i < log->logsize; ++i) {
         union u32 val;
         char *next = log_iterator(log, data, i);
@@ -137,12 +131,20 @@ static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, stru
         pmap_record_t r;
         r.v  = cast(uintptr_t, tail);
         r.v2 = cast(uint32_t,  val.v);
-        if (poolmap_set2(e->map, data, klen, &r) == POOLMAP_UPDATE) {
+        if (poolmap_set2(map, data, klen, &r) == POOLMAP_UPDATE) {
             update |= pmap_record_val_eq(&r, data+klen, vlen);
         }
         data = next;
     }
-    if (update) {
+    return update;
+}
+
+static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)
+{
+    react_watcher_t *w, *we;
+    LogList_append(&e->logs, logbuf, logsize, e->expire_time);
+
+    if (update_current_data(e->map, e->logs.tail)) {
         FOR_EACH_ARRAY(e->watcher, w, we) {
             w->watch(w->data, e->logs.head->h.next);
         }
