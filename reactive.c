@@ -78,10 +78,9 @@ static void LogList_check_interval(struct LogList *list)
     prev->h.next = e;
 }
 
-static void LogList_append(struct LogList *list, struct Log *log, uint32_t logsize, uint64_t interval)
+static void LogList_append(struct LogList *list, struct Log *log, uint32_t logsize, uint64_t current, uint64_t interval)
 {
     struct LogEntry *e;
-    uint64_t current = TimeMilliSecond();
     LogList_check_timer(list, current, interval);
     LogList_check_interval(list);
     e = LogEntry_new(logsize, current);
@@ -113,6 +112,7 @@ static int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
     char *d0 = (char *) log + val.t[0];
     return val.t[1] != vlen || memcmp(d0, d1, vlen);
 }
+
 static int update_current_data(poolmap_t *map, struct LogEntry *tail)
 {
     uint16_t i, klen, vlen;
@@ -142,11 +142,23 @@ static int update_current_data(poolmap_t *map, struct LogEntry *tail)
 static void react_entry_append_log(react_engine_t *re, reaction_entry_t *e, struct Log *logbuf, uint32_t logsize)
 {
     react_watcher_t *w, *we;
-    LogList_append(&e->logs, logbuf, logsize, e->expire_time);
+    uint64_t current = TimeMilliSecond();
+    LogList_append(&e->logs, logbuf, logsize, current, e->expire_time);
 
+    struct LogEntry *log, *head = e->logs.head->h.next;
     if (update_current_data(e->map, e->logs.tail)) {
         FOR_EACH_ARRAY(e->watcher, w, we) {
-            w->watch(w->data, e->logs.head->h.next);
+            log = w->head;
+            if (log != head) {
+                log = head;
+                while (log) {
+                    if (current - log->h.time < e->expire_time)
+                        break;
+                    log = log->h.next;
+                }
+                w->head = log;
+            }
+            w->watch(w->data, log);
         }
     }
 }

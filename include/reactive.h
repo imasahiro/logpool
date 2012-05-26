@@ -28,6 +28,7 @@ struct LogEntry {
 typedef struct react_watcher {
     uintptr_t data;
     uintptr_t expire_time;
+    struct LogEntry *head;
     void (*watch) (uintptr_t, struct LogEntry *);
     void (*remove)(uintptr_t);
 } react_watcher_t;

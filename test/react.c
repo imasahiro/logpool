@@ -56,7 +56,7 @@ int main(int argc, char const* argv[])
     react_engine_t *re = react_engine_new(4);
     reaction_entry_t e = {};
     intptr_t sum = 0;
-    react_watcher_t  w = {(intptr_t)&sum, TEST_TIME,
+    react_watcher_t  w = {(intptr_t)&sum, TEST_TIME, NULL,
         watcher_watch, watcher_remove};
     int i;
     for (i = 0; i < TEST_ENTRY; ++i) {
