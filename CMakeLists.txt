@@ -56,6 +56,9 @@ set(LLVM_LOGPOOL_SRC
 
 set(LOGPOOL_DAEMON_SRC util/logpoold.c)
 set(LOGPOOL_LOGPUT_SRC util/logput.c)
+set(LOGPOOL_POOL pool_plugin/pool_plugin.c
+        pool_plugin/copy.c
+)
 
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
@@ -205,6 +208,7 @@ add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
 add_clib_test(test_react test/react.c)
 #add_clib_test(test_list  test/list.c)
+add_clib_test(test_pool  test/pool.c ${LOGPOOL_POOL})
 
 if(LOGPOOL_USE_LLVM)
 add_clib_test(test_llvm    test/llvm.c)
