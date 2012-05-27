@@ -18,11 +18,6 @@ DEF_ARRAY_OP(reaction_entry_t);
 
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
-#define RefInit(e)  ((e)->h.refc =  1)
-#define IncRC(e, N) ((e)->h.refc += N)
-#define DecRC(e)    ((e)->h.refc -= 1)
-#define RC0(e)      ((e)->h.refc <  0)
-
 static struct LogEntry *LogEntry_new(uint32_t logsize, uint64_t time)
 {
     uint32_t size = 1U << SizeToKlass(sizeof(struct LogHead) + logsize);
