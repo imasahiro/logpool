@@ -20,7 +20,7 @@ set(K_CONFIG_OS   ${CMAKE_SYSTEM_NAME})
 set(K_CONFIG_CPU  ${CMAKE_SYSTEM_PROCESSOR})
 
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/include)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/lio)
 include_directories(${INCLUDE_DIRS})
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -68,6 +68,34 @@ set(LOGPOOL_POOL pool_plugin/pool_plugin.c
         pool_plugin/response.c
         pool_plugin/create.c
 )
+
+set(LIO_SRC lio/lio.c lio/stream.c lio/trace.c lio/server.c lio/client.c)
+
+set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LIO_SRC})
+
+find_library(HAVE_LIBDL    NAMES dl)
+find_library(HAVE_PTHREAD  NAMES pthread)
+find_library(HAVE_LIBEVENT NAMES event)
+find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
+check_include_files(pthread.h      HAVE_PTHREAD_H)
+check_include_files(event2/event.h HAVE_LIBEVENT_H)
+
+if(NOT HAVE_PTHREAD_H)
+	message(FATAL_ERROR "pthread.h not found: ${HAVE_PTHREAD_H}")
+endif(NOT HAVE_PTHREAD_H)
+
+if(NOT HAVE_LIBEVENT_H)
+	message(FATAL_ERROR "event2/event.h not found")
+endif(NOT HAVE_LIBEVENT_H)
+
+if(NOT HAVE_PTHREAD)
+	message(FATAL_ERROR "libpthread not found")
+endif(NOT HAVE_PTHREAD)
+
+if(NOT HAVE_LIBEVENT)
+	message(FATAL_ERROR "libevent not found")
+endif(NOT HAVE_LIBEVENT)
+
 
 find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
@@ -169,13 +197,24 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 add_definitions(-DHAVE_CONFIG_H)
 add_definitions(-fPIC)
 
-add_subdirectory(lio)
-set(ExtraLibs ${ExtraLibs} lio)
-include_directories(lio ${LIO_INCLUDE_DIRECTORIES})
+set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
 
 add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
+
+add_definitions(-DLIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
+add_executable(lio_idlgen lio/idl-gen.cpp)
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h
+        DEPENDS ${PROJECT_SOURCE_DIR}/lio/message.idl
+        COMMAND lio_idlgen ${PROJECT_SOURCE_DIR}/lio/message.idl
+        )
+add_custom_target(CREATE_IDL_H DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
+add_dependencies(logpool CREATE_IDL_H)
 
 # test cases
 enable_testing()

@@ -24,8 +24,7 @@ enum LIO_MODE {
 struct lio;
 typedef int (*lio_cb)(struct lio *lio, const void *data, uint32_t nbyte);
 
-struct query_list;
-struct qengine;
+struct pool_list;
 struct chunk_stream;
 struct bufferevent;
 
@@ -35,8 +34,7 @@ struct lio {
     uint32_t flags;
     uint32_t host;
     struct bufferevent *bev;
-    struct query_list *q;
-    struct qengine *engine;
+    struct pool_list *pool;
     struct event_base *base;
     struct chunk_stream *cs; // use this at client
     pthread_t thread;

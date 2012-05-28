@@ -1,6 +1,6 @@
 #include "lio.h"
 #include "stream.h"
-#include "query.h"
+#include "pool_plugin/pool_plugin.h"
 #include <assert.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -21,7 +21,7 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
         bufferevent_free(bev);
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(1, "client timeout e=%p, events=%x", bev, events);
-        query_delete_connection(lio->q, bev);
+        pool_delete_connection(lio->pool, bev);
         bufferevent_free(bev);
     } else {
         /* Other case, maybe error occur */
@@ -45,15 +45,15 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
         switch (log_data_protocol(log)) {
         case LOGPOOL_EVENT_READ:
             debug_print(1, "R %d %d, '%s'", log->klen, log->vlen, data);
-            query_add(lio->engine, (struct Query*) log, bev, lio->q);
+            pool_add((struct Query*) log, bev, lio->pool);
             break;
         case LOGPOOL_EVENT_WRITE:
             dump_log(stderr, "W ", (struct Log *) log, "\n", 0);
-            query_exec((struct Log *) log, log_size, lio->q);
+            pool_exec((struct Log *) log, log_size, lio->pool);
             break;
         case LOGPOOL_EVENT_QUIT:
             debug_print(1, "Q %d, %d\n", log->klen, log->vlen);
-            query_delete_connection(lio->q, bev);
+            pool_delete_connection(lio->pool, bev);
             bufferevent_free(bev);
             goto L_exit;
         case LOGPOOL_EVENT_NULL:
@@ -121,8 +121,7 @@ static int lio_server_init(struct lio *lio, char *host, int port, int ev_mode)
         return LIO_FAILED;
     }
     lio->base = base;
-    lio->q = query_new();
-    lio->engine = qengine_init();
+    lio->pool = pool_new();
     return LIO_OK;
 }
 
@@ -144,8 +143,7 @@ static int lio_server_read(struct lio *lio, const void *data, uint32_t nbyte)
 
 static int lio_server_close(struct lio *lio)
 {
-    qengine_exit(lio->engine);
-    query_delete(lio->q);
+    pool_delete(lio->pool);
     return LIO_OK;
 }
 
