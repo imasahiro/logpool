@@ -68,7 +68,7 @@ void query_delete_connection(struct query_list *q, struct bufferevent *bev)
     }
 }
 
-static void query_add0(struct query_list *q, struct query_entry *e)
+static void _query_add(struct query_list *q, struct query_entry *e)
 {
     if (q->size + 1 >= q->capacity) {
         size_t esize = sizeof(struct query_entry);
@@ -88,7 +88,7 @@ void query_add(struct qengine *engine, struct Query *q, struct bufferevent *bev,
     memcpy((char*)e.query, q->data, e.query_length);
     e.c = bev;
     e.code = qengine_compile(engine, (char*)e.query);
-    query_add0(l, &e);
+    _query_add(l, &e);
 
     struct timeval tv;
     tv.tv_sec = 10;

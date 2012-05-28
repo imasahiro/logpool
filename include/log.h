@@ -20,6 +20,7 @@ struct LogEntry {
     struct Message data;
 };
 
+char *LogEntry_get(struct LogEntry *e, char *key, int klen, int *vlen);
 #define RefInit(e)  ((e)->h.refc =  1)
 #define IncRC(e, N) ((e)->h.refc += N)
 #define DecRC(e)    ((e)->h.refc -= 1)

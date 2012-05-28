@@ -57,7 +57,16 @@ set(LLVM_LOGPOOL_SRC
 set(LOGPOOL_DAEMON_SRC util/logpoold.c)
 set(LOGPOOL_LOGPUT_SRC util/logput.c)
 set(LOGPOOL_POOL pool_plugin/pool_plugin.c
+        pool_plugin/print.c
         pool_plugin/copy.c
+        pool_plugin/statics.c
+        pool_plugin/time.c
+        pool_plugin/react.c
+        pool_plugin/key.c
+        pool_plugin/val.c
+        pool_plugin/stream.c
+        pool_plugin/response.c
+        pool_plugin/create.c
 )
 
 find_library(HAVE_LIBDL        NAMES dl)
