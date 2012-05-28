@@ -201,7 +201,8 @@ void logpool_query(logpool_t *logpool, char *q)
 void *logpool_client_get(logpool_t *logpool, void *logbuf, size_t bufsize)
 {
     struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
-    lio_read(lp->lio, (char*) logbuf, bufsize);
+    if (lio_read(lp->lio, (char*) logbuf, bufsize) == LIO_FAILED)
+        return NULL;
     return (void*) logbuf;
 }
 

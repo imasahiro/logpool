@@ -8,7 +8,7 @@ extern "C" {
 static bool response_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t state)
 {
     struct pool_plugin_response *p = (struct pool_plugin_response *) _p;
-    bufferevent_write(p->bev, e, e->h.size);
+    bufferevent_write(p->bev, &e->data, e->h.size-sizeof(struct LogHead));
     return true;
 }
 

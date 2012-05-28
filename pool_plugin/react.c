@@ -21,8 +21,9 @@ static int pmap_record_val_eq(pmap_record_t *rec, char *d1, uint16_t vlen)
     return val.t[1] != vlen || memcmp(d0, d1, vlen);
 }
 
-static int update_current_data(poolmap_t *map, struct LogEntry *e)
+static bool react_append_log(struct react *re, struct LogEntry *e, uint32_t id0, uint32_t id1)
 {
+    poolmap_t *map = re->map;
     uint16_t i, klen, vlen;
     int update = 0;
     struct Log *log = (struct Log *)&(e->data);
@@ -40,18 +41,13 @@ static int update_current_data(poolmap_t *map, struct LogEntry *e)
         r.v  = (uintptr_t) e;
         r.v2 = (uint32_t)  val.v;
         if (poolmap_set2(map, data, klen, &r) == POOLMAP_UPDATE) {
-            update |= pmap_record_val_eq(&r, data+klen, vlen);
+            if (djbhash(data, klen) == id0 && r.k == id1) {
+                update |= pmap_record_val_eq(&r, data+klen, vlen);
+            }
         }
         data = next;
     }
     return update;
-}
-
-static bool react_entry_append_log(struct react *re, struct LogEntry *log)
-{
-    //TODO
-    //re
-    return update_current_data(re->map, log);
 }
 
 static int entry_key_cmp(uintptr_t k0, uintptr_t k1)
@@ -101,7 +97,7 @@ static bool react_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t sta
     uint32_t traceID0 = djbhash(traceName, traceLen);
     uint32_t traceID1 = hash0(38873, traceName, traceLen);
     if (p->r.traceID0 == traceID0 && p->r.traceID1 == traceID1) {
-        int update = (react_entry_append_log(&p->r, e));
+        int update = react_append_log(&p->r, e, p->r.keyID0, p->r.keyID1);
         //struct pool_plugin *target = update?_p->apply:_p->failed;;
         if (update) {
             p->base.apply->Apply(_p->apply, e, update);

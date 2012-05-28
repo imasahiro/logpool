@@ -120,14 +120,14 @@ static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
     if (lio->bev) {
         int log_size;
         struct Log *log;
-        L_redo:;
+        //L_redo:;
         while (chunk_stream_empty(cs)) {
             usleep(1);
         }
         log = chunk_stream_get(cs, &log_size);
-        if (!log) {
+        if (log == NULL) {
             fprintf(stderr, "log is null\n");
-            goto L_redo;
+            goto L_failed;
         }
         if (log_data_process(log) == LOGPOOL_EVENT_QUIT) {
             bufferevent_free(lio->bev);
@@ -138,6 +138,7 @@ static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
         return LIO_OK;
     }
     debug_print(1, "stream was not connected");
+    L_failed:;
     return LIO_FAILED;
 }
 

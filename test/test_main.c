@@ -24,7 +24,7 @@ static void logpool_test_write(logpool_t *logpool)
     void *args;
     logpool_record(logpool, &args, LOG_NOTICE, "event",
             KEYVALUE_u("uint",   i),
-            KEYVALUE_u("tid",   i%10),
+            KEYVALUE_u("tid",   i/10),
             KEYVALUE_s("string", s),
             LOG_END
             );

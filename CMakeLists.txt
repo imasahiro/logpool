@@ -44,7 +44,6 @@ set(LOGPOOL_SRC
 #	plugins/multiplexer.c
 	plugins/lio_plugin.c
 	map.c
-	reactive.c
 )
 
 #set(LLVM_LOGPOOL_SRC
@@ -172,7 +171,6 @@ macro(add_client_module target src)
 		set(dirs ${dirs} "-I${arg}")
 	endforeach()
 	set(_output ${CMAKE_CURRENT_BINARY_DIR}/${target}.bc)
-	message(STATUS "${dirs}")
 	add_custom_command(
 		OUTPUT  ${_output}
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src}
@@ -251,7 +249,7 @@ add_executable(test_map    test/map.c)
 target_link_libraries(test_map ${TestLibs})
 add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
-add_clib_test(test_react test/react.c)
+#add_clib_test(test_react test/react.c)
 #add_clib_test(test_list  test/list.c)
 add_clib_test(test_pool  test/pool.c)
 

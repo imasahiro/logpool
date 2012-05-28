@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+//#define LOGPOOL_USE_SEQUENCE 1
 struct logpool;
 typedef struct logpool logpool_t;
 typedef struct logapi logapi_t;

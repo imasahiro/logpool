@@ -1,5 +1,6 @@
 #include "pool_plugin.h"
 #include "array.h"
+#include "llcache.h"
 #include <time.h>
 #include <sys/time.h>
 
@@ -97,6 +98,7 @@ DEF_ARRAY_STRUCT0(pool_plugin_t, uint32_t);
 DEF_ARRAY_T(pool_plugin_t);
 DEF_ARRAY_OP(pool_plugin_t);
 struct pool_list {
+    llcache_t *mc;
     ARRAY(pool_plugin_t) list;
 };
 
@@ -123,8 +125,19 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
     }
 }
 
+typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
 void pool_add(struct Query *q, struct bufferevent *bev, struct pool_list *l)
 {
+#if 1
+    char buf[128] = {};
+    memcpy(buf, q->data, q->vlen);
+    fprintf(stderr, "query: '%s':%d\n", buf, q->vlen);
+    memcpy(buf+q->vlen, "_init", 6);
+#endif
+    fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);
+    pool_plugin_t *plugin = finit(bev);
+    ARRAY_add(pool_plugin_t, &l->list, plugin);
+
 }
 
 void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
@@ -136,11 +149,13 @@ struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
     ARRAY_init(pool_plugin_t, &l->list, 4);
+    l->mc = llcache_new("127.0.0.1", 11211);
     return l;
 }
 
 void pool_delete(struct pool_list *l)
 {
+    llcache_delete(l->mc);
     ARRAY_dispose(pool_plugin_t, &l->list);
     free(l);
 }

@@ -26,15 +26,21 @@ static bool create_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t st
     struct pool_plugin_create *p = (struct pool_plugin_create *) _p;
     uint16_t i, logsize, datasize = 0;
     uint16_t lengths[32];
+    p->context = p->finit(p->context, state);
     logsize  = p->write_size(p->context, state, lengths);
     for (i = 0; i < logsize; ++i) {
         datasize += lengths[i*2+0];
         datasize += lengths[i*2+1];
     }
-    struct LogEntry *newe = malloc(sizeof(struct LogEntry)+sizeof(uint16_t)*logsize+datasize);
+    uint16_t entry_size = sizeof(struct LogEntry)+sizeof(uint16_t)*logsize+datasize;
+    struct LogEntry *newe = malloc(entry_size);
     char *buf = emit_message_header((char*)&e->data, LOGPOOL_EVENT_WRITE, logsize, lengths);
+    newe->h.size = entry_size;
+    newe->h.next = NULL;
+    newe->h.time = e->h.time;
     p->write_data(p->context, e, buf);
     RefInit(newe);
+    p->context = p->fexit(p->context);
     p->base.apply->Apply(p->base.apply, newe, 0);
     return true;
 }
@@ -84,7 +90,7 @@ static void nop_write_data(uintptr_t context, struct LogEntry *e, char *buf)
     //}
 }
 
-static uintptr_t nop_init(uintptr_t context) { return 0; }
+static uintptr_t nop_init(uintptr_t context, uint32_t t) { return 0; }
 static uintptr_t nop_exit(uintptr_t context) { return 0; }
 
 EXPORT_POOL_PLUGIN(pool_plugin_create) = {

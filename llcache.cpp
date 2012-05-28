@@ -7,6 +7,7 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/TargetSelect.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/ExecutionEngine/JIT.h"
@@ -22,6 +23,11 @@ using namespace logpool;
 
 void llmc::init(const std::string host, long port)
 {
+    static int once = 1;
+    if (once) {
+        once = 0;
+        InitializeNativeTarget();
+    }
     memcached_return_t rc;
     memcached_server_list_st servers;
 

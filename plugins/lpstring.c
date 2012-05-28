@@ -133,8 +133,10 @@ struct logapi STRING_API = {
 
 static char *write_seq(buffer_t *buf, uint64_t seq)
 {
+#ifdef LOGPOOL_USE_SEQUENCE
     buf_put_char(buf, '#');
     buf->buf = put_hex(buf->buf, seq);
+#endif
     return buf->buf;
 }
 

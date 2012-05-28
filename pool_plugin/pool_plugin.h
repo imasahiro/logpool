@@ -86,7 +86,7 @@ struct pool_plugin_stream {
 struct pool_plugin_create {
     struct pool_plugin base;
     uintptr_t context;
-    uintptr_t (*finit)(uintptr_t context);
+    uintptr_t (*finit)(uintptr_t context, uint32_t state);
     uintptr_t (*fexit)(uintptr_t context);
     uint16_t (*write_size)(uintptr_t context, uint32_t state, uint16_t *lengths);
     void (*write_data)(uintptr_t context, struct LogEntry *e, char *buf);
