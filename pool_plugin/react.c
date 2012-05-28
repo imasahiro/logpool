@@ -45,7 +45,7 @@ static bool react_append_log(struct react *re, struct LogEntry *e, uint32_t id0,
                 union u32 val_; val_.v = r.v2;
                 char buf0[128] = {};
                 char buf1[128] = {};
-                memcpy(buf0, r.v+val_.t[0], val_.t[1]);
+                memcpy(buf0, (char*)r.v+val_.t[0], val_.t[1]);
                 memcpy(buf1, data+klen, vlen);
                 fprintf(stderr, "val '%s'=>'%s'\n", buf0, buf1);
                 update |= pmap_record_val_eq(&r, data+klen, vlen);
