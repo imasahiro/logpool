@@ -1,8 +1,10 @@
-#include <libmemcached/memcached.h>
-#include <llvm/Module.h>
-
 #ifndef LLCACHE_H_
 #define LLCACHE_H_
+
+#ifdef __cplusplus
+
+#include <libmemcached/memcached.h>
+#include <llvm/Module.h>
 
 namespace logpool {
 class llmc {
@@ -15,6 +17,7 @@ public:
     llvm::Function *get(const std::string key, llvm::Module *m);
 };
 }
+#endif
 
 #ifdef __cplusplus
 extern "C" {

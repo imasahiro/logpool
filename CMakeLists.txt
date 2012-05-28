@@ -47,31 +47,32 @@ set(LOGPOOL_SRC
 	reactive.c
 )
 
-set(LLVM_LOGPOOL_SRC
-	jit/llvm.cpp
-	jit/bc.cpp
-	jit/llvm_file2.cpp
-	jit/llvm_memcache.cpp
-)
+#set(LLVM_LOGPOOL_SRC
+#	jit/llvm.cpp
+#	jit/bc.cpp
+#	jit/llvm_file2.cpp
+#	jit/llvm_memcache.cpp
+#)
 
 set(LOGPOOL_DAEMON_SRC util/logpoold.c)
 set(LOGPOOL_LOGPUT_SRC util/logput.c)
 set(LOGPOOL_POOL pool_plugin/pool_plugin.c
-        pool_plugin/print.c
-        pool_plugin/copy.c
-        pool_plugin/statics.c
-        pool_plugin/time.c
-        pool_plugin/react.c
-        pool_plugin/key.c
-        pool_plugin/val.c
-        pool_plugin/stream.c
-        pool_plugin/response.c
-        pool_plugin/create.c
+		pool_plugin/print.c
+		pool_plugin/copy.c
+		pool_plugin/statics.c
+		pool_plugin/time.c
+		pool_plugin/react.c
+		pool_plugin/key.c
+		pool_plugin/val.c
+		pool_plugin/stream.c
+		pool_plugin/response.c
+		pool_plugin/create.c
 )
 
 set(LIO_SRC lio/lio.c lio/stream.c lio/trace.c lio/server.c lio/client.c)
 
 set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LIO_SRC})
+set(LOGPOOL_SRC ${LOGPOOL_SRC} llcache.cpp)
 
 find_library(HAVE_LIBDL    NAMES dl)
 find_library(HAVE_PTHREAD  NAMES pthread)
@@ -108,9 +109,9 @@ check_type_size(double   SIZEOF_DOUBLE)
 
 set(ExtraLibs)
 
-#if(HAVE_LIBMEMCACHED)
-#	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
-#endif(HAVE_LIBMEMCACHED)
+if(HAVE_LIBMEMCACHED)
+	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
+endif(HAVE_LIBMEMCACHED)
 #
 #option(USE_LLVM "Use llvm" on)
 #if(USE_LLVM)
@@ -118,59 +119,55 @@ set(ExtraLibs)
 #endif(USE_LLVM)
 #
 #if(LOGPOOL_USE_LLVM)
-#find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
-#find_program(HAVE_CLANG   NAMES clang DOC "clang")
-#if(NOT LLVM_CONFIG)
-#set(LOGPOOL_USE_LLVM false)
-#endif(NOT LLVM_CONFIG)
-#endif(LOGPOOL_USE_LLVM)
+find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
+find_program(HAVE_CLANG   NAMES clang DOC "clang")
+if(NOT LLVM_CONFIG)
+message(FATAL_ERROR "llvm-config not found")
+endif(NOT LLVM_CONFIG)
 #
-#if(LLVM_CONFIG)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --version
-#		OUTPUT_VARIABLE LLVM_VERSION
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#
-#if(${LLVM_VERSION} VERSION_GREATER "3.0")
-#set(LOGPOOL_USE_LLVM_31 1)
-#endif(${LLVM_VERSION} VERSION_GREATER "3.0")
-#
-#set(LOGPOOL_USE_LLVM 1)
-#set(LOGPOOL_SRC "${LOGPOOL_SRC};${LLVM_LOGPOOL_SRC}")
-#
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --cppflags
-#		OUTPUT_VARIABLE LLVM_CFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --cxxflags
-#		OUTPUT_VARIABLE LLVM_CXXFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --ldflags
-#		OUTPUT_VARIABLE LLVM_LDFLAGS
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#execute_process(
-#	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo engine interpreter
-#	OUTPUT_VARIABLE LLVM_JIT_LIBS
-#	OUTPUT_STRIP_TRAILING_WHITESPACE
-#	)
-#execute_process(
-#		COMMAND ${LLVM_CONFIG} --libdir
-#		OUTPUT_VARIABLE LLVM_LIBDIR
-#		OUTPUT_STRIP_TRAILING_WHITESPACE
-#		)
-#
-#set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
-#string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
-#link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
-#set(ExtraLibs ${ExtraLibs} ${v})
-#
-#add_executable(ConvertBC ./jit/tohex.c)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --version
+		OUTPUT_VARIABLE LLVM_VERSION
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+set(K_LLVM_VERSION ${LLVM_VERSION})
+string(REPLACE "." "0" K_LLVM_VERSION ${K_LLVM_VERSION})
+string(REPLACE "svn" "" K_LLVM_VERSION ${K_LLVM_VERSION})
+add_definitions(-DLLVM_VERSION=${K_LLVM_VERSION})
+include_directories(${LLVM_INCLUDEDIR})
+
+execute_process(
+		COMMAND ${LLVM_CONFIG} --cppflags
+		OUTPUT_VARIABLE LLVM_CFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --cxxflags
+		OUTPUT_VARIABLE LLVM_CXXFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --ldflags
+		OUTPUT_VARIABLE LLVM_LDFLAGS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+execute_process(
+	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo interpreter bitwriter
+	OUTPUT_VARIABLE LLVM_JIT_LIBS
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+execute_process(
+		COMMAND ${LLVM_CONFIG} --libdir
+		OUTPUT_VARIABLE LLVM_LIBDIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
+string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
+link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
+set(ExtraLibs ${ExtraLibs} ${v})
+
 #if(HAVE_CLANG)
 #	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 #	set(_cflag "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TYPE}}")
@@ -227,6 +224,9 @@ target_link_libraries(logput logpool ${ExtraLibs})
 
 add_executable(logtail util/logtail.c)
 target_link_libraries(logtail logpool ${ExtraLibs})
+
+add_executable(cpu_usage client/cpu_usage.c)
+target_link_libraries(cpu_usage logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})
