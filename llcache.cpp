@@ -1,14 +1,19 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <llvm/LLVMContext.h>
-#include <llvm/Linker.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/Bitcode/BitstreamWriter.h>
+#include "llvm/LLVMContext.h"
+#include "llvm/Linker.h"
+#include "llvm/Bitcode/BitstreamWriter.h"
+#include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/SmallVector.h>
-#include <llvm/Transforms/Utils/Cloning.h>
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/Support/system_error.h"
+
 #include "llcache.h"
 
 using namespace std;
@@ -52,13 +57,13 @@ void llmc::set(const std::string key, Function *F)
     LLVMContext &Context = getGlobalContext();
     Module *m = new Module("_", Context);
     Cloning(m, F);
-    std::vector<unsigned char> Buffer;
-    BitstreamWriter Stream(Buffer);
-    WriteBitcodeToStream(m, Stream);
+    SmallString<1024> Mem;
+    raw_svector_ostream OS(Mem);
+    WriteBitcodeToFile(m, OS);
 
     std::cerr << "llmc::set do; '" << key << "'" << std::endl;
     memcached_return_t rc = memcached_set(st, key.c_str(), key.size(),
-            (char *) &Buffer.front(), Buffer.size(), 0, 0);
+            (char *) &Mem[0], Mem.size(), 0, 0);
     if (rc != MEMCACHED_SUCCESS) {
         std::cerr << "llmc::set failed; '" << key << "'" << std::endl;
     }
@@ -90,3 +95,49 @@ Function *llmc::get(const std::string key, Module *m)
     }
     return m->getFunction(key);
 }
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+llcache_t *llcache_new(const char *host, long port)
+{
+    return (llcache_t*) new llmc(host, port);
+}
+
+void llcache_set(llcache_t *llmc, const char *key, const char *filename)
+{
+    logpool::llmc *c = (logpool::llmc*) llmc;
+    LLVMContext &Context = getGlobalContext();
+    OwningPtr<MemoryBuffer> Buffer;
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN((char*)filename, Buffer)) {
+        fprintf(stderr, "ParseError\n");
+        return;
+    }
+    std::string ErrMsg;
+    Module *M = ParseBitcodeFile(Buffer.get(), Context, &ErrMsg);
+    if (M) {
+        Function *F = M->getFunction(key);
+        c->set(key, F);
+    }
+}
+
+void *llcache_get(llcache_t *llmc, const char *key)
+{
+    logpool::llmc *c = (logpool::llmc*) llmc;
+    LLVMContext &Context = getGlobalContext();
+    Module *m = new Module("tmp", Context);
+    Function *f = c->get(key, m);
+    ExecutionEngine *ee = EngineBuilder(m).setEngineKind(EngineKind::JIT).create();
+    void *ptr = ee->getPointerToFunction(f);
+    return ptr;
+}
+
+void llcache_delete(llcache_t * llmc)
+{
+    logpool::llmc *c = (logpool::llmc*) llmc;
+    delete c;
+}
+
+#ifdef __cplusplus
+}
+#endif
