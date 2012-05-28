@@ -111,7 +111,7 @@ static inline uint64_t TimeMilliSecond(void)
 
 void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
 {
-    uint32_t size = 1U << SizeToKlass(sizeof(struct LogHead) + logsize);
+    uint32_t size = sizeof(struct LogHead) + logsize;
     char buffer[size];
     struct LogEntry *newe = (struct LogEntry *) buffer;
     newe->h.next = NULL;

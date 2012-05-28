@@ -9,13 +9,19 @@ static bool statics_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t s
     struct pool_plugin_statics *p = (struct pool_plugin_statics *) _p;
     uintptr_t data = 0;
     switch (state) {
-        case 0: p->context = p->finit(p->context); return true;
-        case 1: p->context = p->function(p->context, e); return true;
-        case 2: data = p->fexit(p->context); break;
+        case 0:
+            p->context = p->finit(p->context);
+            return true;
+        case 1:
+            p->context = p->function(p->context, e);
+            return true;
+        case 2:
+            data = p->fexit(p->context);
+            break;
         default:
             fprintf(stderr, "%s:%d Error\n", __func__, __LINE__);
     }
-    p->base.apply->Apply(&p->base, e, (uint32_t) data);
+    p->base.apply->Apply(p->base.apply, e, (uint32_t) data);
     return true;
 }
 

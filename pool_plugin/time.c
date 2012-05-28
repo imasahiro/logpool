@@ -82,7 +82,7 @@ static bool timer_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t sta
     struct pool_plugin_timer *p = (struct pool_plugin_timer *) _p;
     struct LogEntry *head, *next;
     LogList_append(&p->list, e, p->timer);
-    head = p->list.head;
+    head = p->list.head->h.next;
     p->base.apply->Apply(_p->apply, e, p->flag_start);
     while (head) {
         next = head->h.next;
@@ -97,6 +97,7 @@ static bool timer_failed(struct pool_plugin *_p, struct LogEntry *e, uint32_t st
 {
     struct pool_plugin_timer *p = (struct pool_plugin_timer *) _p;
     LogList_append(&p->list, e, p->timer);
+    //fprintf(stderr, "buffered\n");
     return true;
 }
 

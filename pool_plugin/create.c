@@ -32,9 +32,9 @@ static bool create_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t st
         datasize += lengths[i*2+0];
         datasize += lengths[i*2+1];
     }
-    uint16_t entry_size = sizeof(struct LogEntry)+sizeof(uint16_t)*logsize+datasize;
+    uint16_t entry_size = sizeof(struct LogEntry)+sizeof(uint16_t)*2*logsize+datasize;
     struct LogEntry *newe = malloc(entry_size);
-    char *buf = emit_message_header((char*)&e->data, LOGPOOL_EVENT_WRITE, logsize, lengths);
+    char *buf = emit_message_header((char*)&newe->data, LOGPOOL_EVENT_WRITE, logsize, lengths);
     newe->h.size = entry_size;
     newe->h.next = NULL;
     newe->h.time = e->h.time;
