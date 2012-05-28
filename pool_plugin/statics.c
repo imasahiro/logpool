@@ -59,7 +59,7 @@ static uintptr_t static_nop_function(uintptr_t context, struct LogEntry *e)
     return 0;
 }
 
-struct pool_plugin_statics pool_plugin_statics_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_statics) = {
     {0, NULL, NULL, pool_plugin_statics_create, pool_plugin_statics_dispose, statics_apply, statics_failed, NULL},
     0,
     static_nop_init,

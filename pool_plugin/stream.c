@@ -40,7 +40,7 @@ static void pool_plugin_stream_dispose(struct pool_plugin *_p)
     free(p);
 }
 
-struct pool_plugin_stream pool_plugin_stream_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_stream) = {
     {0, NULL, NULL, pool_plugin_stream_create, pool_plugin_stream_dispose, stream_apply, stream_failed, NULL},
     NULL
 };

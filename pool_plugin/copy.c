@@ -39,7 +39,7 @@ static void pool_plugin_copy_dispose(struct pool_plugin *p)
     free(p);
 }
 
-struct pool_plugin_copy pool_plugin_copy_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_copy) = {
     {0, NULL, NULL, pool_plugin_copy_create, pool_plugin_copy_dispose, copy_apply, copy_failed, NULL}
 };
 

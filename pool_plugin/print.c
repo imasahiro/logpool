@@ -37,7 +37,7 @@ static void pool_plugin_print_dispose(struct pool_plugin *p)
     free(p);
 }
 
-struct pool_plugin_print pool_plugin_print_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_print) = {
     {0, NULL, NULL, pool_plugin_print_create, pool_plugin_print_dispose, print_apply, print_failed, NULL}
 };
 

@@ -50,7 +50,7 @@ static void pool_plugin_val_dispose(struct pool_plugin *p)
     free(p);
 }
 
-struct pool_plugin_val_filter pool_plugin_val_filter_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_val_filter) = {
     {0, NULL, NULL, pool_plugin_val_create, pool_plugin_val_dispose, val_apply, val_failed, NULL},
     NULL, NULL, NULL, 0, 0
 };

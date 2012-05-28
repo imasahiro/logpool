@@ -141,7 +141,7 @@ static void pool_plugin_react_dispose(struct pool_plugin *_p)
     free(p);
 }
 
-struct pool_plugin_react pool_plugin_react_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_react) = {
     {0, NULL, NULL, pool_plugin_react_create, pool_plugin_react_dispose, react_apply, react_failed, NULL}
 };
 

@@ -124,7 +124,7 @@ static void pool_plugin_timer_dispose(struct pool_plugin *_p)
     free(p);
 }
 
-struct pool_plugin_timer pool_plugin_timer_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_timer) = {
     {0, NULL, NULL, pool_plugin_timer_create, pool_plugin_timer_dispose, timer_apply, timer_failed, NULL}
 };
 

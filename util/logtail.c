@@ -7,7 +7,7 @@
 
 #include "lio/lio.h"
 #include "lio/protocol.h"
-#include "lio/message.idl.data.h"
+#include "message.idl.data.h"
 
 int main(int argc, char **argv)
 {

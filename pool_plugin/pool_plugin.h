@@ -31,7 +31,7 @@ struct pool_plugin_key_filter {
 
 struct pool_plugin_val_filter {
     struct pool_plugin base;
-    bool (*val_cmp)(void *v0, void *v1, short l0, short l1);
+    bool (*val_cmp)(void *v0, void *v1, uint16_t l0, uint16_t l1);
     char *key, *val;
     uint16_t klen, vlen;
 };
@@ -102,6 +102,7 @@ void pool_plugin_dispose(struct pool_plugin *p);
     _p;})
 
 #define CHECK_PLUGIN(PLUGIN, p) assert(strcmp(p->name, PLUGIN) == 0)
+#define EXPORT_POOL_PLUGIN(P) struct P P##_global
 
 struct pool_list;
 struct pool_list * pool_new(void);

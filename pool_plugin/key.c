@@ -47,7 +47,7 @@ static void pool_plugin_key_dispose(struct pool_plugin *p)
     free(p);
 }
 
-struct pool_plugin_key_filter pool_plugin_key_filter_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_key_filter) = {
     {0, NULL, NULL, pool_plugin_key_create, pool_plugin_key_dispose, key_apply, key_failed, NULL},
     NULL, 0
 };

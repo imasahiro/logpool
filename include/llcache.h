@@ -14,6 +14,7 @@ public:
     llmc(const std::string host, long port) { init(host, port); }
     void init(const std::string host, long port);
     void set(const std::string key, llvm::Function *F);
+    void set(const std::string key, llvm::Module *M);
     llvm::Function *get(const std::string key, llvm::Module *m);
 };
 }

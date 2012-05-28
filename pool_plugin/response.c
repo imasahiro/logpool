@@ -39,7 +39,7 @@ static void pool_plugin_response_dispose(struct pool_plugin *p)
     free(p);
 }
 
-struct pool_plugin_response pool_plugin_response_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_response) = {
     {0, NULL, NULL, pool_plugin_response_create, pool_plugin_response_dispose, response_apply, response_failed, NULL},
     NULL
 };

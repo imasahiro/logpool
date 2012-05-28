@@ -98,8 +98,8 @@ if(NOT HAVE_LIBEVENT)
 endif(NOT HAVE_LIBEVENT)
 
 
-find_library(HAVE_LIBDL        NAMES dl)
 find_library(HAVE_LIBM         NAMES m)
+find_library(HAVE_LIBMEMCACHED NAMES memcached)
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)
@@ -113,17 +113,14 @@ if(HAVE_LIBMEMCACHED)
 	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
 endif(HAVE_LIBMEMCACHED)
 #
-#option(USE_LLVM "Use llvm" on)
-#if(USE_LLVM)
-#set(LOGPOOL_USE_LLVM true)
-#endif(USE_LLVM)
-#
-#if(LOGPOOL_USE_LLVM)
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
 find_program(HAVE_CLANG   NAMES clang DOC "clang")
 if(NOT LLVM_CONFIG)
-message(FATAL_ERROR "llvm-config not found")
+	message(FATAL_ERROR "llvm-config not found")
 endif(NOT LLVM_CONFIG)
+if(NOT HAVE_CLANG)
+	message(FATAL_ERROR "clang not found")
+endif(NOT HAVE_CLANG)
 #
 execute_process(
 		COMMAND ${LLVM_CONFIG} --version
@@ -168,25 +165,23 @@ string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
 link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
 set(ExtraLibs ${ExtraLibs} ${v})
 
-#if(HAVE_CLANG)
-#	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-#	set(_cflag "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BUILD_TYPE}}")
-#	set(_tmp "${_cflag} -g0")
-#	set(_output ${CMAKE_CURRENT_BINARY_DIR}/puts.bc)
-#	add_custom_command(
-#		OUTPUT  ${_output}
-#		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
-#		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/jit/puts.c
-#		${LLVM_C_FLAGS} -emit-llvm -c -o
-#		${_output})
-#	add_custom_command(
-#		OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h
-#		DEPENDS ConvertBC ${_output}
-#		COMMAND ConvertBC ${_output})
-#	set(LOGPOOL_SRC ${LOGPOOL_SRC} ${CMAKE_CURRENT_BINARY_DIR}/llvm_bc.h)
-#endif(HAVE_CLANG)
-#
-#endif(LLVM_CONFIG)
+macro(add_client_module target src)
+	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+	set(dirs "")
+	foreach(arg ${INCLUDE_DIRS})
+		set(dirs ${dirs} "-I${arg}")
+	endforeach()
+	set(_output ${CMAKE_CURRENT_BINARY_DIR}/${target}.bc)
+	message(STATUS "${dirs}")
+	add_custom_command(
+		OUTPUT  ${_output}
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src}
+		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/${src}
+		${dirs} -O2 -g0 -emit-llvm -c -o
+		${_output})
+	add_custom_target(create_client_module_${target} DEPENDS ${_output})
+	add_dependencies(logpool create_client_module_${target})
+endmacro()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/config.h)
@@ -202,15 +197,17 @@ add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
+add_client_module(mod_cpu_usage client/mod_cpu_usage.c)
+
 add_definitions(-DLIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
 add_executable(lio_idlgen lio/idl-gen.cpp)
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h
-        DEPENDS ${PROJECT_SOURCE_DIR}/lio/message.idl
-        COMMAND lio_idlgen ${PROJECT_SOURCE_DIR}/lio/message.idl
-        )
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h
+		DEPENDS ${PROJECT_SOURCE_DIR}/lio/message.idl
+		COMMAND lio_idlgen ${PROJECT_SOURCE_DIR}/lio/message.idl
+		)
 add_custom_target(CREATE_IDL_H DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
+		${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
 add_dependencies(logpool CREATE_IDL_H)
 
 # test cases
@@ -256,11 +253,7 @@ add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
 add_clib_test(test_react test/react.c)
 #add_clib_test(test_list  test/list.c)
-add_clib_test(test_pool  test/pool.c ${LOGPOOL_POOL})
-
-if(LOGPOOL_USE_LLVM)
-add_clib_test(test_llvm    test/llvm.c)
-endif(LOGPOOL_USE_LLVM)
+add_clib_test(test_pool  test/pool.c)
 
 install(TARGETS logpool
 		RUNTIME DESTINATION bin

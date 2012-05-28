@@ -69,6 +69,22 @@ void llmc::set(const std::string key, Function *F)
     }
 }
 
+void llmc::set(const std::string key, Module *m)
+{
+    std::string Mem;
+    raw_string_ostream OS(Mem);
+    WriteBitcodeToFile(m, OS);
+
+    std::string Res = OS.str();
+    std::cerr << "llmc::set do; '" << key << "'" << std::endl;
+    memcached_return_t rc = memcached_set(st, key.c_str(), key.size(),
+            (char *) Res.c_str(), Res.size(), 0, 0);
+    if (rc != MEMCACHED_SUCCESS) {
+        std::cerr << "llmc::set failed; '" << key << "'" << std::endl;
+    }
+}
+
+
 Function *llmc::get(const std::string key, Module *m)
 {
     memcached_return_t rc;
@@ -116,8 +132,8 @@ void llcache_set(llcache_t *llmc, const char *key, const char *filename)
     std::string ErrMsg;
     Module *M = ParseBitcodeFile(Buffer.get(), Context, &ErrMsg);
     if (M) {
-        Function *F = M->getFunction(key);
-        c->set(key, F);
+        //Function *F = M->getFunction(key);
+        c->set(key, M);
     }
 }
 

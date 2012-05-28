@@ -87,7 +87,7 @@ static void nop_write_data(uintptr_t context, struct LogEntry *e, char *buf)
 static uintptr_t nop_init(uintptr_t context) { return 0; }
 static uintptr_t nop_exit(uintptr_t context) { return 0; }
 
-struct pool_plugin_create pool_plugin_create_global = {
+EXPORT_POOL_PLUGIN(pool_plugin_create) = {
     {0, NULL, NULL, pool_plugin_create_create, pool_plugin_create_dispose, create_apply, create_failed, NULL},
     0, nop_init, nop_exit, nop_write_size, nop_write_data
 };
