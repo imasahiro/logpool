@@ -107,11 +107,12 @@ void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ..
 void logpool_format_flush(logpool_t *ctx)
 {
     struct logfmt *fmt = cast(struct logpool *, ctx)->fmt;
-    size_t i, size = ctx->logfmt_size;
+    size_t size = ctx->logfmt_size;
     if (ctx->is_flushed)
         return;
     ctx->fn_key(ctx, ctx->logkey.v.u, ctx->logkey.k.seq, ctx->logkey.klen);
     if (size) {
+        size_t i;
         void (*fn_delim)(logpool_t *) = ctx->formatter->fn_delim;
         /* unroled */
         fn_delim(ctx);
