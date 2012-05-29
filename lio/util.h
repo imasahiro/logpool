@@ -1,4 +1,3 @@
-#include "query.h"
 #include "protocol.h"
 #include <event2/bufferevent.h>
 
