@@ -36,13 +36,13 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	core/logpool.c
-	plugins/lpstring.c
+	plugins/trace/lpstring.c
 #	plugins/file2.c
 #	plugins/memcache.c
 #	plugins/syslog.c
 #	plugins/filter.c
 #	plugins/multiplexer.c
-	plugins/lio_plugin.c
+	plugins/trace/lio_plugin.c
 	core/map.c
 )
 
@@ -53,19 +53,19 @@ set(LOGPOOL_SRC
 #	jit/llvm_memcache.cpp
 #)
 
-set(LOGPOOL_DAEMON_SRC util/logpoold.c)
-set(LOGPOOL_LOGPUT_SRC util/logput.c)
-set(LOGPOOL_POOL pool_plugin/pool_plugin.c
-		pool_plugin/print.c
-		pool_plugin/copy.c
-		pool_plugin/statics.c
-		pool_plugin/time.c
-		pool_plugin/react.c
-		pool_plugin/key.c
-		pool_plugin/val.c
-		pool_plugin/stream.c
-		pool_plugin/response.c
-		pool_plugin/create.c
+set(LOGPOOL_DAEMON_SRC tools/logpoold.c)
+set(LOGPOOL_LOGPUT_SRC tools/logput.c)
+set(LOGPOOL_POOL plugins/pool/pool_plugin.c
+		plugins/pool/print.c
+		plugins/pool/copy.c
+		plugins/pool/statics.c
+		plugins/pool/time.c
+		plugins/pool/react.c
+		plugins/pool/key.c
+		plugins/pool/val.c
+		plugins/pool/stream.c
+		plugins/pool/response.c
+		plugins/pool/create.c
 )
 
 set(IO_SRC core/io.c core/stream.c core/trace.c core/server.c core/client.c)
@@ -198,7 +198,7 @@ set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${
 add_client_module(mod_cpu_usage client/mod_cpu_usage.c)
 
 add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
-add_executable(io_idlgen idl-gen.cpp)
+add_executable(io_idlgen tools/idl-gen.cpp)
 add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h
 		DEPENDS ${PROJECT_SOURCE_DIR}/message.idl
@@ -217,7 +217,7 @@ target_link_libraries(logpoold logpool ${ExtraLibs})
 add_executable(logput ${LOGPOOL_LOGPUT_SRC})
 target_link_libraries(logput logpool ${ExtraLibs})
 
-add_executable(logtail util/logtail.c)
+add_executable(logtail tools/logtail.c)
 target_link_libraries(logtail logpool ${ExtraLibs})
 
 add_executable(cpu_usage client/cpu_usage.c)

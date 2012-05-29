@@ -1,6 +1,6 @@
 #include "io.h"
 #include "stream.h"
-#include "pool_plugin/pool_plugin.h"
+#include "plugins/pool/pool_plugin.h"
 #include <assert.h>
 #include <string.h>
 #include <arpa/inet.h>
