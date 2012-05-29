@@ -139,11 +139,11 @@ logpool_t *logpool_open(logpool_t *parent, struct logapi *api, logpool_param_t *
 
 logpool_t *logpool_open_trace(logpool_t *parent, char *host, int port)
 {
-    struct logpool_param_trace param = {8, 1024};
+    struct logpool_param_stream param = {8, 1024};
     param.host = host;
     param.port = port;
-    extern struct logapi TRACE_API;
-    return logpool_open(parent, &TRACE_API, (struct logpool_param*) &param);
+    extern struct logapi STREAM_API;
+    return logpool_open(parent, &STREAM_API, (struct logpool_param*) &param);
 }
 
 void logpool_close(logpool_t *p)

@@ -32,7 +32,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	core/logpool.c
-#	plugins/memcache.c
+	core/crc32.c
 	core/map.c
 )
 
@@ -61,9 +61,6 @@ set(LOGPOOL_TRACE
 		plugins/trace/multiplexer.c
 		plugins/trace/syslog.c
 )
-set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LOGPOOL_TRACE} ${IO_SRC})
-set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
-
 find_library(HAVE_LIBDL    NAMES dl)
 find_library(HAVE_PTHREAD  NAMES pthread)
 find_library(HAVE_LIBMEMCACHED NAMES memcached)
@@ -72,6 +69,7 @@ find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
 
 check_include_files(pthread.h      HAVE_PTHREAD_H)
 check_include_files(event2/event.h HAVE_LIBEVENT_H)
+check_include_files(libmemcached/memcached.h HAVE_MEMCACHED_H)
 
 if(NOT HAVE_PTHREAD_H)
 	message(FATAL_ERROR "pthread.h not found: ${HAVE_PTHREAD_H}")
@@ -92,6 +90,11 @@ endif(NOT HAVE_LIBEVENT)
 if(NOT HAVE_LIBMEMCACHED)
 	message(FATAL_ERROR "libmemcached not found")
 endif(NOT HAVE_LIBMEMCACHED)
+
+set(LOGPOOL_TRACE ${LOGPOOL_TRACE} plugins/trace/memcache.c)
+set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LOGPOOL_TRACE} ${IO_SRC})
+set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
+
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)
@@ -222,13 +225,12 @@ endif(HAVE_LIBDL)
 
 add_clib_test(test_string   test/string.c)
 add_clib_test(test_file     test/file.c)
-#add_clib_test(test_memcache test/memcache.c)
+add_clib_test(test_memcache test/memcache.c)
 add_clib_test(test_syslog   test/syslog.c)
 add_clib_test(test_largefmt test/large_fmtdata.c)
 add_clib_test(test_filter   test/filter.c)
 add_clib_test(test_multi    test/multiplex.c)
-#add_clib_test(test_cpp      test/cpp.cpp)
-#add_clib_test(test_event    test/event.c)
+add_clib_test(test_cpp      test/cpp.cpp)
 add_clib_test(test_trace   test/trace.c)
 add_clib_test(test_trace2  test/trace2.c)
 add_executable(test_map    test/map.c)

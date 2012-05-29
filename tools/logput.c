@@ -1,12 +1,12 @@
 #include "logpool.h"
 #include <stdio.h>
-static struct logpool_param_trace TRACE_API_PARAM = {
+static struct logpool_param_stream TRACE_API_PARAM = {
     8,
     1024,
     "127.0.0.1", 14801
 };
 #define LOGAPI_PARAM cast(logpool_param_t *, &TRACE_API_PARAM)
-#define LOGAPI TRACE_API
+#define LOGAPI STREAM_API
 #define LOG_END 0
 #define LOG_s   1
 #define LOG_u   2

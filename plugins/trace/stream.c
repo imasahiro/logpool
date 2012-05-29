@@ -93,7 +93,7 @@ static void logpool_io_string(logpool_t *ctx, const char *key, uint64_t v, short
     buf_put_string(buf, s, vlen);
 }
 
-struct logapi TRACE_API = {
+struct logapi STREAM_API = {
     logpool_string_null,
     logpool_string_bool,
     logpool_string_int,
@@ -149,7 +149,7 @@ static void *logpool_io_client_init(logpool_t *logpool, logpool_param_t *p)
 {
     extern struct io_api client_api;
     struct io_plugin *lp;
-    struct logpool_param_trace *args = cast(struct logpool_param_trace *, p);
+    struct logpool_param_stream *args = cast(struct logpool_param_stream *, p);
     char *host = (char*) args->host;
     long port = args->port;
 
@@ -182,7 +182,7 @@ static struct logapi CLIENT_API = {
 
 logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
 {
-    struct logpool_param_trace param = {8, 1024};
+    struct logpool_param_stream param = {8, 1024};
     logpool_init(0);
     param.host = host;
     param.port = port;

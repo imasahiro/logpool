@@ -36,7 +36,14 @@ struct logpool_param_string {
     uintptr_t buffer_size;
 };
 
-struct logpool_param_trace {
+struct logpool_param_stream {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+    const char *host;
+    long port;
+};
+
+struct logpool_param_memcache {
     int logfmt_capacity;
     uintptr_t buffer_size;
     const char *host;
