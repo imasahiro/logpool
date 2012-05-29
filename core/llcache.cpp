@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cstdio>
 #include "llvm/LLVMContext.h"
 #include "llvm/Linker.h"
 #include "llvm/Bitcode/BitstreamWriter.h"

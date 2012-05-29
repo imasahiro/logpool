@@ -107,6 +107,7 @@ set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
 set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBDL})
 
 
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
@@ -219,9 +220,6 @@ macro(add_clib_test test_name)
 endmacro(add_clib_test test_name)
 
 set(TestLibs logpool)
-if(HAVE_LIBDL)
-	set(TestLibs ${TestLibs} ${HAVE_LIBDL})
-endif(HAVE_LIBDL)
 
 add_clib_test(test_string   test/string.c)
 add_clib_test(test_file     test/file.c)

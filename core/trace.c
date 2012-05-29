@@ -1,7 +1,6 @@
 #include "logpool_internal.h"
 #include "io.h"
 #include "stream.h"
-#include "util.h"
 #include <assert.h>
 #include <errno.h>
 #include <event2/event.h>
