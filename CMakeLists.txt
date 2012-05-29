@@ -185,7 +185,7 @@ target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
 
-add_client_module(mod_cpu_usage example/mod_cpu_usage.c)
+add_client_module(mod_example1 example/mod_example1.c)
 
 ## IDL Generator
 add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
@@ -210,8 +210,8 @@ target_link_libraries(logput logpool ${ExtraLibs})
 add_executable(logtail tools/logtail.c)
 target_link_libraries(logtail logpool ${ExtraLibs})
 
-add_executable(cpu_usage example/cpu_usage.c)
-target_link_libraries(cpu_usage logpool ${ExtraLibs})
+add_executable(example1 example/example1.c)
+target_link_libraries(example1 logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})

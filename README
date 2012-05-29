@@ -1,7 +1,9 @@
 LOGPOOL
 =========================
 
-Logging API
+-------------------------
+  Logging API
+-------------------------
   logpool_t *logpool_open_trace(logpool_t *parent, char *host, int port);
   void logpool_close(logpool_t *p);
   void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
@@ -12,9 +14,21 @@ Logging API
       char *key;
       char *val;
   };
-  void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs);
+  void logpool_record_list(logpool_t *ctx, void *args, int priority,
+          char *trace_id, int logsize, struct logdata *logs);
 
-ENV
-  $LOGPOOL_SERVER_NAME LogPool Server
-  $LOGPOOL_SERVER_PORT LogPool Port
-  $LOGPOOL_THREAD
+-------------------------
+  HOW_TO_COMPILE
+-------------------------
+  $ mkdir Release
+  $ cmake -DCMAKE_BUILD_TYPE=Release && make
+  $ make
+
+-------------------------
+  HOW_TO_EXEC
+-------------------------
+  $ memcached
+  $ ./Release/logpoold &
+  $ ./Release/example1 Release/mod_example.bc
+  $ ./Release/test_trace
+
