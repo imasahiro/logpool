@@ -69,7 +69,7 @@ int main(int argc, char const* argv[])
         p4->function = p4_func;
     }
     {
-        p6->lio = lio_open_trace("127.0.0.1", 148001);
+        p6->io = io_open_trace("127.0.0.1", 148001);
     }
     p = (struct pool_plugin_print *) pool_plugin_init((struct pool_plugin *) p);
     struct LogEntry e = {};

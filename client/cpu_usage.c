@@ -6,8 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "lio/lio.h"
-#include "lio/protocol.h"
+#include "io.h"
+#include "protocol.h"
 #include "message.idl.data.h"
 
 int main(int argc, char **argv)

@@ -20,7 +20,7 @@ set(K_CONFIG_OS   ${CMAKE_SYSTEM_NAME})
 set(K_CONFIG_CPU  ${CMAKE_SYSTEM_PROCESSOR})
 
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/lio)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${INCLUDE_DIRS})
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -68,9 +68,9 @@ set(LOGPOOL_POOL pool_plugin/pool_plugin.c
 		pool_plugin/create.c
 )
 
-set(LIO_SRC lio/lio.c lio/stream.c lio/trace.c lio/server.c lio/client.c)
+set(IO_SRC io.c stream.c trace.c server.c client.c)
 
-set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LIO_SRC})
+set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${IO_SRC})
 set(LOGPOOL_SRC ${LOGPOOL_SRC} llcache.cpp)
 
 find_library(HAVE_LIBDL    NAMES dl)
@@ -197,12 +197,12 @@ set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${
 
 add_client_module(mod_cpu_usage client/mod_cpu_usage.c)
 
-add_definitions(-DLIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
-add_executable(lio_idlgen lio/idl-gen.cpp)
+add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
+add_executable(io_idlgen idl-gen.cpp)
 add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h
-		DEPENDS ${PROJECT_SOURCE_DIR}/lio/message.idl
-		COMMAND lio_idlgen ${PROJECT_SOURCE_DIR}/lio/message.idl
+		DEPENDS ${PROJECT_SOURCE_DIR}/message.idl
+		COMMAND io_idlgen ${PROJECT_SOURCE_DIR}/message.idl
 		)
 add_custom_target(CREATE_IDL_H DEPENDS
 		${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)

@@ -1,4 +1,4 @@
-#include "lio.h"
+#include "io.h"
 #include "util.h"
 #include "protocol.h"
 #include "message.idl.data.h"
@@ -6,30 +6,30 @@
 #include <string.h>
 #include <unistd.h>
 
-static void emit_query(struct lio *lio, char *q)
+static void emit_query(struct io *io, char *q)
 {
     char buf[128] = {};
     size_t len = emit_message(buf, LOGPOOL_EVENT_READ, 1,
             0, strlen(q), NULL, q);
-    assert(lio_write(lio, buf, len) == LIO_OK);
+    assert(io_write(io, buf, len) == IO_OK);
 }
 
-static void read_log(struct lio *lio, struct Log *tmp)
+static void read_log(struct io *io, struct Log *tmp)
 {
-    lio_read(lio, (char*) tmp, 128);
+    io_read(io, (char*) tmp, 128);
 }
 
 int main(int argc, char **argv)
 {
-    extern struct lio_api client_api;
-    struct lio *lio = lio_open("127.0.0.1", 14801,
-            LIO_MODE_READ|LIO_MODE_WRITE, &client_api);
-    emit_query(lio, "match tid tid0");
+    extern struct io_api client_api;
+    struct io *io = io_open("127.0.0.1", 14801,
+            IO_MODE_READ|IO_MODE_WRITE, &client_api);
+    emit_query(io, "match tid tid0");
     struct Log *log = alloca(sizeof(struct Log) + 256);
     while (1) {
         char kbuf[16] = {};
         char vbuf[128] = {};
-        read_log(lio, log);
+        read_log(io, log);
         char *data = log_get_data(log);
         memcpy(kbuf, data,log->klen);
         memcpy(vbuf, data+log->klen, log->vlen);
@@ -37,6 +37,6 @@ int main(int argc, char **argv)
                 log->klen, log->vlen, kbuf, vbuf);
         usleep(100);
     }
-    lio_close(lio);
+    io_close(io);
     return 0;
 }

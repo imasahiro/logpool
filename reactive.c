@@ -4,8 +4,8 @@
 #include "map.h"
 #include "hash.h"
 #include "reactive.h"
-#include "lio/lio.h"
-#include "lio/protocol.h"
+#include "io.h"
+#include "protocol.h"
 
 #define RENGINE_ENTRY_INITSIZE 16
 

@@ -51,8 +51,8 @@ public:
     void init(const char *file) {
         filename = string(file);
         filename = filename + ".data.h";
-#ifdef LIO_IDL_OUTPUT
-        ofs.open(LIO_IDL_OUTPUT, ios::out);
+#ifdef IO_IDL_OUTPUT
+        ofs.open(IO_IDL_OUTPUT, ios::out);
 #else
         ofs.open(filename.c_str(), ios::out);
 #endif

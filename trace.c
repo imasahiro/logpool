@@ -1,4 +1,4 @@
-#include "lio.h"
+#include "io.h"
 #include "stream.h"
 #include "util.h"
 #include <assert.h>
@@ -40,8 +40,8 @@ static void tracer_cb_write(struct bufferevent *bev, void *ctx)
     //debug_print(0, "write_cb");
 }
 
-static void lio_thread_start(struct lio *lio);
-static int lio_tracer_init(struct lio *lio, char *host, int port, int ev_mode)
+static void io_thread_start(struct io *io);
+static int io_tracer_init(struct io *io, char *host, int port, int ev_mode)
 {
     struct event_base *base = event_base_new();
     struct evdns_base *dns_base;
@@ -54,8 +54,8 @@ static int lio_tracer_init(struct lio *lio, char *host, int port, int ev_mode)
     int ret = bufferevent_socket_connect_hostname(bev, dns_base, AF_INET, host, port);
     if (ret == -1) {
         bufferevent_free(bev);
-        lio->bev = NULL;
-        return LIO_FAILED;
+        io->bev = NULL;
+        return IO_FAILED;
     }
     //bufferevent_setwatermark(bev, ev_mode, 1024/2, 1024);
 
@@ -64,68 +64,68 @@ static int lio_tracer_init(struct lio *lio, char *host, int port, int ev_mode)
     tv.tv_usec = 0;
     bufferevent_set_timeouts(bev, &tv, NULL);
 
-    lio->bev = bev;
-    lio_thread_start(lio);
-    return LIO_OK;
+    io->bev = bev;
+    io_thread_start(io);
+    return IO_OK;
 }
 
-static void *lio_thread_main(void *args)
+static void *io_thread_main(void *args)
 {
-    struct lio *lio = (struct lio *) args;
-    assert(lio);
+    struct io *io = (struct io *) args;
+    assert(io);
     fprintf(stderr, "%s start\n", __func__);
-    lio->flags |= LIO_MODE_THREAD;
+    io->flags |= IO_MODE_THREAD;
     mfence();
-    event_base_dispatch(bufferevent_get_base(lio->bev));
-    lio->flags ^= LIO_MODE_THREAD;
+    event_base_dispatch(bufferevent_get_base(io->bev));
+    io->flags ^= IO_MODE_THREAD;
     fprintf(stderr, "%s exit\n", __func__);
     mfence();
     return 0;
 }
 
-static void lio_thread_start(struct lio *lio)
+static void io_thread_start(struct io *io)
 {
-    pthread_create(&lio->thread, NULL, lio_thread_main, lio);
-    while (lio->flags & LIO_MODE_THREAD) {
+    pthread_create(&io->thread, NULL, io_thread_main, io);
+    while (io->flags & IO_MODE_THREAD) {
         mfence();
     }
 }
 
-static int lio_tracer_write(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_tracer_write(struct io *io, const void *data, uint32_t nbyte)
 {
-    if (bufferevent_write(lio->bev, data, nbyte) != 0) {
+    if (bufferevent_write(io->bev, data, nbyte) != 0) {
         fprintf(stderr, "write error, v=('%p', %u)\n", data, nbyte);
-        return LIO_FAILED;
+        return IO_FAILED;
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
-static int lio_tracer_read(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_tracer_read(struct io *io, const void *data, uint32_t nbyte)
 {
-    int len = bufferevent_read(lio->bev, (char*)data, nbyte);
+    int len = bufferevent_read(io->bev, (char*)data, nbyte);
     debug_print(1, "read: len=[%d] data=[%s]\n", len, (char*)data);
-    return LIO_OK;
+    return IO_OK;
 }
 
-static int lio_tracer_close(struct lio *lio)
+static int io_tracer_close(struct io *io)
 {
-    if (lio->flags & LIO_MODE_THREAD) {
-        util_send_quit_msg(lio->bev);
-        if (pthread_join(lio->thread, NULL) != 0) {
+    if (io->flags & IO_MODE_THREAD) {
+        util_send_quit_msg(io->bev);
+        if (pthread_join(io->thread, NULL) != 0) {
             fprintf(stderr, "pthread join failure. %s\n", strerror(errno));
             abort();
-            return LIO_FAILED;
+            return IO_FAILED;
         }
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
-struct lio_api trace_api = {
+struct io_api trace_api = {
     "tracer",
-    lio_tracer_init,
-    lio_tracer_read,
-    lio_tracer_write,
-    lio_tracer_close
+    io_tracer_init,
+    io_tracer_read,
+    io_tracer_write,
+    io_tracer_close
 };
 
 #ifdef __cplusplus

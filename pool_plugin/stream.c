@@ -1,5 +1,5 @@
 #include "pool_plugin.h"
-#include "lio/lio.h"
+#include "io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,7 +8,7 @@ extern "C" {
 static bool stream_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t state)
 {
     struct pool_plugin_stream *p = (struct pool_plugin_stream *) _p;
-    lio_write(p->lio, e, e->h.size);
+    io_write(p->io, e, e->h.size);
     return true;
 }
 
@@ -25,7 +25,7 @@ static struct pool_plugin *pool_plugin_stream_create(struct pool_plugin *_p)
     p->base.Apply  = stream_apply;
     p->base.Failed = stream_failed;
     p->base.name = "stream";
-    assert(p->lio);
+    assert(p->io);
     return _p;
 }
 
@@ -35,7 +35,7 @@ static void pool_plugin_stream_dispose(struct pool_plugin *_p)
     CHECK_PLUGIN("stream", _p);
     pool_plugin_dispose(p->base.apply);
     pool_plugin_dispose(p->base.failed);
-    lio_close(p->lio);
+    io_close(p->io);
     bzero(p, sizeof(struct pool_plugin_stream));
     free(p);
 }

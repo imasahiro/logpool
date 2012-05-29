@@ -77,10 +77,10 @@ struct pool_plugin_response {
     struct bufferevent *bev;
 };
 
-struct lio;
+struct io;
 struct pool_plugin_stream {
     struct pool_plugin base;
-    struct lio *lio;
+    struct io *io;
 };
 
 struct pool_plugin_create {

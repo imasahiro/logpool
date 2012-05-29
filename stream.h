@@ -1,12 +1,12 @@
 #include "protocol.h"
 
-#ifndef LIO_STREAM_H
-#define LIO_STREAM_H
+#ifndef IO_STREAM_H
+#define IO_STREAM_H
 
-struct lio;
+struct io;
 struct bufferevent;
 struct chunk_stream {
-    struct lio *lio;
+    struct io *io;
     struct bufferevent *bev;
     char *cur;
     char *buffer;
@@ -14,10 +14,10 @@ struct chunk_stream {
 };
 
 int chunk_stream_empty(struct chunk_stream *cs);
-struct chunk_stream *chunk_stream_init(struct chunk_stream *cs, struct lio *lio, struct bufferevent *bev);
+struct chunk_stream *chunk_stream_init(struct chunk_stream *cs, struct io *io, struct bufferevent *bev);
 void chunk_stream_deinit(struct chunk_stream *cs);
 struct Log *chunk_stream_get(struct chunk_stream *cs, int *log_size);
-struct chunk_stream *chunk_stream_new(struct lio *lio, struct bufferevent *bev);
+struct chunk_stream *chunk_stream_new(struct io *io, struct bufferevent *bev);
 void chunk_stream_delete(struct chunk_stream *cs);
 
 #endif /* end of include guard */

@@ -1,8 +1,8 @@
 #include "protocol.h"
 #include <event2/bufferevent.h>
 
-#ifndef LIO_UTIL_H
-#define LIO_UTIL_H
+#ifndef IO_UTIL_H
+#define IO_UTIL_H
 
 #ifndef LOGPOOL_MEMORY_H
 static inline void do_bzero(void *ptr, size_t size)
@@ -50,9 +50,9 @@ static inline int util_send_quit_msg(struct bufferevent *bev)
     int size = emit_message(buf, LOGPOOL_EVENT_QUIT, 1, 0, 0, NULL, NULL);
     if (bufferevent_write(bev, buf, size) != 0) {
         fprintf(stderr, "[util:quit] write error\n");
-        return LIO_FAILED;
+        return IO_FAILED;
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
 #endif /* end of include guard */

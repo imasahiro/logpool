@@ -1,5 +1,5 @@
-#include "lio/lio.h"
-#include "lio/protocol.h"
+#include "io.h"
+#include "protocol.h"
 
 #ifndef LOGPOOL_LOG_H
 #define LOGPOOL_LOG_H

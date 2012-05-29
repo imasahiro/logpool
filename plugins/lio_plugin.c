@@ -3,9 +3,9 @@
 #include "logpool.h"
 #include "lpstring.h"
 #include "logpool_internal.h"
-#include "../lio/lio.h"
-#include "../lio/protocol.h"
-#include "../lio/util.h"
+#include "io.h"
+#include "protocol.h"
+#include "util.h"
 
 enum {
     LOGPOOL_FAILURE = -1,
@@ -19,10 +19,10 @@ enum {
 extern "C" {
 #endif
 
-static struct lio *g_lio = NULL;
-struct lio_plugin {
+static struct io *g_io = NULL;
+struct io_plugin {
     char *buf;
-    struct lio *lio;
+    struct io *io;
     char base[1];
 };
 
@@ -36,17 +36,17 @@ static uint16_t *emit_header(char *buf, int protocol, int logsize)
     return (uint16_t *) buf;
 }
 
-static void *logpool_lio_init(logpool_t *logpool, logpool_param_t *p)
+static void *logpool_io_init(logpool_t *logpool, logpool_param_t *p)
 {
-    struct lio_plugin *lp;
-    lp = cast(struct lio_plugin *, logpool_string_init(logpool, p));
-    lp->lio = g_lio;
+    struct io_plugin *lp;
+    lp = cast(struct io_plugin *, logpool_string_init(logpool, p));
+    lp->io = g_io;
     return cast(void *, lp);
 }
 
-static void logpool_lio_flush(logpool_t *logpool, void **args __UNUSED__)
+static void logpool_io_flush(logpool_t *logpool, void **args __UNUSED__)
 {
-    struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
+    struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
     char *buf_orig = lp->buf;
     size_t size, bufsize;
     struct logfmt *fmt, *fmte;
@@ -74,7 +74,7 @@ static void logpool_lio_flush(logpool_t *logpool, void **args __UNUSED__)
     }
     cast(struct logpool *, logpool)->logfmt_size = 0;
     bufsize = (char*) lp->buf - buf_orig;
-    ret = lio_write(lp->lio, buf_orig, bufsize);
+    ret = io_write(lp->io, buf_orig, bufsize);
     if (ret != LOGPOOL_SUCCESS) {
         /* TODO Error */
         fprintf(stderr, "Error!!\n");
@@ -84,8 +84,8 @@ static void logpool_lio_flush(logpool_t *logpool, void **args __UNUSED__)
     ++(cast(struct logpool *, logpool)->logkey.k.seq);
 }
 
-static void logpool_lio_delim(logpool_t *ctx) {}
-static void logpool_lio_string(logpool_t *ctx, const char *key, uint64_t v, short klen, short vlen)
+static void logpool_io_delim(logpool_t *ctx) {}
+static void logpool_io_string(logpool_t *ctx, const char *key, uint64_t v, short klen, short vlen)
 {
     buffer_t *buf = cast(buffer_t *, ctx->connection);
     char *s = cast(char *, v);
@@ -100,11 +100,11 @@ struct logapi TRACE_API = {
     logpool_string_hex,
     logpool_string_float,
     logpool_string_char,
-    logpool_lio_string,
+    logpool_io_string,
     logpool_string_raw,
-    logpool_lio_delim,
-    logpool_lio_flush,
-    logpool_lio_init,
+    logpool_io_delim,
+    logpool_io_flush,
+    logpool_io_init,
     logpool_string_close,
     logpool_default_priority
 };
@@ -127,41 +127,41 @@ struct keyapi *logpool_trace_api_init(void)
         memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
     }
     fprintf(stderr,"connect to [%s:%u]\n", host, port);
-    g_lio = lio_open_trace(host, port);
+    g_io = io_open_trace(host, port);
     return logpool_string_api_init();
 }
 
 void logpool_trace_api_deinit(void)
 {
-    lio_close(g_lio);
+    io_close(g_io);
 }
 
 int logpoold_start(char *host, int port)
 {
-    extern struct lio_api server_api;
-    struct lio *lio = lio_open(host, port,
-            LIO_MODE_READ|LIO_MODE_WRITE, &server_api);
-    return lio_dispatch(lio);
+    extern struct io_api server_api;
+    struct io *io = io_open(host, port,
+            IO_MODE_READ|IO_MODE_WRITE, &server_api);
+    return io_dispatch(io);
 }
 
 
-static void *logpool_lio_client_init(logpool_t *logpool, logpool_param_t *p)
+static void *logpool_io_client_init(logpool_t *logpool, logpool_param_t *p)
 {
-    extern struct lio_api client_api;
-    struct lio_plugin *lp;
+    extern struct io_api client_api;
+    struct io_plugin *lp;
     struct logpool_param_trace *args = cast(struct logpool_param_trace *, p);
     char *host = (char*) args->host;
     long port = args->port;
 
-    lp = cast(struct lio_plugin *, logpool_string_init(logpool, p));
-    lp->lio = lio_open(host, port, LIO_MODE_READ|LIO_MODE_WRITE, &client_api);
+    lp = cast(struct io_plugin *, logpool_string_init(logpool, p));
+    lp->io = io_open(host, port, IO_MODE_READ|IO_MODE_WRITE, &client_api);
     return cast(void *, lp);
 }
-static void logpool_lio_client_close(logpool_t *ctx)
+static void logpool_io_client_close(logpool_t *ctx)
 {
-    struct lio_plugin *lp = cast(struct lio_plugin *, ctx->connection);
+    struct io_plugin *lp = cast(struct io_plugin *, ctx->connection);
     logpool_string_close(ctx);
-    lio_close(lp->lio);
+    io_close(lp->io);
 }
 
 static struct logapi CLIENT_API = {
@@ -175,8 +175,8 @@ static struct logapi CLIENT_API = {
     NULL,
     NULL,
     NULL,
-    logpool_lio_client_init,
-    logpool_lio_client_close,
+    logpool_io_client_init,
+    logpool_io_client_close,
     NULL
 };
 
@@ -191,17 +191,17 @@ logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
 
 void logpool_query(logpool_t *logpool, char *q)
 {
-    struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
+    struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
     char buf[128] = {};
     size_t len = emit_message(buf, LOGPOOL_EVENT_READ, 1,
             0, strlen(q), NULL, q);
-    assert(lio_write(lp->lio, buf, len) == LIO_OK);
+    assert(io_write(lp->io, buf, len) == IO_OK);
 }
 
 void *logpool_client_get(logpool_t *logpool, void *logbuf, size_t bufsize)
 {
-    struct lio_plugin *lp = cast(struct lio_plugin *, logpool->connection);
-    if (lio_read(lp->lio, (char*) logbuf, bufsize) == LIO_FAILED)
+    struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
+    if (io_read(lp->io, (char*) logbuf, bufsize) == IO_FAILED)
         return NULL;
     return (void*) logbuf;
 }

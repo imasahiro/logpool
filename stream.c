@@ -1,4 +1,4 @@
-#include "lio.h"
+#include "io.h"
 #include "stream.h"
 #include <assert.h>
 #include <event2/buffer.h>
@@ -8,13 +8,13 @@
 extern "C" {
 #endif
 
-struct chunk_stream *chunk_stream_new(struct lio *lio, struct bufferevent *bev)
+struct chunk_stream *chunk_stream_new(struct io *io, struct bufferevent *bev)
 {
     struct chunk_stream *cs = malloc(sizeof(*cs));
-    cs->lio = lio;
+    cs->io = io;
     cs->bev = bev;
     cs->len = 0;
-    cs->buffer = malloc(LIO_BUFFER_SIZE);
+    cs->buffer = malloc(IO_BUFFER_SIZE);
     cs->cur = cs->buffer;
     debug_print(0, "*New* len=%d, buffer=%p", cs->len, cs->buffer);
     return cs;
@@ -46,11 +46,11 @@ int chunk_stream_empty(struct chunk_stream *cs)
 //{
 //    int old_len = cs->len;
 //    if (cs->len) {
-//        memmove(cs->lio->buffer, cs->cur, cs->len);
+//        memmove(cs->io->buffer, cs->cur, cs->len);
 //    }
 //    cs->len += bufferevent_read(cs->bev,
-//            cs->lio->buffer + cs->len, LIO_BUFFER_SIZE - cs->len);
-//    cs->cur  = cs->lio->buffer;
+//            cs->io->buffer + cs->len, IO_BUFFER_SIZE - cs->len);
+//    cs->cur  = cs->io->buffer;
 //    debug_print(0, "reset %d=>%d", old_len, cs->len);
 //    return cs->len >= request_size;
 //}
@@ -62,7 +62,7 @@ static int chunk_stream_reset(struct chunk_stream *cs, int request_size)
         memmove(cs->buffer, cs->cur, cs->len);
     }
     cs->len += bufferevent_read(cs->bev,
-            cs->buffer + cs->len, LIO_BUFFER_SIZE - cs->len);
+            cs->buffer + cs->len, IO_BUFFER_SIZE - cs->len);
     cs->cur  = cs->buffer;
     debug_print(0, "reset %d=>%d", old_len, cs->len);
     return cs->len >= request_size;

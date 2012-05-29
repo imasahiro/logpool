@@ -73,7 +73,7 @@ static inline char *log_get_trace(struct Log *log)
 
 static inline void dump_log(FILE *fp, char *prefix, struct Log *log, char *suffix, int force)
 {
-    if (LIO_DEBUG || force) {
+    if (IO_DEBUG || force) {
         int i;
         char *data = log_get_data(log);
         uint16_t klen, vlen;

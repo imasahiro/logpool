@@ -1,7 +1,7 @@
 #include "reactive.h"
-#include "lio/lio.h"
-#include "lio/protocol.h"
-#include "lio/util.h"
+#include "io.h"
+#include "protocol.h"
+#include "util.h"
 
 #include <stdio.h>
 /* test */

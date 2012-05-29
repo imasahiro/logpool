@@ -1,4 +1,4 @@
-#include "lio.h"
+#include "io.h"
 #include "stream.h"
 #include "pool_plugin/pool_plugin.h"
 #include <assert.h>
@@ -14,14 +14,14 @@ extern "C" {
 static void server_event_callback(struct bufferevent *bev, short events, void *ctx)
 {
     struct chunk_stream *cs = (struct chunk_stream *) ctx;
-    struct lio *lio = cs->lio;
+    struct io *io = cs->io;
     if (events & BEV_EVENT_EOF) {
         debug_print(1, "client disconnect");
         chunk_stream_delete(cs);
         bufferevent_free(bev);
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(1, "client timeout e=%p, events=%x", bev, events);
-        pool_delete_connection(lio->pool, bev);
+        pool_delete_connection(io->pool, bev);
         bufferevent_free(bev);
     } else {
         /* Other case, maybe error occur */
@@ -32,7 +32,7 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
 static void server_read_callback(struct bufferevent *bev, void *ctx)
 {
     struct chunk_stream *cs = (struct chunk_stream *) ctx;
-    struct lio *lio = cs->lio;
+    struct io *io = cs->io;
     debug_print(0, "read_cb bev=%p", bev);
     while (!chunk_stream_empty(cs)) {
         int log_size;
@@ -45,15 +45,15 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
         switch (log_data_protocol(log)) {
         case LOGPOOL_EVENT_READ:
             debug_print(1, "R %d %d, '%s'", log->klen, log->vlen, data);
-            pool_add((struct Query*) log, bev, lio->pool);
+            pool_add((struct Query*) log, bev, io->pool);
             break;
         case LOGPOOL_EVENT_WRITE:
             dump_log(stderr, "W ", (struct Log *) log, "\n", 0);
-            pool_exec((struct Log *) log, log_size, lio->pool);
+            pool_exec((struct Log *) log, log_size, io->pool);
             break;
         case LOGPOOL_EVENT_QUIT:
             debug_print(1, "Q %d, %d\n", log->klen, log->vlen);
-            pool_delete_connection(lio->pool, bev);
+            pool_delete_connection(io->pool, bev);
             bufferevent_free(bev);
             goto L_exit;
         case LOGPOOL_EVENT_NULL:
@@ -75,7 +75,7 @@ static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t f
         struct sockaddr *sa, int socklen, void *ctx)
 {
     (void)socklen;
-    struct lio *lio = (struct lio *) ctx;
+    struct io *io = (struct io *) ctx;
     struct event_base *base = evconnlistener_get_base(lev);
     struct bufferevent *bev;
 
@@ -90,7 +90,7 @@ static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t f
         return;
     }
 
-    struct chunk_stream *cs = chunk_stream_new(lio, bev);
+    struct chunk_stream *cs = chunk_stream_new(io, bev);
     bufferevent_setcb(bev, server_read_callback,
             server_write_callback, server_event_callback, cs);
 
@@ -103,7 +103,7 @@ static void server_accept_callback(struct evconnlistener *lev, evutil_socket_t f
     //bufferevent_set_timeouts(bev, &tv, &tv);
 }
 
-static int lio_server_init(struct lio *lio, char *host, int port, int ev_mode)
+static int io_server_init(struct io *io, char *host, int port, int ev_mode)
 {
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
@@ -113,46 +113,46 @@ static int lio_server_init(struct lio *lio, char *host, int port, int ev_mode)
 
     struct evconnlistener *lev;
     struct event_base *base = event_base_new();
-    lev = evconnlistener_new_bind(base, server_accept_callback, lio,
+    lev = evconnlistener_new_bind(base, server_accept_callback, io,
             LEV_OPT_REUSEABLE | LEV_OPT_CLOSE_ON_FREE, -1,
             (struct sockaddr *) &sin, sizeof(sin));
     if (lev == NULL) {
         debug_print(9, "bind() failed");
-        return LIO_FAILED;
+        return IO_FAILED;
     }
-    lio->base = base;
-    lio->pool = pool_new();
-    return LIO_OK;
+    io->base = base;
+    io->pool = pool_new();
+    return IO_OK;
 }
 
-static int lio_server_write(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_server_write(struct io *io, const void *data, uint32_t nbyte)
 {
-    if (bufferevent_write(lio->bev, data, nbyte) != 0) {
+    if (bufferevent_write(io->bev, data, nbyte) != 0) {
         fprintf(stderr, "write error, v=('%p', %u)\n", data, nbyte);
-        return LIO_FAILED;
+        return IO_FAILED;
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
-static int lio_server_read(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_server_read(struct io *io, const void *data, uint32_t nbyte)
 {
-    (void)lio;(void)data;(void)nbyte;
+    (void)io;(void)data;(void)nbyte;
     debug_print(0, "read");
-    return LIO_FAILED;
+    return IO_FAILED;
 }
 
-static int lio_server_close(struct lio *lio)
+static int io_server_close(struct io *io)
 {
-    pool_delete(lio->pool);
-    return LIO_OK;
+    pool_delete(io->pool);
+    return IO_OK;
 }
 
-struct lio_api server_api = {
+struct io_api server_api = {
     "server",
-    lio_server_init,
-    lio_server_read,
-    lio_server_write,
-    lio_server_close
+    io_server_init,
+    io_server_read,
+    io_server_write,
+    io_server_close
 };
 
 #ifdef __cplusplus

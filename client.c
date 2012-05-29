@@ -1,4 +1,4 @@
-#include "lio.h"
+#include "io.h"
 #include "stream.h"
 #include <assert.h>
 #include <unistd.h>
@@ -14,16 +14,16 @@ extern "C" {
 
 static void client_cb_event(struct bufferevent *bev, short events, void *ctx)
 {
-    struct lio *lio = (struct lio *) ctx;
-    struct event_base *base = lio->base;
+    struct io *io = (struct io *) ctx;
+    struct event_base *base = io->base;
     if (events & BEV_EVENT_CONNECTED) {
         debug_print(0, "Connect okay.");
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(0, "server timeout");
         bufferevent_free(bev);
         event_base_loopexit(base, NULL);
-        lio->base = NULL;
-        lio->bev  = NULL;
+        io->base = NULL;
+        io->bev  = NULL;
     } else if (events & (BEV_EVENT_ERROR|BEV_EVENT_EOF)) {
         if (events & BEV_EVENT_ERROR) {
             int err = bufferevent_socket_get_dns_error(bev);
@@ -45,18 +45,18 @@ static void client_cb_write(struct bufferevent *bev, void *ctx)
     debug_print(0, "write_cb");
 }
 
-static void lio_thread_start(struct lio *lio);
-static int lio_client_init(struct lio *lio, char *host, int port, int ev_mode)
+static void io_thread_start(struct io *io);
+static int io_client_init(struct io *io, char *host, int port, int ev_mode)
 {
     struct event_base *base = event_base_new();
     struct evdns_base *dns_base;
     struct bufferevent *bev;
     bev = bufferevent_socket_new(base, -1,
             BEV_OPT_CLOSE_ON_FREE|BEV_OPT_THREADSAFE);
-    lio->bev  = bev;
-    lio->base = base;
+    io->bev  = bev;
+    io->base = base;
     bufferevent_setcb(bev, client_cb_read,
-            client_cb_write, client_cb_event, lio);
+            client_cb_write, client_cb_event, io);
 
     bufferevent_enable(bev, ev_mode);
     dns_base = evdns_base_new(base, 1);
@@ -64,8 +64,8 @@ static int lio_client_init(struct lio *lio, char *host, int port, int ev_mode)
             dns_base, AF_INET, host, port);
     if (ret == -1) {
         bufferevent_free(bev);
-        lio->bev = NULL;
-        return LIO_FAILED;
+        io->bev = NULL;
+        return IO_FAILED;
     }
 
     struct timeval tv;
@@ -73,51 +73,51 @@ static int lio_client_init(struct lio *lio, char *host, int port, int ev_mode)
     tv.tv_usec = 0;
     bufferevent_set_timeouts(bev, NULL, &tv);
 
-    lio_thread_start(lio);
-    return LIO_OK;
+    io_thread_start(io);
+    return IO_OK;
 }
 
-static void *lio_thread_main(void *args)
+static void *io_thread_main(void *args)
 {
-    struct lio *lio = (struct lio *) args;
-    assert(lio);
+    struct io *io = (struct io *) args;
+    assert(io);
     fprintf(stderr, "%s start\n", __func__);
-    lio->flags |= LIO_MODE_THREAD;
+    io->flags |= IO_MODE_THREAD;
     mfence();
-    event_base_dispatch(bufferevent_get_base(lio->bev));
-    lio->flags ^= LIO_MODE_THREAD;
+    event_base_dispatch(bufferevent_get_base(io->bev));
+    io->flags ^= IO_MODE_THREAD;
     fprintf(stderr, "%s exit\n", __func__);
     mfence();
     return 0;
 }
 
-static void lio_thread_start(struct lio *lio)
+static void io_thread_start(struct io *io)
 {
-    pthread_create(&lio->thread, NULL, lio_thread_main, lio);
-    while (lio->flags & LIO_MODE_THREAD) {
+    pthread_create(&io->thread, NULL, io_thread_main, io);
+    while (io->flags & IO_MODE_THREAD) {
         mfence();
     }
 }
 
-static int lio_client_write(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_client_write(struct io *io, const void *data, uint32_t nbyte)
 {
-    if (lio->bev == NULL || bufferevent_write(lio->bev, data, nbyte) != 0) {
+    if (io->bev == NULL || bufferevent_write(io->bev, data, nbyte) != 0) {
         fprintf(stderr, "write error, v=('%p', %u)\n", data, nbyte);
-        return LIO_FAILED;
+        return IO_FAILED;
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
-static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
+static int io_client_read(struct io *io, const void *data, uint32_t nbyte)
 {
     struct chunk_stream *cs;
-    if (lio->cs == NULL) {
-        cs = chunk_stream_new(lio, lio->bev);
-        lio->cs = cs;
+    if (io->cs == NULL) {
+        cs = chunk_stream_new(io, io->bev);
+        io->cs = cs;
     } else {
-        cs = lio->cs;
+        cs = io->cs;
     }
-    if (lio->bev) {
+    if (io->bev) {
         int log_size;
         struct Log *log;
         //L_redo:;
@@ -130,36 +130,36 @@ static int lio_client_read(struct lio *lio, const void *data, uint32_t nbyte)
             goto L_failed;
         }
         if (log_data_process(log) == LOGPOOL_EVENT_QUIT) {
-            bufferevent_free(lio->bev);
+            bufferevent_free(io->bev);
             debug_print(1, "stream connection close");
-            return LIO_FAILED;
+            return IO_FAILED;
         }
         memcpy((void*)data, log, nbyte);
-        return LIO_OK;
+        return IO_OK;
     }
     debug_print(1, "stream was not connected");
     L_failed:;
-    return LIO_FAILED;
+    return IO_FAILED;
 }
 
-static int lio_client_close(struct lio *lio)
+static int io_client_close(struct io *io)
 {
-    if (lio->flags & LIO_MODE_THREAD) {
-        if (pthread_join(lio->thread, NULL) != 0) {
+    if (io->flags & IO_MODE_THREAD) {
+        if (pthread_join(io->thread, NULL) != 0) {
             fprintf(stderr, "pthread join failure. %s\n", strerror(errno));
             abort();
-            return LIO_FAILED;
+            return IO_FAILED;
         }
     }
-    return LIO_OK;
+    return IO_OK;
 }
 
-struct lio_api client_api = {
+struct io_api client_api = {
     "client",
-    lio_client_init,
-    lio_client_read,
-    lio_client_write,
-    lio_client_close
+    io_client_init,
+    io_client_read,
+    io_client_write,
+    io_client_close
 };
 
 #ifdef __cplusplus
