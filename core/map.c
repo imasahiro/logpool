@@ -19,12 +19,13 @@ static void pmap_record_copy(pmap_record_t *dst, const pmap_record_t *src)
 {
     memcpy(dst, src, sizeof(pmap_record_t));
 }
-static void pmap_record_copy_data(pmap_record_t *dst, const pmap_record_t *src)
-{
-    dst->v2 = src->v2;
-    dst->v  = src->v;
-}
-
+//static void pmap_record_copy_data(pmap_record_t *dst, const pmap_record_t *src)
+//{
+//    assert(dst->hash == src->hash);
+//    memcpy(dst, src, sizeof(pmap_record_t));
+//    //dst->v2 = src->v2;
+//    //dst->v  = src->v;
+//}
 
 static inline pmap_record_t *pmap_at(poolmap_t *m, uint32_t idx)
 {
@@ -56,7 +57,7 @@ static pmap_status_t pmap_set_no_resize(poolmap_t *m, pmap_record_t *rec)
             uintptr_t old0 = r->v;
             uint32_t  old1 = r->v2;
             m->ffree(r);
-            pmap_record_copy_data(r, rec);
+            pmap_record_copy(r, rec);
             rec->v  = old0;
             rec->v2 = old1;
             return POOLMAP_UPDATE;
