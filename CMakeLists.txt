@@ -46,13 +46,6 @@ set(LOGPOOL_SRC
 	core/map.c
 )
 
-#set(LLVM_LOGPOOL_SRC
-#	jit/llvm.cpp
-#	jit/bc.cpp
-#	jit/llvm_file2.cpp
-#	jit/llvm_memcache.cpp
-#)
-
 set(LOGPOOL_DAEMON_SRC tools/logpoold.c)
 set(LOGPOOL_LOGPUT_SRC tools/logput.c)
 set(LOGPOOL_POOL plugins/pool/pool_plugin.c
@@ -133,11 +126,6 @@ string(REPLACE "svn" "" K_LLVM_VERSION ${K_LLVM_VERSION})
 add_definitions(-DLLVM_VERSION=${K_LLVM_VERSION})
 include_directories(${LLVM_INCLUDEDIR})
 
-execute_process(
-		COMMAND ${LLVM_CONFIG} --cppflags
-		OUTPUT_VARIABLE LLVM_CFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
 execute_process(
 		COMMAND ${LLVM_CONFIG} --cxxflags
 		OUTPUT_VARIABLE LLVM_CXXFLAGS

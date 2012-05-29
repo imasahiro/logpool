@@ -189,7 +189,7 @@ logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
     return logpool_open(parent, &CLIENT_API, (struct logpool_param*) &param);
 }
 
-void logpool_query(logpool_t *logpool, char *q)
+void logpool_procedure(logpool_t *logpool, char *q)
 {
     struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
     char buf[128] = {};

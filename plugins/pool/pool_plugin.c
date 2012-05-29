@@ -126,12 +126,12 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
 }
 
 typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
-void pool_add(struct Query *q, struct bufferevent *bev, struct pool_list *l)
+void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
 {
 #if 1
     char buf[128] = {};
     memcpy(buf, q->data, q->vlen);
-    fprintf(stderr, "query: '%s':%d\n", buf, q->vlen);
+    fprintf(stderr, "procedure: '%s':%d\n", buf, q->vlen);
     memcpy(buf+q->vlen, "_init", 6);
 #endif
     fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);

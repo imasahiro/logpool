@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static void emit_query(struct io *io, char *q)
+static void emit_procedure(struct io *io, char *q)
 {
     char buf[128] = {};
     size_t len = emit_message(buf, LOGPOOL_EVENT_READ, 1,
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     extern struct io_api client_api;
     struct io *io = io_open("127.0.0.1", 14801,
             IO_MODE_READ|IO_MODE_WRITE, &client_api);
-    emit_query(io, "match tid tid0");
+    emit_procedure(io, "match tid tid0");
     struct Log *log = alloca(sizeof(struct Log) + 256);
     while (1) {
         char kbuf[16] = {};

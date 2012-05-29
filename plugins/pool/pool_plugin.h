@@ -107,7 +107,7 @@ void pool_plugin_dispose(struct pool_plugin *p);
 struct pool_list;
 struct pool_list * pool_new(void);
 void pool_exec(struct Log *log, int logsize, struct pool_list *plist);
-void pool_add(struct Query *q, struct bufferevent *bev, struct pool_list *l);
+void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l);
 void pool_delete_connection(struct pool_list *l, struct bufferevent *bev);
 void pool_delete(struct pool_list *l);
 

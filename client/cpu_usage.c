@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     llcache_t *llmc = llcache_new("127.0.0.1", 11211);
     logpool_t *logpool = logpool_open_client(NULL, "127.0.0.1", 14801);
     llcache_set(llmc, "cpu_usage_init", argv[1]);
-    logpool_query(logpool, "cpu_usage");
+    logpool_procedure(logpool, "cpu_usage");
     struct Log *logbuf = alloca(sizeof(struct Log) + 256);
     while (1) {
         if (logpool_client_get(logpool, logbuf, 256) == NULL) {

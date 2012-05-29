@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         goto L_error;
     }
 
-    logpool_query(logpool, argv[1]);
+    logpool_procedure(logpool, argv[1]);
     struct Log *logbuf = alloca(sizeof(struct Log) + 256);
     while (1) {
         logpool_client_get(logpool, logbuf, 256);
