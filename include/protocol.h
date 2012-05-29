@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <event2/bufferevent.h>
 #include "message.idl.data.h"
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
@@ -33,10 +34,14 @@ static inline uint16_t log_data_process(struct Log *data)
         case LOGPOOL_EVENT_READ:
             break;
         case LOGPOOL_EVENT_WRITE:
+#ifdef LOGPOOL_DEBUG
             debug_print(0, "%d, %d, '%s'\n", data->klen, data->vlen, data->data);
+#endif
             break;
         case LOGPOOL_EVENT_QUIT:
+#ifdef LOGPOOL_DEBUG
             debug_print(0, "quit, %d, %d\n", data->klen, data->vlen);
+#endif
             break;
         default:
             /*TODO*/abort();
@@ -71,9 +76,13 @@ static inline char *log_get_trace(struct Log *log)
     return traceID;
 }
 
-static inline void dump_log(FILE *fp, char *prefix, struct Log *log, char *suffix, int force)
+static inline void log_dump(FILE *fp, char *prefix, struct Log *log, char *suffix, int force)
 {
-    if (IO_DEBUG || force) {
+    if (
+#ifdef LOGPOOL_DEBUG
+            LOGPOOL_DEBUG || 
+#endif
+            force) {
         int i;
         char *data = log_get_data(log);
         uint16_t klen, vlen;
@@ -92,6 +101,39 @@ static inline void dump_log(FILE *fp, char *prefix, struct Log *log, char *suffi
         }
         fprintf(fp, "%s", suffix);
     }
+}
+
+static inline int emit_message(char *buf, uint16_t protocol, uint16_t logsize, ...)
+{
+    va_list ap;
+    char *key, *val;
+    uint16_t i, klen, vlen, total_size = 0;
+    uint16_t *loginfo;
+    struct Log *tmp = (struct Log *) buf;
+
+    va_start(ap, logsize);
+    tmp->protocol = protocol;
+    tmp->logsize  = logsize;
+    loginfo = ((uint16_t*)buf) + LOG_PROTOCOL_FIELDS;
+    buf = (char *) (loginfo + logsize * 2);
+    for (i = 0; i < logsize; ++i) {
+        klen = (uint16_t) va_arg(ap, unsigned long);
+        vlen = (uint16_t) va_arg(ap, unsigned long);
+        key  = va_arg(ap, char *);
+        val  = va_arg(ap, char *);
+        loginfo[i*2+0] = klen;
+        loginfo[i*2+1] = vlen;
+        if (klen) {
+            memcpy(buf, key, klen);
+            buf = buf + klen;
+        }
+        if (vlen) {
+            memcpy(buf, val, vlen);
+            buf = buf + vlen;
+        }
+        total_size += klen + vlen;
+    }
+    return LOG_PROTOCOL_SIZE + sizeof(uint16_t) * logsize * 2 + total_size;
 }
 
 #endif /* end of include guard */

@@ -1,4 +1,5 @@
 #include "pool_plugin.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

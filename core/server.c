@@ -1,11 +1,10 @@
+#include "logpool_internal.h"
 #include "io.h"
 #include "stream.h"
 #include "plugins/pool/pool_plugin.h"
 #include <assert.h>
-#include <string.h>
 #include <arpa/inet.h>
 #include <event2/listener.h>
-#include <event2/bufferevent.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +47,7 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
             pool_add((struct Procedure*) log, bev, io->pool);
             break;
         case LOGPOOL_EVENT_WRITE:
-            dump_log(stderr, "W ", (struct Log *) log, "\n", 0);
+            log_dump(stderr, "W ", (struct Log *) log, "\n", 0);
             pool_exec((struct Log *) log, log_size, io->pool);
             break;
         case LOGPOOL_EVENT_QUIT:

@@ -47,6 +47,11 @@ struct logpool_param_trace {
 typedef void  (*logFn)(logpool_t *, const char *k, uint64_t v, short klen, short vlen);
 typedef char *(*keyFn)(logpool_t *, uint64_t v, uint64_t seq, short len);
 
+struct keyapi {
+    keyFn hex;
+    keyFn str;
+};
+
 struct logfmt {
     logFn fn;
     union key {
@@ -114,7 +119,7 @@ struct logdata {
     char *val;
 };
 
-void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs);
+void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, int logsize, struct logdata *logs);
 
 #define cast(T, V) ((T)(V))
 
@@ -124,6 +129,14 @@ static inline uint64_t f2u(double f)
     v.f = f;
     return v.u;
 }
+
+/* Logpool Client API */
+logpool_t *logpool_open_client(logpool_t *parent, char *host, int port);
+void logpool_procedure(logpool_t *logpool, char *q);
+void *logpool_client_get(logpool_t *logpool, void *buff, size_t bufsize);
+
+/* Logpool Daemon API */
+int logpoold_start(char *host, int port);
 
 #ifdef __cplusplus
 }

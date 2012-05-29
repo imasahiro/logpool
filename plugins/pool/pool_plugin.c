@@ -1,15 +1,14 @@
 #include "pool_plugin.h"
 #include "array.h"
+#include "protocol.h"
 #include "llcache.h"
+#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define CLZ(n) __builtin_clzl(n)
-#define BITS (sizeof(void*) * 8)
-#define SizeToKlass(N) ((uint32_t)(BITS - CLZ(N - 1)))
 
 static void pool_plugin_nop_dispose(struct pool_plugin *p);
 static struct pool_plugin *pool_plugin_nop_create(struct pool_plugin *_p);
@@ -57,7 +56,7 @@ struct pool_plugin *pool_plugin_init(struct pool_plugin *p)
     return _p;
 }
 
-struct pool_plugin *pool_plugin_clone(struct pool_plugin *p, size_t size)
+struct pool_plugin *pool_plugin_clone(struct pool_plugin *p, uint32_t size)
 {
     struct pool_plugin *newp = (struct pool_plugin *) malloc(size);
     memcpy(newp, p, size);

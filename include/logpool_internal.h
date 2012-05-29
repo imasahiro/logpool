@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #ifndef LOGPOOL_INTERNAL_H
 #define LOGPOOL_INTERNAL_H
 
@@ -13,11 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct keyapi {
-    keyFn hex;
-    keyFn str;
-};
 
 static inline double u2f(uint64_t u)
 {
@@ -35,17 +31,26 @@ typedef void logplugin_t;
 
 #define __UNUSED__ __attribute__((unused))
 
-__UNUSED__ static int logpool_default_priority(logpool_t *ctx __UNUSED__, int priority __UNUSED__)
+struct logpool;
+__UNUSED__ static int logpool_default_priority(struct logpool *ctx __UNUSED__, int priority __UNUSED__)
 {
     return 1;
 }
 
-static inline void logpool_context_switch(logpool_t *ctx, void *connection)
-{
-    cast(struct logpool *, ctx)->connection = connection;
-}
+void logpool_format_flush(struct logpool *ctx);
 
-void logpool_format_flush(logpool_t *ctx);
+#define LOGPOOL_DEBUG 0
+#define LOGPOOL_DEBUG_LEVEL 0
+#define debug_print(level, ...) do {\
+    if (level >= LOGPOOL_DEBUG_LEVEL) {\
+        if (LOGPOOL_DEBUG) {\
+            fprintf(stderr, "[%s:%d] ", __func__, __LINE__);\
+            fprintf(stderr, ## __VA_ARGS__);\
+            fprintf(stderr, "\n");\
+            fflush(stderr);\
+        }\
+    }\
+} while (0)
 
 #ifdef __cplusplus
 }

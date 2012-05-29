@@ -1,5 +1,7 @@
 #include "log.h"
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #ifndef POOL_PLUGIN_H
 #define POOL_PLUGIN_H
@@ -94,7 +96,7 @@ struct pool_plugin_create {
 
 void pool_process_log(struct pool_plugin *p, struct LogEntry *e);
 struct pool_plugin *pool_plugin_init(struct pool_plugin *p);
-struct pool_plugin *pool_plugin_clone(struct pool_plugin *p, size_t size);
+struct pool_plugin *pool_plugin_clone(struct pool_plugin *p, uint32_t size);
 void pool_plugin_dispose(struct pool_plugin *p);
 #define POOL_PLUGIN_CLONE(T) ({\
     extern struct T T##_global;\

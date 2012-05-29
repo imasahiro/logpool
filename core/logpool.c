@@ -70,24 +70,16 @@ static const int logfn_index[] = {
     /* LOG_r */    7,
 };
 
-void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, struct logdata *logs)
+void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_id, int logsize, struct logdata *logs)
 {
-    long klen, vlen;
-    char *key, *val;
-    int i, type;
+    int i;
     logFn f;
 
+    assert(logsize < ctx->logfmt_capacity);
     logpool_init_logkey(ctx, priority, (uintptr_t) trace_id, strlen(trace_id));
-    for (i = 0; i < ctx->logfmt_capacity; ++i) {
-        type = logs->type;
-        if (type == 0)
-            break;
-        key  = logs->key;
-        klen = logs->klen;
-        val  = logs->val;
-        vlen = logs->vlen;
-        f = ((logFn*)ctx->formatter)[logfn_index[type]];
-        append_fmtdata(ctx, key, (uint64_t)val, f, klen, vlen);
+    for (i = 0; i < logsize; ++i) {
+        f = ((logFn*)ctx->formatter)[logfn_index[logs->type]];
+        append_fmtdata(ctx, logs->key, (uint64_t)logs->val, f, logs->klen, logs->vlen);
         ++logs;
     }
     logpool_flush(ctx, args);
@@ -95,27 +87,21 @@ void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_i
 
 void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ...)
 {
+    struct logdata logs[ctx->logfmt_capacity];
     va_list ap;
     va_start(ap, trace_id);
-    long klen, vlen;
-    char *key, *val;
-    int i, type;
-    logFn f;
-
-    logpool_init_logkey(ctx, priority, (uintptr_t) trace_id, strlen(trace_id));
+    int i;
     for (i = 0; i < ctx->logfmt_capacity; ++i) {
-        type = va_arg(ap, int);
-        if (type == 0)
+        logs[i].type = va_arg(ap, int);
+        if (logs[i].type == 0)
             break;
-        key  = va_arg(ap, char *);
-        klen = va_arg(ap, long);
-        val  = va_arg(ap, char *);
-        vlen = va_arg(ap, long);
-        f = ((logFn*)ctx->formatter)[logfn_index[type]];
-        append_fmtdata(ctx, key, (uint64_t)val, f, klen, vlen);
+        logs[i].key  = va_arg(ap, char *);
+        logs[i].klen = va_arg(ap, long);
+        logs[i].val  = va_arg(ap, char *);
+        logs[i].vlen = va_arg(ap, long);
     }
     va_end(ap);
-    logpool_flush(ctx, args);
+    logpool_record_list(ctx, args, priority, trace_id, i, logs);
 }
 
 void logpool_format_flush(logpool_t *ctx)

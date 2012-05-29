@@ -1,4 +1,5 @@
 #include "plugins/pool/pool_plugin.h"
+#include "io.h"
 
 struct cpu_average {
     int sum;

@@ -1,5 +1,4 @@
 #include "logpool.h"
-#include "logpool_util.h"
 
 #include <assert.h>
 #include <string.h>
@@ -22,7 +21,7 @@ int main(int argc, char **argv)
     struct Log *logbuf = alloca(sizeof(struct Log) + 256);
     while (1) {
         logpool_client_get(logpool, logbuf, 256);
-        dump_log(stdout, "log=(", logbuf, ")\n", 1);
+        log_dump(stdout, "log=(", logbuf, ")\n", 1);
         usleep(1);
     }
     logpool_close(logpool);

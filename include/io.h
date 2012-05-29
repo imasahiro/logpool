@@ -57,19 +57,6 @@ extern int io_read(struct io *io, void *data, uint32_t nbyte);
 extern int io_sync(struct io *io);
 extern int io_dispatch(struct io *io);
 
-#define IO_DEBUG 0
-#define IO_DEBUG_LEVEL 0
-#define debug_print(level, ...) do {\
-    if (level >= IO_DEBUG_LEVEL) {\
-        if (IO_DEBUG) {\
-            fprintf(stderr, "[%s:%d] ", __func__, __LINE__);\
-            fprintf(stderr, ## __VA_ARGS__);\
-            fprintf(stderr, "\n");\
-            fflush(stderr);\
-        }\
-    }\
-} while (0)
-
 #define mfence() asm volatile ("" ::: "memory")
 
 #ifdef __cplusplus

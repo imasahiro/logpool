@@ -2,6 +2,7 @@
 #include "array.h"
 #include "map.h"
 #include "hash.h"
+#include "protocol.h"
 
 #ifdef __cplusplus
 extern "C" {

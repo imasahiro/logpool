@@ -1,3 +1,4 @@
+#include "logpool_internal.h"
 #include "io.h"
 #include "stream.h"
 #include "util.h"
@@ -9,6 +10,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static inline int util_send_quit_msg(struct bufferevent *bev)
+{
+    char buf[16];
+    int size = emit_message(buf, LOGPOOL_EVENT_QUIT, 1, 0, 0, NULL, NULL);
+    if (bufferevent_write(bev, buf, size) != 0) {
+        debug_print(0, "[util:quit] write error");
+        return IO_FAILED;
+    }
+    return IO_OK;
+}
 
 static void tracer_cb_event(struct bufferevent *bev, short events, void *ctx)
 {

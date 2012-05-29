@@ -1,5 +1,4 @@
 #include "logpool.h"
-#include "logpool_util.h"
 #include "llcache.h"
 
 #include <assert.h>
@@ -26,7 +25,7 @@ int main(int argc, char **argv)
         if (logpool_client_get(logpool, logbuf, 256) == NULL) {
             break;
         }
-        dump_log(stderr, "log=(", logbuf, ")\n", 1);
+        log_dump(stderr, "log=(", logbuf, ")\n", 1);
         usleep(1);
     }
     logpool_close(logpool);

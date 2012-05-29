@@ -1,3 +1,4 @@
+#include "logpool_internal.h"
 #include "io.h"
 #include "stream.h"
 #include <assert.h>

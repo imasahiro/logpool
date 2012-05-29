@@ -1,3 +1,4 @@
+#include "logpool_internal.h"
 #include "io.h"
 #include "stream.h"
 #include <assert.h>
@@ -6,7 +7,6 @@
 #include <event2/event.h>
 #include <event2/dns.h>
 #include <event2/buffer.h>
-#include <event2/bufferevent.h>
 
 #ifdef __cplusplus
 extern "C" {

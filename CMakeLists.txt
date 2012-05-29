@@ -38,7 +38,7 @@ set(LOGPOOL_SRC
 #	plugins/syslog.c
 #	plugins/filter.c
 #	plugins/multiplexer.c
-	plugins/trace/lio_plugin.c
+	plugins/trace/stream.c
 	core/map.c
 )
 
@@ -89,7 +89,7 @@ endif(NOT HAVE_LIBEVENT)
 
 if(NOT HAVE_LIBMEMCACHED)
 	message(FATAL_ERROR "libmemcached not found")
-endif(HAVE_LIBMEMCACHED)
+endif(NOT HAVE_LIBMEMCACHED)
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)

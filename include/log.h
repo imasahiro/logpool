@@ -1,5 +1,4 @@
-#include "io.h"
-#include "protocol.h"
+#include "message.idl.data.h"
 
 #ifndef LOGPOOL_LOG_H
 #define LOGPOOL_LOG_H

@@ -1,4 +1,5 @@
 #include "pool_plugin.h"
+#include "protocol.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -6,7 +7,7 @@ extern "C" {
 
 static bool print_apply(struct pool_plugin *p, struct LogEntry *e, uint32_t state)
 {
-    dump_log(stderr, "", (struct Log*) &e->data, "\n", 1);
+    log_dump(stderr, "", (struct Log*) &e->data, "\n", 1);
     p->apply->Apply(p->apply, e, state);
     return true;
 }
