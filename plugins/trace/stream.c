@@ -5,7 +5,6 @@
 #include "logpool_internal.h"
 #include "io.h"
 #include "protocol.h"
-#include "util.h"
 
 enum {
     LOGPOOL_FAILURE = -1,
