@@ -35,7 +35,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-Wall -O2 -g")
 SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
-	logpool.c
+	core/logpool.c
 	plugins/lpstring.c
 #	plugins/file2.c
 #	plugins/memcache.c
@@ -43,7 +43,7 @@ set(LOGPOOL_SRC
 #	plugins/filter.c
 #	plugins/multiplexer.c
 	plugins/lio_plugin.c
-	map.c
+	core/map.c
 )
 
 #set(LLVM_LOGPOOL_SRC
@@ -68,10 +68,10 @@ set(LOGPOOL_POOL pool_plugin/pool_plugin.c
 		pool_plugin/create.c
 )
 
-set(IO_SRC io.c stream.c trace.c server.c client.c)
+set(IO_SRC core/io.c core/stream.c core/trace.c core/server.c core/client.c)
 
 set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${IO_SRC})
-set(LOGPOOL_SRC ${LOGPOOL_SRC} llcache.cpp)
+set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
 
 find_library(HAVE_LIBDL    NAMES dl)
 find_library(HAVE_PTHREAD  NAMES pthread)
