@@ -14,30 +14,41 @@ static struct logpool_param_filter FILTERED_STRING_API_PARAM = {
 #error define LOGAPI && LOGAPI_PARAM
 #endif
 
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
+#define LOG_i   2
+#define LOG_f   4
+
+#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_i(K,V)    LOG_i, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_f(K,V)    LOG_f, (K), strlen(K), (f2u(V)), 0
+#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+
 extern logapi_t LOGAPI;
 
-static void ltrace_test_write0(ltrace_t *ltrace)
+static void logpool_test_write0(logpool_t *logpool)
 {
     double f = 3.14;
     long   i = 128;
     const char *s = "hello world";
-    ltrace_record(ltrace, LOG_INFO, "event",
-            LOG_f("float", f),
-            LOG_i("int",   i),
-            LOG_s("string", s),
+    logpool_record(logpool, NULL, LOG_INFO, "event",
+            KEYVALUE_f("float", f),
+            KEYVALUE_i("int",   i),
+            KEYVALUE_s("string", s),
             LOG_END
             );
 }
 
-static void ltrace_test_write1(ltrace_t *ltrace)
+static void logpool_test_write1(logpool_t *logpool)
 {
     double f = 3.14;
     long   i = 128;
     const char *s = "hello world";
-    ltrace_record(ltrace, LOG_NOTICE, "event",
-            LOG_f("float", f),
-            LOG_i("int",   i),
-            LOG_s("string", s),
+    logpool_record(logpool, NULL, LOG_NOTICE, "event",
+            KEYVALUE_f("float", f),
+            KEYVALUE_i("int",   i),
+            KEYVALUE_s("string", s),
             LOG_END
             );
 }
@@ -47,13 +58,13 @@ int main(void)
 {
     logpool_init(LOGPOOL_DEFAULT);
     {
-        ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
+        logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
         int i;
         for (i = 0; i < 5; ++i) {
-            ltrace_test_write0(ltrace);
-            ltrace_test_write1(ltrace);
+            logpool_test_write0(logpool);
+            logpool_test_write1(logpool);
         }
-        ltrace_close(ltrace);
+        logpool_close(logpool);
     }
     return 0;
 }

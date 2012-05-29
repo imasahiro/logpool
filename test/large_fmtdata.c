@@ -11,43 +11,54 @@ static struct logpool_param_string STRING_API_PARAM = {
 #include "logpool.h"
 #include <stdbool.h>
 extern logapi_t LOGAPI;
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
+#define LOG_i   2
+#define LOG_f   4
 
-static void ltrace_test_write(ltrace_t *ltrace)
+#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_i(K,V)    LOG_i, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_f(K,V)    LOG_f, (K), strlen(K), (f2u(V)), 0
+#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+
+
+static void logpool_test_write(logpool_t *logpool)
 {
     double f = 3.14;
     long   i = 128;
     const char *s = "hello world";
-    ltrace_record(ltrace, LOG_NOTICE, "event",
-            LOG_f("0:float", f),
-            LOG_i("0:int",   i),
-            LOG_s("0:string", s),
-            LOG_f("1:float", f),
-            LOG_i("1:int",   i),
-            LOG_s("1:string", s),
-            LOG_f("2:float", f),
-            LOG_i("2:int",   i),
-            LOG_s("2:string", s),
-            LOG_f("3:float", f),
-            LOG_i("3:int",   i),
-            LOG_s("3:string", s),
-            LOG_f("4:float", f),
-            LOG_i("4:int",   i),
-            LOG_s("4:string", s),
-            LOG_f("5:float", f),
-            LOG_i("5:int",   i),
-            LOG_s("5:string", s),
-            LOG_f("6:float", f),
-            LOG_i("6:int",   i),
-            LOG_s("6:string", s),
-            LOG_f("7:float", f),
-            LOG_i("7:int",   i),
-            LOG_s("7:string", s),
-            LOG_f("8:float", f),
-            LOG_i("8:int",   i),
-            LOG_s("8:string", s),
-            LOG_f("9:float", f),
-            LOG_i("9:int",   i),
-            LOG_s("9:string", s),
+    logpool_record(logpool, NULL, LOG_NOTICE, "event",
+            KEYVALUE_f("0:float", f),
+            KEYVALUE_i("0:int",   i),
+            KEYVALUE_s("0:string", s),
+            KEYVALUE_f("1:float", f),
+            KEYVALUE_i("1:int",   i),
+            KEYVALUE_s("1:string", s),
+            KEYVALUE_f("2:float", f),
+            KEYVALUE_i("2:int",   i),
+            KEYVALUE_s("2:string", s),
+            KEYVALUE_f("3:float", f),
+            KEYVALUE_i("3:int",   i),
+            KEYVALUE_s("3:string", s),
+            KEYVALUE_f("4:float", f),
+            KEYVALUE_i("4:int",   i),
+            KEYVALUE_s("4:string", s),
+            KEYVALUE_f("5:float", f),
+            KEYVALUE_i("5:int",   i),
+            KEYVALUE_s("5:string", s),
+            KEYVALUE_f("6:float", f),
+            KEYVALUE_i("6:int",   i),
+            KEYVALUE_s("6:string", s),
+            KEYVALUE_f("7:float", f),
+            KEYVALUE_i("7:int",   i),
+            KEYVALUE_s("7:string", s),
+            KEYVALUE_f("8:float", f),
+            KEYVALUE_i("8:int",   i),
+            KEYVALUE_s("8:string", s),
+            KEYVALUE_f("9:float", f),
+            KEYVALUE_i("9:int",   i),
+            KEYVALUE_s("9:string", s),
             LOG_END
             );
 }
@@ -55,9 +66,9 @@ int main()
 {
     logpool_init(LOGPOOL_DEFAULT);
     {
-        ltrace_t *ltrace = ltrace_open(NULL, &LOGAPI, LOGAPI_PARAM);
-        ltrace_test_write(ltrace);
-        ltrace_close(ltrace);
+        logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
+        logpool_test_write(logpool);
+        logpool_close(logpool);
     }
     return 0;
 }

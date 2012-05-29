@@ -1,7 +1,7 @@
 /*filter api test*/
 #include "logpool.h"
 extern logapi_t STRING_API;
-extern logapi_t FILE2_API;
+extern logapi_t FILE_API;
 extern logapi_t FILTER_API;
 extern logapi_t MULTIPLEX_API;
 
@@ -16,7 +16,7 @@ static struct logpool_param_multiplexer MULTIPREXED_STRING_FILE_API_PARAM = {
     8, 2,
     {
         {&STRING_API, (struct logpool_param*)&STRING_API_PARAM},
-        {&FILE2_API,  (struct logpool_param*)&FILE_API_PARAM}
+        {&FILE_API,  (struct logpool_param*)&FILE_API_PARAM}
     }
 };
 
@@ -36,49 +36,60 @@ static struct logpool_param_multiplexer MULTIPREXED_STRING_FILTERED_STRING_API_P
 #define LOGAPI_PARAM  cast(logpool_param_t *, &MULTIPREXED_STRING_FILE_API_PARAM)
 #define LOGAPI_PARAM2 cast(logpool_param_t *, &MULTIPREXED_STRING_FILTERED_STRING_API_PARAM)
 #include <stdbool.h>
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
+#define LOG_i   2
+#define LOG_f   4
 
-static void ltrace_test_write0(ltrace_t *ltrace)
+#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_i(K,V)    LOG_i, (K), strlen(K), ((uintptr_t)V), 0
+#define KEYVALUE_f(K,V)    LOG_f, (K), strlen(K), (f2u(V)), 0
+#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+
+
+static void logpool_test_write0(logpool_t *logpool)
 {
     double f = 3.14;
     long   i = 128;
     const char *s = "hello world";
-    ltrace_record(ltrace, LOG_NOTICE, "event",
-            LOG_f("float", f),
-            LOG_i("int",   i),
-            LOG_s("string", s),
+    logpool_record(logpool, NULL, LOG_NOTICE, "event",
+            KEYVALUE_f("float", f),
+            KEYVALUE_i("int",   i),
+            KEYVALUE_s("string", s),
             LOG_END
             );
 }
 
-static void ltrace_test_write1(void)
+static void logpool_test_write1(void)
 {
     int j;
     double f = 3.14;
     long   i = 128;
     const char *s = "hello world";
-    ltrace_t *ltrace = ltrace_open(NULL, &MULTIPLEX_API, LOGAPI_PARAM2);
+    logpool_t *logpool = logpool_open(NULL, &MULTIPLEX_API, LOGAPI_PARAM2);
     for (j = 0; j <= LOG_DEBUG; ++j) {
-        ltrace_record(ltrace, j, "event1",
-                LOG_f("float", f),
-                LOG_i("int",   i),
-                LOG_s("string", s),
+        logpool_record(logpool, NULL, j, "event1",
+                KEYVALUE_f("float", f),
+                KEYVALUE_i("int",   i),
+                KEYVALUE_s("string", s),
                 LOG_END
                 );
     }
-    ltrace_close(ltrace);
+    logpool_close(logpool);
 }
 
 int main(void)
 {
     logpool_init(LOGPOOL_DEFAULT);
     {
-        ltrace_t *ltrace = ltrace_open(NULL, &MULTIPLEX_API, LOGAPI_PARAM);
+        logpool_t *logpool = logpool_open(NULL, &MULTIPLEX_API, LOGAPI_PARAM);
         int i;
         for (i = 0; i < 5; ++i) {
-            ltrace_test_write0(ltrace);
-            ltrace_test_write1();
+            logpool_test_write0(logpool);
+            logpool_test_write1();
         }
-        ltrace_close(ltrace);
+        logpool_close(logpool);
     }
     return 0;
 }

@@ -32,13 +32,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG   "-Wall -O0 -g3")
 
 set(LOGPOOL_SRC
 	core/logpool.c
-	plugins/trace/lpstring.c
-#	plugins/file2.c
 #	plugins/memcache.c
-#	plugins/syslog.c
-#	plugins/filter.c
-#	plugins/multiplexer.c
-	plugins/trace/stream.c
 	core/map.c
 )
 
@@ -59,7 +53,15 @@ set(LOGPOOL_POOL plugins/pool/pool_plugin.c
 
 set(IO_SRC core/io.c core/stream.c core/trace.c core/server.c core/client.c)
 
-set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${IO_SRC})
+set(LOGPOOL_TRACE
+		plugins/trace/stream.c
+		plugins/trace/lpstring.c
+		plugins/trace/file.c
+		plugins/trace/filter.c
+		plugins/trace/multiplexer.c
+		plugins/trace/syslog.c
+)
+set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LOGPOOL_TRACE} ${IO_SRC})
 set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
 
 find_library(HAVE_LIBDL    NAMES dl)
@@ -219,13 +221,13 @@ if(HAVE_LIBDL)
 endif(HAVE_LIBDL)
 
 add_clib_test(test_string   test/string.c)
-#add_clib_test(test_file     test/file.c)
+add_clib_test(test_file     test/file.c)
 #add_clib_test(test_memcache test/memcache.c)
-#add_clib_test(test_syslog   test/syslog.c)
+add_clib_test(test_syslog   test/syslog.c)
+add_clib_test(test_largefmt test/large_fmtdata.c)
+add_clib_test(test_filter   test/filter.c)
+add_clib_test(test_multi    test/multiplex.c)
 #add_clib_test(test_cpp      test/cpp.cpp)
-#add_clib_test(test_largefmt test/large_fmtdata.c)
-#add_clib_test(test_filter   test/filter.c)
-#add_clib_test(test_multi    test/multiplex.c)
 #add_clib_test(test_event    test/event.c)
 add_clib_test(test_trace   test/trace.c)
 add_clib_test(test_trace2  test/trace2.c)

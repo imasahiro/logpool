@@ -37,6 +37,13 @@ __UNUSED__ static int logpool_default_priority(struct logpool *ctx __UNUSED__, i
     return 1;
 }
 
+#ifdef LOGPOOL_H_
+static inline void logpool_context_switch(struct logpool *ctx, void *conn)
+{
+    ctx->connection = conn;
+}
+#endif
+
 void logpool_format_flush(struct logpool *ctx);
 
 #define LOGPOOL_DEBUG 0

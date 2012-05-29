@@ -43,6 +43,34 @@ struct logpool_param_trace {
     long port;
 };
 
+struct logpool_param_syslog {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+};
+
+struct logpool_param_file {
+    int logfmt_capacity;
+    uintptr_t buffer_size;
+    const char *fname;
+};
+
+struct logpool_param_filter {
+    int logfmt_capacity;
+    int priority;
+    logapi_t *api;
+    struct logpool_param *param;
+};
+
+#define LOGPOOL_MULTIPLEXER_MAX 4
+struct logpool_param_multiplexer {
+    int logfmt_capacity;
+    int argc;
+    struct plugin_param {
+        logapi_t *api;
+        struct logpool_param *param;
+    } args[LOGPOOL_MULTIPLEXER_MAX];
+};
+
 /* log formatter API */
 typedef void  (*logFn)(logpool_t *, const char *k, uint64_t v, short klen, short vlen);
 typedef char *(*keyFn)(logpool_t *, uint64_t v, uint64_t seq, short len);
