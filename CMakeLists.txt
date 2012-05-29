@@ -15,16 +15,12 @@ set(PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(PACKAGE_STRING  ${CMAKE_PROJECT_NAME}-${PACKAGE_VERSION})
 set(SO_VERSION   ${VERSION_MAJOR}.${VERSION_MINOR})
 
-set(K_CONFIG_ARCH ${CMAKE_SYSTEM})
-set(K_CONFIG_OS   ${CMAKE_SYSTEM_NAME})
-set(K_CONFIG_CPU  ${CMAKE_SYSTEM_PROCESSOR})
-
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${INCLUDE_DIRS})
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release" )
+	set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 SET(CMAKE_C_FLAGS         "-Wall -Wno-variadic-macros")
@@ -68,8 +64,10 @@ set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
 
 find_library(HAVE_LIBDL    NAMES dl)
 find_library(HAVE_PTHREAD  NAMES pthread)
+find_library(HAVE_LIBMEMCACHED NAMES memcached)
 find_library(HAVE_LIBEVENT NAMES event)
 find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
+
 check_include_files(pthread.h      HAVE_PTHREAD_H)
 check_include_files(event2/event.h HAVE_LIBEVENT_H)
 
@@ -89,9 +87,9 @@ if(NOT HAVE_LIBEVENT)
 	message(FATAL_ERROR "libevent not found")
 endif(NOT HAVE_LIBEVENT)
 
-
-find_library(HAVE_LIBM         NAMES m)
-find_library(HAVE_LIBMEMCACHED NAMES memcached)
+if(NOT HAVE_LIBMEMCACHED)
+	message(FATAL_ERROR "libmemcached not found")
+endif(HAVE_LIBMEMCACHED)
 
 check_type_size("void *" SIZEOF_VOIDP)
 check_type_size(long     SIZEOF_LONG)
@@ -100,11 +98,12 @@ check_type_size(float    SIZEOF_FLOAT)
 check_type_size(double   SIZEOF_DOUBLE)
 
 set(ExtraLibs)
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
+set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
+set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
 
-if(HAVE_LIBMEMCACHED)
-	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBMEMCACHED})
-endif(HAVE_LIBMEMCACHED)
-#
+
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
 find_program(HAVE_CLANG   NAMES clang DOC "clang")
 if(NOT LLVM_CONFIG)
@@ -175,16 +174,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 add_definitions(-DHAVE_CONFIG_H)
 add_definitions(-fPIC)
 
-set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
-set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
-set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
-
 add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
+
 add_client_module(mod_cpu_usage example/mod_cpu_usage.c)
 
+## IDL Generator
 add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
 add_executable(io_idlgen tools/idl-gen.cpp)
 add_custom_command(
@@ -196,9 +193,8 @@ add_custom_target(CREATE_IDL_H DEPENDS
 		${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
 add_dependencies(logpool CREATE_IDL_H)
 
-# test cases
+## Test cases
 enable_testing()
-
 add_executable(logpoold ${LOGPOOL_DAEMON_SRC})
 target_link_libraries(logpoold logpool ${ExtraLibs})
 
@@ -222,9 +218,9 @@ if(HAVE_LIBDL)
 	set(TestLibs ${TestLibs} ${HAVE_LIBDL})
 endif(HAVE_LIBDL)
 
+add_clib_test(test_string   test/string.c)
 #add_clib_test(test_file     test/file.c)
 #add_clib_test(test_memcache test/memcache.c)
-add_clib_test(test_string   test/string.c)
 #add_clib_test(test_syslog   test/syslog.c)
 #add_clib_test(test_cpp      test/cpp.cpp)
 #add_clib_test(test_largefmt test/large_fmtdata.c)
@@ -247,4 +243,3 @@ install(TARGETS logpool
 		)
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/logpool.h DESTINATION include)
-
