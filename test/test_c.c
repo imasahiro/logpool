@@ -1,5 +1,4 @@
 #include "io.h"
-#include "util.h"
 #include "protocol.h"
 #include "message.idl.data.h"
 #include <assert.h>

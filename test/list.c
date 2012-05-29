@@ -1,7 +1,6 @@
 #include "reactive.h"
 #include "io.h"
 #include "protocol.h"
-#include "util.h"
 
 #include <stdio.h>
 /* test */

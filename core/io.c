@@ -1,6 +1,5 @@
 #include "io.h"
 #include "stream.h"
-#include "util.h"
 #include <assert.h>
 #include <event2/event.h>
 #include <event2/thread.h>

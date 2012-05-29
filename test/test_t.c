@@ -1,7 +1,6 @@
 #include "lio.h"
 #include "protocol.h"
 #include "message.idl.data.h"
-#include "util.h"
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
