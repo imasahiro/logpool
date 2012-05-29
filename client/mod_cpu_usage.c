@@ -34,17 +34,17 @@ static uintptr_t p5_func(uintptr_t context, struct LogEntry *e)
     return context;
 }
 
-static uintptr_t p7_init(uintptr_t context, uint32_t state)
+static uintptr_t p6_init(uintptr_t context, uint32_t state)
 {
     return state;
 }
 
-static uintptr_t p7_exit(uintptr_t context)
+static uintptr_t p6_exit(uintptr_t context)
 {
     return 0;
 }
 
-static uint16_t p7_write_size(uintptr_t context, uint32_t state, uint16_t *lengths)
+static uint16_t p6_write_size(uintptr_t context, uint32_t state, uint16_t *lengths)
 {
     lengths[0*2+0] = strlen("TraceID");
     lengths[0*2+1] = strlen("cpu_usage");
@@ -53,7 +53,7 @@ static uint16_t p7_write_size(uintptr_t context, uint32_t state, uint16_t *lengt
     return 2;
 }
 
-static void p7_write_data(uintptr_t context, struct LogEntry *e, char *buf)
+static void p6_write_data(uintptr_t context, struct LogEntry *e, char *buf)
 {
     char *base = buf;
 #define COPY(buf, S) memcpy(buf, S, strlen(S)); buf += strlen(S)
@@ -87,16 +87,16 @@ struct pool_plugin *cpu_usage_init(struct bufferevent *bev)
     struct pool_plugin_react   *p3 = POOL_PLUGIN_CLONE(pool_plugin_react);
     struct pool_plugin_timer   *p4 = POOL_PLUGIN_CLONE(pool_plugin_timer);
     struct pool_plugin_statics *p5 = POOL_PLUGIN_CLONE(pool_plugin_statics);
-    struct pool_plugin_create  *p7 = POOL_PLUGIN_CLONE(pool_plugin_create);
-    struct pool_plugin_response *p8 = POOL_PLUGIN_CLONE(pool_plugin_response);
+    struct pool_plugin_create  *p6 = POOL_PLUGIN_CLONE(pool_plugin_create);
+    struct pool_plugin_response *p7 = POOL_PLUGIN_CLONE(pool_plugin_response);
     p0->base.apply  = &p1->base;
     p1->base.apply  = &p2->base;
     p2->base.apply  = &p3->base;
     p3->base.apply  = &p4->base;
     p3->base.failed = &p4->base;
     p4->base.apply  = &p5->base;
-    p5->base.apply  = &p7->base;
-    p7->base.apply  = &p8->base;
+    p5->base.apply  = &p6->base;
+    p6->base.apply  = &p7->base;
     {
         p1->key = "TraceID";
         p1->klen = strlen("TraceID");
@@ -120,16 +120,13 @@ struct pool_plugin *cpu_usage_init(struct bufferevent *bev)
         p5->function = p5_func;
     }
     {
-        p7->finit = p7_init;
-        p7->fexit = p7_exit;
-        p7->write_size = p7_write_size;
-        p7->write_data = p7_write_data;
+        p6->finit = p6_init;
+        p6->fexit = p6_exit;
+        p6->write_size = p6_write_size;
+        p6->write_data = p6_write_data;
     }
     {
-        p8->bev = bev;
+        p7->bev = bev;
     }
-    //{
-    //    p8->lio = lio_open_trace("127.0.0.1", 148001);
-    //}
     return pool_plugin_init((struct pool_plugin *) p0);
 }
