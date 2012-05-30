@@ -172,6 +172,7 @@ macro(add_client_module target src)
 		${_output})
 	add_custom_target(create_client_module_${target} DEPENDS ${_output})
 	add_dependencies(logpool create_client_module_${target})
+	add_dependencies(create_client_module_${target} CREATE_IDL_H)
 endmacro()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
@@ -185,8 +186,6 @@ target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
 
-add_client_module(mod_example1 example/mod_example1.c)
-
 ## IDL Generator
 add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")
 add_executable(io_idlgen tools/idl-gen.cpp)
@@ -198,6 +197,8 @@ add_custom_command(
 add_custom_target(CREATE_IDL_H DEPENDS
 		${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
 add_dependencies(logpool CREATE_IDL_H)
+
+add_client_module(mod_example1 example/mod_example1.c)
 
 ## Test cases
 enable_testing()
