@@ -60,6 +60,8 @@ public:
     struct ToUpper {
         char operator()(char c) {
             if (c == '/') return '_';
+            if (c == '-') return '_';
+            if (c == ' ') return '_';
             if (c == '.') return '_';
             return toupper(c);
         }
