@@ -14,8 +14,8 @@ extern logapi_t LOGAPI;
 #define LOG_i   2
 #define LOG_f   4
 
-#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
-#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+#define KEYVALUE_u(K,V)    LOG_u, (K), ((uintptr_t)V)
+#define KEYVALUE_s(K,V)    LOG_s, (K), (V)
 
 
 int n = 0;

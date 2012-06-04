@@ -18,12 +18,32 @@ enum {
 extern "C" {
 #endif
 
-static struct io *g_io = NULL;
 struct io_plugin {
     char *buf;
     struct io *io;
     char base[1];
 };
+static int get_server_info(struct logpool_param_stream *pa, char *hostbuf)
+{
+    if (pa) {
+        memcpy(hostbuf, pa->host, strlen(pa->host));
+        return pa->port;
+    }
+    char *serverinfo = getenv("LOGPOOL_SERVER");
+    int  port = DEFAULT_PORT;
+    if (serverinfo) {
+        char *pos;
+        if ((pos = strchr(serverinfo, ':')) != NULL) {
+            port = strtol(pos+1, NULL, 10);
+            memcpy(hostbuf, serverinfo, pos - serverinfo);
+        } else {
+            memcpy(hostbuf, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
+        }
+    } else {
+        memcpy(hostbuf, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
+    }
+    return port;
+}
 
 static uint16_t *emit_header(char *buf, int protocol, int logsize)
 {
@@ -39,7 +59,9 @@ static void *logpool_io_init(logpool_t *logpool, logpool_param_t *p)
 {
     struct io_plugin *lp;
     lp = cast(struct io_plugin *, logpool_string_init(logpool, p));
-    lp->io = g_io;
+    char host[128];
+    int port = get_server_info((struct logpool_param_stream*) p, host);
+    lp->io = io_open_trace(host, port);
     return cast(void *, lp);
 }
 
@@ -109,30 +131,19 @@ struct logapi STREAM_API = {
 };
 
 extern struct keyapi *logpool_string_api_init(void);
+
 struct keyapi *logpool_trace_api_init(void)
 {
-    char *serverinfo = getenv("LOGPOOL_SERVER");
+#if LOGPOOL_DEBUG
     char host[128] = {0};
-    int  port = DEFAULT_PORT;
-    if (serverinfo) {
-        char *pos;
-        if ((pos = strchr(serverinfo, ':')) != NULL) {
-            port = strtol(pos+1, NULL, 10);
-            memcpy(host, serverinfo, pos - serverinfo);
-        } else {
-            memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
-        }
-    } else {
-        memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
-    }
-    fprintf(stderr,"connect to [%s:%u]\n", host, port);
-    g_io = io_open_trace(host, port);
+    int port = get_server_info(NULL, host);
+    fprintf(stderr,"default config [%s:%u]\n", host, port);
+#endif
     return logpool_string_api_init();
 }
 
 void logpool_trace_api_deinit(void)
 {
-    io_close(g_io);
 }
 
 int logpoold_start(char *host, int port)
