@@ -27,8 +27,8 @@ LOGPOOL
 -------------------------
   HOW_TO_EXEC
 -------------------------
-  $ memcached
-  $ ./Release/logpoold &
-  $ ./Release/example1 Release/mod_example.bc
+  $ memcached -d
+  $ ./Release/logpoold >& logpoold.log &
+  $ ./Release/example1 Release/mod_example.bc >& example1.log &
   $ ./Release/test_trace
 
