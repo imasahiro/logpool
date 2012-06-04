@@ -243,7 +243,7 @@ target_link_libraries(test_map ${TestLibs})
 add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 
 #add_clib_test(test_react test/react.c)
-#add_clib_test(test_list  test/list.c)
+add_clib_test(test_list  test/test_list.c)
 add_clib_test(test_pool  test/pool.c)
 
 install(TARGETS logpool
