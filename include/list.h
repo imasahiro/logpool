@@ -59,12 +59,17 @@ static LIST(T) *LIST_OP(T, new)() {\
 static void LIST_OP(T, delete_helper)(ELEM(T) *elem, void *arg) {\
     free(elem/*, sizeof(ELEM(T))*/);\
 }\
-static void LIST_OP(T, delete)(LIST(T) *list) {\
+static void LIST_OP(T, dispose)(LIST(T) *list) {\
     LIST_OP(T, each)(list, LIST_OP(T, delete_helper), NULL);\
+}\
+static void LIST_OP(T, delete)(LIST(T) *list) {\
+    LIST_OP(T, dispose)(list);\
     free(list/*, sizeof(LIST(T))*/);\
 }
 
 #define LIST_new(T)           LIST_OP(T, new)()
+#define LIST_init(T, L)       LIST_OP(T, init)(L)
+#define LIST_dispose(T, L)    LIST_OP(T, dispose)(L)
 #define LIST_delete(T, L)     LIST_OP(T, delete)(L)
 #define LIST_append(T, L, E)  LIST_OP(T, append)(L, E)
 #define LIST_each(T, L, F, A) LIST_OP(T, each)(L, F, A)
