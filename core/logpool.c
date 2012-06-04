@@ -93,9 +93,9 @@ void logpool_record_ap(logpool_t *ctx, void *args, int priority, char *trace_id,
         if (logs[i].type == 0)
             break;
         logs[i].key  = va_arg(ap, char *);
-        logs[i].klen = va_arg(ap, long);
         logs[i].val  = va_arg(ap, char *);
-        logs[i].vlen = va_arg(ap, long);
+        logs[i].klen = strlen(logs[i].key);
+        logs[i].vlen = (logs[i].type == 1/*LOG_s*/)? strlen(logs[i].val):0;
     }
     logpool_record_list(ctx, args, priority, trace_id, i, logs);
 }

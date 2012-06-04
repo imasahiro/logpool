@@ -247,6 +247,7 @@ add_test(test_map test_map ${CMAKE_CURRENT_SOURCE_DIR}/test/map-test.txt)
 add_clib_test(test_list  test/test_list.c)
 add_clib_test(test_pool  test/pool.c)
 
+install(TARGETS logpoold RUNTIME DESTINATION bin)
 install(TARGETS logpool
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION lib
