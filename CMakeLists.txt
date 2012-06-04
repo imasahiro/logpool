@@ -251,4 +251,4 @@ install(TARGETS logpool
 		LIBRARY DESTINATION lib
 		)
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/logpool.h DESTINATION include)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/logpool.h DESTINATION include)

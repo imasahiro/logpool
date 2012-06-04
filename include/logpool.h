@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdarg.h>
 #include <string.h>
 #include <syslog.h> /* LOG_EMERG etc.. */
 
@@ -144,6 +145,7 @@ logpool_t *logpool_open_trace(logpool_t *parent, char *host, int port);
 void logpool_close(logpool_t *p);
 
 void logpool_record(logpool_t *logpool, void *args, int priority, char *trace_id, ...);
+void logpool_record_ap(logpool_t *ctx, void *args, int priority, char *trace_id, va_list ap);
 int  logpool_check_priority(logpool_t *logpool, int priority);
 
 struct logdata {
@@ -167,7 +169,8 @@ static inline uint64_t f2u(double f)
 
 /* Logpool Client API */
 logpool_t *logpool_open_client(logpool_t *parent, char *host, int port);
-void logpool_procedure(logpool_t *logpool, char *q);
+void logpool_procedure(logpool_t *logpool, char *q, int qlen);
+void logpool_query(logpool_t *logpool, char *q, int qlen);
 void *logpool_client_get(logpool_t *logpool, void *buff, size_t bufsize);
 
 /* Logpool Daemon API */

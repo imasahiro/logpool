@@ -188,12 +188,12 @@ logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
     return logpool_open(parent, &CLIENT_API, (struct logpool_param*) &param);
 }
 
-void logpool_procedure(logpool_t *logpool, char *q)
+void logpool_procedure(logpool_t *logpool, char *q, int qlen)
 {
     struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
     char buf[128] = {};
     size_t len = emit_message(buf, LOGPOOL_EVENT_READ, 1,
-            0, strlen(q), NULL, q);
+            0, qlen, NULL, q);
     assert(io_write(lp->io, buf, len) == IO_OK);
 }
 

@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdarg.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -85,12 +84,10 @@ void logpool_record_list(logpool_t *ctx, void *args, int priority, char *trace_i
     logpool_flush(ctx, args);
 }
 
-void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ...)
+void logpool_record_ap(logpool_t *ctx, void *args, int priority, char *trace_id, va_list ap)
 {
-    struct logdata logs[ctx->logfmt_capacity];
-    va_list ap;
-    va_start(ap, trace_id);
     int i;
+    struct logdata logs[ctx->logfmt_capacity];
     for (i = 0; i < ctx->logfmt_capacity; ++i) {
         logs[i].type = va_arg(ap, int);
         if (logs[i].type == 0)
@@ -100,8 +97,15 @@ void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ..
         logs[i].val  = va_arg(ap, char *);
         logs[i].vlen = va_arg(ap, long);
     }
-    va_end(ap);
     logpool_record_list(ctx, args, priority, trace_id, i, logs);
+}
+
+void logpool_record(logpool_t *ctx, void *args, int priority, char *trace_id, ...)
+{
+    va_list ap;
+    va_start(ap, trace_id);
+    logpool_record_ap(ctx, args, priority, trace_id, ap);
+    va_end(ap);
 }
 
 void logpool_format_flush(logpool_t *ctx)
