@@ -23,7 +23,11 @@ static bool statics_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t s
         default:
             fprintf(stderr, "%s:%d Error\n", __func__, __LINE__);
     }
-    p->base.apply->Apply(p->base.apply, e, (uint32_t) data);
+    if (data) {
+        p->base.apply->Apply(p->base.apply, e, (uint32_t) data);
+    } else {
+        p->base.failed->Apply(p->base.failed, e, (uint32_t) data);
+    }
     return true;
 }
 

@@ -51,6 +51,8 @@ static void LogList_check_interval(struct LogList *list)
     }
     while (e) {
         next = e->h.next;
+        if (!RC0(e))
+            break;
         free(e);
         e = next;
     }
@@ -68,6 +70,17 @@ static void LogList_append(struct LogList *list, struct LogEntry *log, uint64_t 
     list->tail = e;
 }
 
+//static int LogList_size(struct LogList *list)
+//{
+//    struct LogEntry *e = list->head;
+//    int i = 0;
+//    while (e) {
+//        e = e->h.next;
+//        ++i;
+//    }
+//    return i;
+//}
+
 static void LogList_dispose(struct LogList *list)
 {
     struct LogEntry *e = list->head, *next;
@@ -84,6 +97,7 @@ static bool timer_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t sta
     struct LogEntry *head, *next;
     LogList_append(&p->list, e, p->timer);
     head = p->list.head->h.next;
+    //fprintf(stderr, "emit %d %d\n", LogList_size(&p->list), p->timer);
     p->base.apply->Apply(_p->apply, e, p->flag_start);
     while (head) {
         next = head->h.next;
@@ -98,7 +112,7 @@ static bool timer_failed(struct pool_plugin *_p, struct LogEntry *e, uint32_t st
 {
     struct pool_plugin_timer *p = (struct pool_plugin_timer *) _p;
     LogList_append(&p->list, e, p->timer);
-    //fprintf(stderr, "buffered\n");
+    //fprintf(stderr, "buffered %d %d\n", LogList_size(&p->list), p->timer);
     return true;
 }
 

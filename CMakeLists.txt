@@ -199,6 +199,7 @@ add_custom_target(CREATE_IDL_H DEPENDS
 add_dependencies(logpool CREATE_IDL_H)
 
 add_client_module(mod_example1 example/mod_example1.c)
+add_client_module(mod_cpuwatch example/mod_cpuwatch.c)
 
 ## Test cases
 enable_testing()
@@ -213,6 +214,11 @@ target_link_libraries(logtail logpool ${ExtraLibs})
 
 add_executable(example1 example/example1.c)
 target_link_libraries(example1 logpool ${ExtraLibs})
+
+add_executable(cpuemu example/cpuemu.c)
+target_link_libraries(cpuemu logpool ${ExtraLibs})
+add_executable(cpuwatch example/cpuwatch.c)
+target_link_libraries(cpuwatch logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})
