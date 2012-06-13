@@ -1,19 +1,19 @@
 #include "plugins/pool/pool_plugin.h"
 
-struct cpu_average {
+struct tid_average {
     int sum;
     int size;
 };
 
 static uintptr_t p5_init(uintptr_t context)
 {
-    struct cpu_average *v = malloc(sizeof(struct cpu_average));
+    struct tid_average *v = malloc(sizeof(struct tid_average));
     return (uintptr_t) v;
 }
 
 static uintptr_t p5_exit(uintptr_t context)
 {
-    struct cpu_average *average = (struct cpu_average*) context;
+    struct tid_average *average = (struct tid_average*) context;
     uintptr_t data = 0;
     if (average->size) {
         data = average->sum/ average->size;
@@ -23,9 +23,9 @@ static uintptr_t p5_exit(uintptr_t context)
 }
 static uintptr_t p5_func(uintptr_t context, struct LogEntry *e)
 {
-    struct cpu_average *average = (struct cpu_average*) context;
+    struct tid_average *average = (struct tid_average*) context;
     int vlen;
-    char *val = LogEntry_get(e, "cpu", strlen("cpu"), &vlen);
+    char *val = LogEntry_get(e, "tid", strlen("tid"), &vlen);
     char *end = val + vlen;
     if (val) {
         average->sum  += strtol(val, &end, 10);
@@ -39,7 +39,7 @@ static bool val_eq(void *v0, void *v1, uint16_t l0, uint16_t l1)
     return l0 == l1 && memcmp(v0, v1, l0) == 0;
 }
 
-struct pool_plugin *cpu_usage_init(struct bufferevent *bev)
+struct pool_plugin *tid_usage_init(struct bufferevent *bev)
 {
     struct pool_plugin_print *p0 = POOL_PLUGIN_CLONE(pool_plugin_print);
     struct pool_plugin_val_filter *p1 = POOL_PLUGIN_CLONE(pool_plugin_val_filter);
