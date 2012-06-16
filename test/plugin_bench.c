@@ -39,7 +39,7 @@ uint64_t ntrace1(ltrace_t *ltrace)
 }
 static void *MEMCACHE_API_PARAM[] = {
     (void*) 1024,
-    (void*) "localhost",
+    (void*) "0.0.0.0",
     (void*) 11211L
 };
 extern logapi_t MEMCACHE_API;

@@ -7,7 +7,7 @@
 static struct logpool_param_stream TRACE_API_PARAM = {
     8,
     1024,
-    "127.0.0.1", 14801
+    "0.0.0.0", 14801
 };
 #define LOGAPI_PARAM cast(logpool_param_t *, &TRACE_API_PARAM)
 #define LOGAPI_INIT_FLAG (LOGPOOL_TRACE)
@@ -29,8 +29,8 @@ extern logapi_t LOGAPI;
 #define LOG_s   1
 #define LOG_u   2
 
-#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
-#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+#define KEYVALUE_u(K,V)    LOG_u, (K), ((uintptr_t)V)
+#define KEYVALUE_s(K,V)    LOG_s, (K), (V)
 
 int n = 0;
 static void logpool_test_write(logpool_t *logpool)

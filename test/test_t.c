@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
     int i = 0;
     extern struct lio_api trace_api;
-    struct lio *lio = lio_open("127.0.0.1", 14801,
+    struct lio *lio = lio_open("0.0.0.0", 14801,
             LIO_MODE_READ|LIO_MODE_WRITE, &trace_api);
     while (i < 1000) {
         fprintf(stderr, "start\n");

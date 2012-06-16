@@ -20,10 +20,10 @@ static struct logpool_param_filter FILTERED_STRING_API_PARAM = {
 #define LOG_i   2
 #define LOG_f   4
 
-#define KEYVALUE_u(K,V)    LOG_u, (K), strlen(K), ((uintptr_t)V), 0
-#define KEYVALUE_i(K,V)    LOG_i, (K), strlen(K), ((uintptr_t)V), 0
-#define KEYVALUE_f(K,V)    LOG_f, (K), strlen(K), (f2u(V)), 0
-#define KEYVALUE_s(K,V)    LOG_s, (K), strlen(K), (V), strlen(V)
+#define KEYVALUE_u(K,V)    LOG_u, (K), ((uintptr_t)V)
+#define KEYVALUE_i(K,V)    LOG_i, (K), ((uintptr_t)V)
+#define KEYVALUE_f(K,V)    LOG_f, (K), (f2u(V))
+#define KEYVALUE_s(K,V)    LOG_s, (K), (V)
 
 extern logapi_t LOGAPI;
 

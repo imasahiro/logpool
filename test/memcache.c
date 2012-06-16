@@ -3,7 +3,7 @@
 static struct logpool_param_memcache MEMCACHE_API_PARAM = {
     8,
     1024,
-    "localhost",
+    "0.0.0.0",
     11211L
 };
 #define LOGAPI_PARAM cast(logpool_param_t *, &MEMCACHE_API_PARAM)

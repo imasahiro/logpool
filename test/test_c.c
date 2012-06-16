@@ -21,7 +21,7 @@ static void read_log(struct io *io, struct Log *tmp)
 int main(int argc, char **argv)
 {
     extern struct io_api client_api;
-    struct io *io = io_open("127.0.0.1", 14801,
+    struct io *io = io_open("0.0.0.0", 14801,
             IO_MODE_READ|IO_MODE_WRITE, &client_api);
     emit_procedure(io, "match tid tid0");
     struct Log *log = alloca(sizeof(struct Log) + 256);

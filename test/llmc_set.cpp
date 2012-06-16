@@ -32,7 +32,7 @@ Function *createAbs(Module *m, LLVMContext &Context) {
 
 int main(int argc, char **argv)
 {
-    llmc llmc("127.0.0.1", 11211);
+    llmc llmc("0.0.0.0", 11211);
     LLVMContext &Context = getGlobalContext();
     Module *m = new Module("test", Context);
     Function *F = createAbs(m, Context);

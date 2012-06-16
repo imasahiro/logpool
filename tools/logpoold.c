@@ -2,5 +2,5 @@
 
 int main(int argc, char **argv)
 {
-    return logpoold_start("127.0.0.1", 14801);
+    return logpoold_start("0.0.0.0", 14801);
 }

@@ -148,7 +148,7 @@ struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
     ARRAY_init(pool_plugin_t, &l->list, 4);
-    l->mc = llcache_new("127.0.0.1", 11211);
+    l->mc = llcache_new("0.0.0.0", 11211);
     return l;
 }
 

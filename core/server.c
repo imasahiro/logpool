@@ -115,6 +115,7 @@ static int io_server_init(struct io *io, char *host, int port, int ev_mode)
     lev = evconnlistener_new_bind(base, server_accept_callback, io,
             LEV_OPT_REUSEABLE | LEV_OPT_CLOSE_ON_FREE, -1,
             (struct sockaddr *) &sin, sizeof(sin));
+    debug_print(9, "host=%s, port=%d", host, port);
     if (lev == NULL) {
         debug_print(9, "bind() failed");
         return IO_FAILED;

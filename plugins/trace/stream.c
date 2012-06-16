@@ -11,7 +11,7 @@ enum {
     LOGPOOL_SUCCESS = 0
 };
 
-#define DEFAULT_SERVER "127.0.0.1"
+#define DEFAULT_SERVER "0.0.0.0"
 #define DEFAULT_PORT   14801
 
 #ifdef __cplusplus

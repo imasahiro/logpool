@@ -5,7 +5,7 @@
 static struct logpool_param_memcache EVENT_API_PARAM = {
     8,
     1024,
-    "localhost",
+    "0.0.0.0",
     10000L
 };
 #define LOGAPI_PARAM cast(logpool_param_t *, &EVENT_API_PARAM)

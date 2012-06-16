@@ -5,7 +5,7 @@
 static struct logpool_param_stream TRACE_API_PARAM = {
     8,
     1024,
-    "127.0.0.1", 14801
+    "0.0.0.0", 14801
 };
 #define LOGAPI_PARAM cast(logpool_param_t *, &TRACE_API_PARAM)
 #define LOGAPI_INIT_FLAG (LOGPOOL_TRACE)

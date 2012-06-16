@@ -16,8 +16,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    llcache_t *llmc = llcache_new("127.0.0.1", 11211);
-    logpool_t *logpool = logpool_open_client(NULL, "127.0.0.1", 14801);
+    llcache_t *llmc = llcache_new("0.0.0.0", 11211);
+    logpool_t *logpool = logpool_open_client(NULL, "0.0.0.0", 14801);
     llcache_set(llmc, "cpu_usage_init", argv[1]);
     logpool_procedure(logpool, "cpu_usage", strlen("cpu_usage"));
     struct Log *logbuf = alloca(sizeof(struct Log) + 256);
