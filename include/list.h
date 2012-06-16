@@ -26,19 +26,19 @@ typedef struct LIST(T) LIST(T)
 #endif
 
 #define DEF_LIST_OP(T)\
-static ELEM(T) *ELEM_OP(T, create) () {\
+static inline ELEM(T) *ELEM_OP(T, create) () {\
     ELEM(T) *e = malloc(sizeof(ELEM(T)));\
     bzero(e, sizeof(struct ELEM(T)));\
     return e;\
 }\
-static void LIST_OP(T, append) (LIST(T) *list, T v) {\
+static inline void LIST_OP(T, append) (LIST(T) *list, T v) {\
     ELEM(T) *e;\
     e = ELEM_OP(T,create)();\
     LIST_ASSIGNMENT(e, v);\
     list->tail->next = e;\
     list->tail = e;\
 }\
-static void LIST_OP(T, each) (LIST(T) *list, void (*f)(ELEM(T) *e, void *arg), void *arg) {\
+static inline void LIST_OP(T, each) (LIST(T) *list, void (*f)(ELEM(T) *e, void *arg), void *arg) {\
     ELEM(T) *e = list->head->next, *next;\
     while (e) {\
         next = e->next;\
@@ -51,7 +51,7 @@ static void LIST_OP(T, init) (LIST(T) *list) {\
     list->head = head;\
     list->tail = head;\
 }\
-static LIST(T) *LIST_OP(T, new)() {\
+static inline LIST(T) *LIST_OP(T, new)() {\
     LIST(T) *list = malloc(sizeof(LIST(T)));\
     LIST_OP(T, init)(list);\
     return list;\
@@ -59,10 +59,10 @@ static LIST(T) *LIST_OP(T, new)() {\
 static void LIST_OP(T, delete_helper)(ELEM(T) *elem, void *arg) {\
     free(elem/*, sizeof(ELEM(T))*/);\
 }\
-static void LIST_OP(T, dispose)(LIST(T) *list) {\
+static inline void LIST_OP(T, dispose)(LIST(T) *list) {\
     LIST_OP(T, each)(list, LIST_OP(T, delete_helper), NULL);\
 }\
-static void LIST_OP(T, delete)(LIST(T) *list) {\
+static inline void LIST_OP(T, delete)(LIST(T) *list) {\
     LIST_OP(T, dispose)(list);\
     free(list/*, sizeof(LIST(T))*/);\
 }
