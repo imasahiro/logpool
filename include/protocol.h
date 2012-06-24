@@ -136,4 +136,6 @@ static inline int emit_message(char *buf, uint16_t protocol, uint16_t logsize, .
     return LOG_PROTOCOL_SIZE + sizeof(uint16_t) * logsize * 2 + total_size;
 }
 
+char *Log_get(struct Log *log, char *key, int klen, int *vlen);
+
 #endif /* end of include guard */

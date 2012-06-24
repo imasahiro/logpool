@@ -162,6 +162,23 @@ struct io_api client_api = {
     io_client_close
 };
 
+char *Log_get(struct Log *log, char *key, int klen, int *vlen)
+{
+    uint16_t i;
+    char *data = log_get_data(log);
+    for (i = 0; i < log->logsize; ++i) {
+        char *next = log_iterator(log, data, i);
+        uint16_t len0 = log_get_length(log, i*2+0);
+        uint16_t len1 = log_get_length(log, i*2+1);
+        if (klen == len0 && strncmp(key, data, klen) == 0) {
+            *vlen = len1;
+            return data+klen;
+        }
+        data = next;
+    }
+    return NULL;
+}
+
 #ifdef __cplusplus
 }
 #endif
