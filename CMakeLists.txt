@@ -49,6 +49,7 @@ set(LOGPOOL_POOL plugins/pool/pool_plugin.c
 		plugins/pool/stream.c
 		plugins/pool/response.c
 		plugins/pool/create.c
+		plugins/pool/konoha_plugin.c
 )
 
 set(IO_SRC core/io.c core/stream.c core/trace.c core/server.c core/client.c)
@@ -66,6 +67,7 @@ find_library(HAVE_PTHREAD  NAMES pthread)
 find_library(HAVE_LIBMEMCACHED NAMES memcached)
 find_library(HAVE_LIBEVENT NAMES event)
 find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
+find_library(HAVE_KONOHA  NAMES konoha2)
 
 check_include_files(pthread.h      HAVE_PTHREAD_H)
 check_include_files(event2/event.h HAVE_LIBEVENT_H)
@@ -108,6 +110,7 @@ set(ExtraLibs ${ExtraLibs} ${HAVE_PTHREAD})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBEVENT_PTHREADS})
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBDL})
+set(ExtraLibs ${ExtraLibs} ${HAVE_KONOHA})
 
 
 find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
@@ -253,10 +256,11 @@ install(TARGETS logpool
 		LIBRARY DESTINATION lib
 		)
 
-install(DIRECTORY include/ DESTINATION include 
+install(DIRECTORY include/ DESTINATION include/logpool
 		FILES_MATCHING
 		PATTERN "*.h"
 		PATTERN ".svn" EXCLUDE
 		)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h DESTINATION include)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h DESTINATION include/logpool)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/plugins/pool/pool_plugin.h DESTINATION include/logpool)

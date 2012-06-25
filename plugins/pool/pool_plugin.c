@@ -1,7 +1,7 @@
 #include "pool_plugin.h"
 #include "array.h"
 #include "protocol.h"
-#include "llcache.h"
+#include "konoha2/konoha2.h"
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
@@ -97,7 +97,7 @@ DEF_ARRAY_STRUCT0(pool_plugin_t, uint32_t);
 DEF_ARRAY_T(pool_plugin_t);
 DEF_ARRAY_OP(pool_plugin_t);
 struct pool_list {
-    llcache_t *mc;
+    konoha_t konoha;
     ARRAY(pool_plugin_t) list;
 };
 
@@ -133,10 +133,16 @@ void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
     fprintf(stderr, "procedure: '%s':%d\n", buf, q->vlen);
     memcpy(buf+q->vlen, "_init", 6);
 #endif
-    fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);
-    pool_plugin_t *plugin = finit(bev);
-    ARRAY_add(pool_plugin_t, &l->list, plugin);
-
+    //CTX_t _ctx = l->konoha;
+    //kMethod *mtd = kKonohaSpace_getMethodNULL(ks, TY_System, MN_("initPlugin"));
+    //if (mtd) {
+    //    BEGIN_LOCAL(lsfp, K_CALLDELTA + 2);
+    //    KSETv(lsfp[K_CALLDELTA+0].o, c->func->self);
+    //    KCALL(lsfp, 0, mtd, 0, K_NULL);
+    //    END_LOCAL();
+    //    pool_plugin_t *plugin = lsfp[0].o->fields[0];
+    //    ARRAY_add(pool_plugin_t, &l->list, plugin);
+    //}
 }
 
 void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
@@ -144,17 +150,18 @@ void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
     //TODO
 }
 
+extern const kplatform_t* platform_shell(void);
 struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
     ARRAY_init(pool_plugin_t, &l->list, 4);
-    l->mc = llcache_new("0.0.0.0", 11211);
+    l->konoha = konoha_open(platform_shell());
     return l;
 }
 
 void pool_delete(struct pool_list *l)
 {
-    llcache_delete(l->mc);
+    konoha_close(l->konoha);
     ARRAY_dispose(pool_plugin_t, &l->list);
     free(l);
 }
