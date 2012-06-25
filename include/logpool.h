@@ -125,8 +125,8 @@ enum LOGPOOL_EXEC_MODE {
     LOGPOOL_TRACE   = 4
 };
 
-void logpool_init(int mode);
-void logpool_exit(void);
+void logpool_global_init(int mode);
+void logpool_global_exit(void);
 
 struct logpool {
     void *connection;

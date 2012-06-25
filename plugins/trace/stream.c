@@ -59,7 +59,7 @@ static void *logpool_io_init(logpool_t *logpool, logpool_param_t *p)
 {
     struct io_plugin *lp;
     lp = cast(struct io_plugin *, logpool_string_init(logpool, p));
-    char host[128];
+    char host[128] = {};
     int port = get_server_info((struct logpool_param_stream*) p, host);
     lp->io = io_open_trace(host, port);
     return cast(void *, lp);
@@ -193,7 +193,7 @@ static struct logapi CLIENT_API = {
 logpool_t *logpool_open_client(logpool_t *parent, char *host, int port)
 {
     struct logpool_param_stream param = {8, 1024};
-    logpool_init(0);
+    logpool_global_init(LOGPOOL_DEFAULT);
     param.host = host;
     param.port = port;
     return logpool_open(parent, &CLIENT_API, (struct logpool_param*) &param);

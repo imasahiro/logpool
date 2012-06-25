@@ -70,7 +70,7 @@ static unsigned long long net(int i) {
 
 static void emu(int interval, int step, int pid)
 {
-  logpool_init(LOGAPI_INIT_FLAG);
+  logpool_global_init(LOGAPI_INIT_FLAG);
   logpool_t *logpool = logpool_open(NULL, &LOGAPI, LOGAPI_PARAM);
   int i;
   void *args;
@@ -87,7 +87,7 @@ static void emu(int interval, int step, int pid)
     usleep(interval);
   }
   logpool_close(logpool);
-  logpool_exit();
+  logpool_global_exit();
   if (verbose) {
     fprintf(stderr, "finish emu %d %d %d\n", interval, step, pid);
   }

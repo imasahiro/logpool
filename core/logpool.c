@@ -166,7 +166,7 @@ extern struct keyapi *logpool_string_api_init(void);
 extern struct keyapi *logpool_trace_api_init(void);
 static int exec_mode = 0;
 
-void logpool_init(int mode)
+void logpool_global_init(int mode)
 {
     assert(exec_mode == 0);
     exec_mode = mode;
@@ -185,7 +185,7 @@ void logpool_init(int mode)
 }
 
 extern void logpool_trace_api_deinit(void);
-void logpool_exit(void)
+void logpool_global_exit(void)
 {
     assert(exec_mode != 0);
     if (exec_mode == LOGPOOL_TRACE) {
