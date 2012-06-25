@@ -168,7 +168,7 @@ static int exec_mode = 0;
 
 void logpool_global_init(int mode)
 {
-    assert(exec_mode == 0);
+    //assert(exec_mode == 0);
     exec_mode = mode;
     if (mode == LOGPOOL_JIT) {
 #ifdef LOGPOOL_USE_LLVM
@@ -187,7 +187,7 @@ void logpool_global_init(int mode)
 extern void logpool_trace_api_deinit(void);
 void logpool_global_exit(void)
 {
-    assert(exec_mode != 0);
+    //assert(exec_mode != 0);
     if (exec_mode == LOGPOOL_TRACE) {
         logpool_trace_api_deinit();
     }
