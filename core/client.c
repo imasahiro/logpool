@@ -145,6 +145,7 @@ static int io_client_read(struct io *io, const void *data, uint32_t nbyte)
 static int io_client_close(struct io *io)
 {
     if (io->flags & IO_MODE_THREAD) {
+        event_base_loopexit(io->base, NULL);
         if (pthread_join(io->thread, NULL) != 0) {
             fprintf(stderr, "pthread join failure. %s\n", strerror(errno));
             abort();
