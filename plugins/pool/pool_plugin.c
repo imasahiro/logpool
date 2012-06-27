@@ -2,6 +2,8 @@
 #include "array.h"
 #include "protocol.h"
 #include "konoha2/konoha2.h"
+#include "konoha2/sugar.h"
+#include "libmemcached/memcached.h"
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
@@ -93,12 +95,19 @@ char *LogEntry_get(struct LogEntry *e, char *key, int klen, int *vlen)
 }
 
 typedef struct pool_plugin pool_plugin_t;
-DEF_ARRAY_STRUCT0(pool_plugin_t, uint32_t);
-DEF_ARRAY_T(pool_plugin_t);
-DEF_ARRAY_OP(pool_plugin_t);
+typedef struct connection {
+    pool_plugin_t *p;
+    struct bufferevent *bev;
+} conn_t;
+
+DEF_ARRAY_STRUCT0(conn_t, uint32_t);
+DEF_ARRAY_T(conn_t);
+DEF_ARRAY_OP(conn_t);
+
 struct pool_list {
     konoha_t konoha;
-    ARRAY(pool_plugin_t) list;
+    memcached_st *mc;
+    ARRAY(conn_t) list;
 };
 
 static inline uint64_t TimeMilliSecond(void)
@@ -118,13 +127,18 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
     newe->h.time = TimeMilliSecond();
     RefInit(newe);
     memcpy(&newe->data, log, logsize);
-    struct pool_plugin *p, *pe;
-    FOR_EACH_ARRAY(plist->list, p, pe) {
-        p->Apply(p, newe, 0);
+    conn_t *c, *ce;
+    FOR_EACH_ARRAY(plist->list, c, ce) {
+        struct pool_plugin *p = c->p;
+        if (p) {
+            p->Apply(p, newe, 0);
+        }
     }
 }
 
-typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
+void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
+pool_plugin_t *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *buf, size_t len);
+
 void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
 {
 #if 1
@@ -133,36 +147,44 @@ void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
     fprintf(stderr, "procedure: '%s':%d\n", buf, q->vlen);
     memcpy(buf+q->vlen, "_init", 6);
 #endif
-    //CTX_t _ctx = l->konoha;
-    //kMethod *mtd = kKonohaSpace_getMethodNULL(ks, TY_System, MN_("initPlugin"));
-    //if (mtd) {
-    //    BEGIN_LOCAL(lsfp, K_CALLDELTA + 2);
-    //    KSETv(lsfp[K_CALLDELTA+0].o, c->func->self);
-    //    KCALL(lsfp, 0, mtd, 0, K_NULL);
-    //    END_LOCAL();
-    //    pool_plugin_t *plugin = lsfp[0].o->fields[0];
-    //    ARRAY_add(pool_plugin_t, &l->list, plugin);
-    //}
+#if 1
+    pool_plugin_t *plugin = konoha_plugin_get(l->konoha, l->mc, buf, strlen(buf));
+    if (plugin == NULL)
+        fprintf(stderr, "%s was not loaded.\n", buf);
+
+    conn_t conn;
+    conn.p = plugin;
+    conn.bev = bev;
+    ARRAY_add(conn_t, &l->list, &conn);
+#else
+#endif
 }
 
 void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
 {
-    //TODO
+    conn_t *c, *ce;
+    FOR_EACH_ARRAY(l->list, c, ce) {
+        if (c->bev == bev) {
+            fprintf(stderr, "connection dispose; %p, %p\n", c->bev, c->p);
+            c->bev = NULL;
+            c->p = NULL;
+        }
+    }
 }
 
-extern const kplatform_t* platform_shell(void);
+extern void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
 struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
-    ARRAY_init(pool_plugin_t, &l->list, 4);
-    l->konoha = konoha_open(platform_shell());
+    konoha_plugin_init(&l->konoha, &l->mc);
+    ARRAY_init(conn_t, &l->list, 4);
     return l;
 }
 
 void pool_delete(struct pool_list *l)
 {
     konoha_close(l->konoha);
-    ARRAY_dispose(pool_plugin_t, &l->list);
+    ARRAY_dispose(conn_t, &l->list);
     free(l);
 }
 

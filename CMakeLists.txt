@@ -49,6 +49,7 @@ set(LOGPOOL_POOL plugins/pool/pool_plugin.c
 		plugins/pool/stream.c
 		plugins/pool/response.c
 		plugins/pool/create.c
+		plugins/pool/close.c
 		plugins/pool/konoha_plugin.c
 )
 
@@ -188,7 +189,7 @@ add_library(logpool SHARED ${LOGPOOL_SRC})
 target_link_libraries(logpool ${ExtraLibs})
 set_target_properties(logpool PROPERTIES VERSION ${PACKAGE_VERSION} SOVERSION ${SO_VERSION})
 
-add_subdirectory(logpool-viewer)
+#add_subdirectory(logpool-viewer)
 
 ## IDL Generator
 add_definitions(-DIO_IDL_OUTPUT="${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h")

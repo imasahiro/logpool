@@ -17,6 +17,7 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
     if (events & BEV_EVENT_EOF) {
         debug_print(1, "client disconnect");
         chunk_stream_delete(cs);
+        pool_delete_connection(io->pool, bev);
         bufferevent_free(bev);
     } else if (events & BEV_EVENT_TIMEOUT) {
         debug_print(1, "client timeout e=%p, events=%x", bev, events);
@@ -24,6 +25,7 @@ static void server_event_callback(struct bufferevent *bev, short events, void *c
         bufferevent_free(bev);
     } else {
         /* Other case, maybe error occur */
+        pool_delete_connection(io->pool, bev);
         bufferevent_free(bev);
     }
 }

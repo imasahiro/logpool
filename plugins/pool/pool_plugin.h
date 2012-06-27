@@ -21,6 +21,11 @@ struct pool_plugin_copy {
     struct pool_plugin base;
 };
 
+struct pool_plugin_close {
+    struct pool_plugin base;
+    struct bufferevent *bev;
+};
+
 struct pool_plugin_print {
     struct pool_plugin base;
 };
