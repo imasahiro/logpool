@@ -122,6 +122,9 @@ static int io_client_read(struct io *io, const void *data, uint32_t nbyte)
         struct Log *log;
         //L_redo:;
         while (chunk_stream_empty(cs)) {
+            if ((io->flags & IO_MODE_THREAD) == 0) {
+                break;
+            }
             usleep(1);
         }
         log = chunk_stream_get(cs, &log_size);

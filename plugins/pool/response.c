@@ -9,12 +9,14 @@ static bool response_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t 
 {
     struct pool_plugin_response *p = (struct pool_plugin_response *) _p;
     bufferevent_write(p->bev, &e->data, e->h.size-sizeof(struct LogHead));
+    _p->apply->Apply(_p->apply, e, state);
     return true;
 }
 
-static bool response_failed(struct pool_plugin *p, struct LogEntry *e, uint32_t state)
+static bool response_failed(struct pool_plugin *_p, struct LogEntry *e, uint32_t state)
 {
     //TODO
+    _p->failed->Apply(_p->failed, e, state);
     return true;
 }
 

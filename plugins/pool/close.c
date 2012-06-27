@@ -8,6 +8,7 @@ extern "C" {
 static bool close_apply(struct pool_plugin *_p, struct LogEntry *e, uint32_t state)
 {
     struct pool_plugin_close *p = (struct pool_plugin_close *) _p;
+    //fprintf(stderr, "%s:%d close %p\n", __FILE__, __LINE__, p->bev);
     bufferevent_free(p->bev);
     return false;
 }

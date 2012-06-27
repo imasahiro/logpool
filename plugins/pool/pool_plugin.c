@@ -3,6 +3,9 @@
 #include "protocol.h"
 #include "konoha2/konoha2.h"
 #include "konoha2/sugar.h"
+#if 1
+#include "llcache.h"
+#endif
 #include "libmemcached/memcached.h"
 #include <string.h>
 #include <time.h>
@@ -105,8 +108,12 @@ DEF_ARRAY_T(conn_t);
 DEF_ARRAY_OP(conn_t);
 
 struct pool_list {
+#if 1
+    llcache_t *mc;
+#else
     konoha_t konoha;
     memcached_st *mc;
+#endif
     ARRAY(conn_t) list;
 };
 
@@ -136,6 +143,7 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
     }
 }
 
+typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
 void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
 pool_plugin_t *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *buf, size_t len);
 
@@ -148,16 +156,17 @@ void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
     memcpy(buf+q->vlen, "_init", 6);
 #endif
 #if 1
+    fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);
+    pool_plugin_t *plugin = finit(bev);
+#else
     pool_plugin_t *plugin = konoha_plugin_get(l->konoha, l->mc, buf, strlen(buf));
     if (plugin == NULL)
         fprintf(stderr, "%s was not loaded.\n", buf);
-
+#endif
     conn_t conn;
     conn.p = plugin;
     conn.bev = bev;
     ARRAY_add(conn_t, &l->list, &conn);
-#else
-#endif
 }
 
 void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
@@ -176,14 +185,22 @@ extern void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
 struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
+#if 1
+    l->mc = llcache_new("127.0.0.1", 11211);
+#else
     konoha_plugin_init(&l->konoha, &l->mc);
+#endif
     ARRAY_init(conn_t, &l->list, 4);
     return l;
 }
 
 void pool_delete(struct pool_list *l)
 {
+#if 1
+    llcache_delete(l->mc);
+#else
     konoha_close(l->konoha);
+#endif
     ARRAY_dispose(conn_t, &l->list);
     free(l);
 }
