@@ -3,7 +3,7 @@ K.import("sugar");
 K.import("konoha.assignment");
 
 
-PoolPlugin System.initPlugin(Object ev) {
+PoolPlugin initPlugin(Object ev) {
     PoolPlugin p0 = Printer.create();
     PoolPlugin p1 = Response.create(ev);
     p0.apply(p1);
