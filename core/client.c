@@ -81,12 +81,12 @@ static void *io_thread_main(void *args)
 {
     struct io *io = (struct io *) args;
     assert(io);
-    fprintf(stderr, "%s start\n", __func__);
+    //fprintf(stderr, "%s start\n", __func__);
     io->flags |= IO_MODE_THREAD;
     mfence();
     event_base_dispatch(bufferevent_get_base(io->bev));
     io->flags ^= IO_MODE_THREAD;
-    fprintf(stderr, "%s exit\n", __func__);
+    //fprintf(stderr, "%s exit\n", __func__);
     mfence();
     return 0;
 }

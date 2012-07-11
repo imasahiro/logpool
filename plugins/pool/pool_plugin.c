@@ -107,12 +107,14 @@ DEF_ARRAY_STRUCT0(conn_t, uint32_t);
 DEF_ARRAY_T(conn_t);
 DEF_ARRAY_OP(conn_t);
 
+//#define USE_LLVM
+#define USE_KONOHA 1
 struct pool_list {
-#if 1
-    llcache_t *mc;
-#else
+#if USE_KONOHA
     konoha_t konoha;
     memcached_st *mc;
+#else
+    llcache_t *mc;
 #endif
     ARRAY(conn_t) list;
 };
@@ -145,23 +147,23 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
 
 typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
 void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
-pool_plugin_t *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *buf, size_t len);
+pool_plugin_t *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *buf, size_t len, void *req);
 
 void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
 {
-#if 1
     char buf[128] = {};
     memcpy(buf, q->data, q->vlen);
     fprintf(stderr, "procedure: '%s':%d\n", buf, q->vlen);
+#if USE_LLVM
     memcpy(buf+q->vlen, "_init", 6);
 #endif
-#if 1
-    fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);
-    pool_plugin_t *plugin = finit(bev);
-#else
-    pool_plugin_t *plugin = konoha_plugin_get(l->konoha, l->mc, buf, strlen(buf));
+#if USE_KONOHA
+    pool_plugin_t *plugin = konoha_plugin_get(l->konoha, l->mc, buf, strlen(buf), bev);
     if (plugin == NULL)
         fprintf(stderr, "%s was not loaded.\n", buf);
+#else
+    fpool_plugin_init finit = (fpool_plugin_init) llcache_get(l->mc, buf);
+    pool_plugin_t *plugin = finit(bev);
 #endif
     conn_t conn;
     conn.p = plugin;
@@ -185,10 +187,10 @@ extern void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
 struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
-#if 1
-    l->mc = llcache_new("127.0.0.1", 11211);
-#else
+#if USE_KONOHA
     konoha_plugin_init(&l->konoha, &l->mc);
+#else
+    l->mc = llcache_new("127.0.0.1", 11211);
 #endif
     ARRAY_init(conn_t, &l->list, 4);
     return l;
@@ -196,10 +198,10 @@ struct pool_list * pool_new(void)
 
 void pool_delete(struct pool_list *l)
 {
-#if 1
-    llcache_delete(l->mc);
-#else
+#if USE_KONOHA
     konoha_close(l->konoha);
+#else
+    llcache_delete(l->mc);
 #endif
     ARRAY_dispose(conn_t, &l->list);
     free(l);
