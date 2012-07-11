@@ -106,7 +106,7 @@ void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp)
     *konohap = konoha_open(&logpool_platform);
     *mcp = memcached_create(NULL);
     CTX_t _ctx = *konohap;
-    kKonohaSpace *ks = KNULL(KonohaSpace);
+    kNameSpace *ks = KNULL(NameSpace);
     KEXPORT_PACKAGE("sugar", ks, 0);
     KEXPORT_PACKAGE("logpool", ks, 0);
     memcached_server_list_st servers;
@@ -128,8 +128,8 @@ struct pool_plugin *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *b
     CTX_t _ctx = konoha;
     kObject *ev = new_kObject(CT_Int/*Dummy*/, (uintptr_t)req);
     MODSUGAR_eval(_ctx, script, 0);
-    kKonohaSpace *ks = KNULL(KonohaSpace);
-    kMethod *mtd = kKonohaSpace_getMethodNULL(ks, TY_System, MN_("initPlugin"));
+    kNameSpace *ks = KNULL(NameSpace);
+    kMethod *mtd = kNameSpace_getMethodNULL(ks, TY_System, MN_("initPlugin"));
     if (mtd) {
         BEGIN_LOCAL(lsfp, K_CALLDELTA + 2);
         KSETv(lsfp[K_CALLDELTA+0].o, K_NULL);
