@@ -68,7 +68,7 @@ find_library(HAVE_PTHREAD  NAMES pthread)
 find_library(HAVE_LIBMEMCACHED NAMES memcached)
 find_library(HAVE_LIBEVENT NAMES event)
 find_library(HAVE_LIBEVENT_PTHREADS NAMES event_pthreads)
-find_library(HAVE_KONOHA  NAMES konoha2)
+find_library(HAVE_KONOHA  NAMES minikonoha)
 
 check_include_files(pthread.h      HAVE_PTHREAD_H)
 check_include_files(event2/event.h HAVE_LIBEVENT_H)
@@ -96,7 +96,7 @@ endif(NOT HAVE_LIBMEMCACHED)
 
 set(LOGPOOL_TRACE ${LOGPOOL_TRACE} plugins/trace/memcache.c)
 set(LOGPOOL_SRC ${LOGPOOL_SRC} ${LOGPOOL_POOL} ${LOGPOOL_TRACE} ${IO_SRC})
-set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
+#set(LOGPOOL_SRC ${LOGPOOL_SRC} core/llcache.cpp)
 
 
 check_type_size("void *" SIZEOF_VOIDP)
@@ -114,70 +114,70 @@ set(ExtraLibs ${ExtraLibs} ${HAVE_LIBDL})
 set(ExtraLibs ${ExtraLibs} ${HAVE_KONOHA})
 
 
-find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
-find_program(HAVE_CLANG   NAMES clang DOC "clang")
-if(NOT LLVM_CONFIG)
-	message(FATAL_ERROR "llvm-config not found")
-endif(NOT LLVM_CONFIG)
-if(NOT HAVE_CLANG)
-	message(FATAL_ERROR "clang not found")
-endif(NOT HAVE_CLANG)
+#find_program(LLVM_CONFIG NAMES llvm-config DOC "llvm-config")
+#find_program(HAVE_CLANG   NAMES clang DOC "clang")
+#if(NOT LLVM_CONFIG)
+#	message(FATAL_ERROR "llvm-config not found")
+#endif(NOT LLVM_CONFIG)
+#if(NOT HAVE_CLANG)
+#	message(FATAL_ERROR "clang not found")
+#endif(NOT HAVE_CLANG)
+##
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --version
+#		OUTPUT_VARIABLE LLVM_VERSION
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
 #
-execute_process(
-		COMMAND ${LLVM_CONFIG} --version
-		OUTPUT_VARIABLE LLVM_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-set(K_LLVM_VERSION ${LLVM_VERSION})
-string(REPLACE "." "0" K_LLVM_VERSION ${K_LLVM_VERSION})
-string(REPLACE "svn" "" K_LLVM_VERSION ${K_LLVM_VERSION})
-add_definitions(-DLLVM_VERSION=${K_LLVM_VERSION})
-include_directories(${LLVM_INCLUDEDIR})
-
-execute_process(
-		COMMAND ${LLVM_CONFIG} --cxxflags
-		OUTPUT_VARIABLE LLVM_CXXFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --ldflags
-		OUTPUT_VARIABLE LLVM_LDFLAGS
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-execute_process(
-	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo interpreter bitwriter
-	OUTPUT_VARIABLE LLVM_JIT_LIBS
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-execute_process(
-		COMMAND ${LLVM_CONFIG} --libdir
-		OUTPUT_VARIABLE LLVM_LIBDIR
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
-string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
-link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
-set(ExtraLibs ${ExtraLibs} ${v})
-
-macro(add_client_module target src)
-	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-	set(dirs "")
-	foreach(arg ${INCLUDE_DIRS})
-		set(dirs ${dirs} "-I${arg}")
-	endforeach()
-	set(_output ${CMAKE_CURRENT_BINARY_DIR}/${target}.bc)
-	add_custom_command(
-		OUTPUT  ${_output}
-		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src}
-		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/${src}
-		${dirs} -O2 -g0 -emit-llvm -c -o
-		${_output})
-	add_custom_target(create_client_module_${target} DEPENDS ${_output})
-	add_dependencies(logpool create_client_module_${target})
-	add_dependencies(create_client_module_${target} CREATE_IDL_H)
-endmacro()
+#set(K_LLVM_VERSION ${LLVM_VERSION})
+#string(REPLACE "." "0" K_LLVM_VERSION ${K_LLVM_VERSION})
+#string(REPLACE "svn" "" K_LLVM_VERSION ${K_LLVM_VERSION})
+#add_definitions(-DLLVM_VERSION=${K_LLVM_VERSION})
+#include_directories(${LLVM_INCLUDEDIR})
+#
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --cxxflags
+#		OUTPUT_VARIABLE LLVM_CXXFLAGS
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --ldflags
+#		OUTPUT_VARIABLE LLVM_LDFLAGS
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#execute_process(
+#	COMMAND ${LLVM_CONFIG} --libs core jit native linker ipo interpreter bitwriter
+#	OUTPUT_VARIABLE LLVM_JIT_LIBS
+#	OUTPUT_STRIP_TRAILING_WHITESPACE
+#	)
+#execute_process(
+#		COMMAND ${LLVM_CONFIG} --libdir
+#		OUTPUT_VARIABLE LLVM_LIBDIR
+#		OUTPUT_STRIP_TRAILING_WHITESPACE
+#		)
+#
+#set(CMAKE_CXX_FLAGS "${LLVM_CXXFLAGS} ${CMAKE_CXX_FLAGS}")
+#string(REPLACE " " ";" v ${LLVM_JIT_LIBS})
+#link_directories(${LINK_DIRECTORIES} ${LLVM_LIBDIR})
+#set(ExtraLibs ${ExtraLibs} ${v})
+#
+#macro(add_client_module target src)
+#	string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+#	set(dirs "")
+#	foreach(arg ${INCLUDE_DIRS})
+#		set(dirs ${dirs} "-I${arg}")
+#	endforeach()
+#	set(_output ${CMAKE_CURRENT_BINARY_DIR}/${target}.bc)
+#	add_custom_command(
+#		OUTPUT  ${_output}
+#		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${src}
+#		COMMAND ${HAVE_CLANG} ${CMAKE_CURRENT_SOURCE_DIR}/${src}
+#		${dirs} -O2 -g0 -emit-llvm -c -o
+#		${_output})
+#	add_custom_target(create_client_module_${target} DEPENDS ${_output})
+#	add_dependencies(logpool create_client_module_${target})
+#	add_dependencies(create_client_module_${target} CREATE_IDL_H)
+#endmacro()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/config.h)
@@ -203,8 +203,8 @@ add_custom_target(CREATE_IDL_H DEPENDS
 		${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h)
 add_dependencies(logpool CREATE_IDL_H)
 
-add_client_module(mod_example1 example/mod_example1.c)
-add_client_module(mod_cpuwatch example/mod_cpuwatch.c)
+#add_client_module(mod_example1 example/mod_example1.c)
+#add_client_module(mod_cpuwatch example/mod_cpuwatch.c)
 
 ## Test cases
 enable_testing()
@@ -217,13 +217,13 @@ target_link_libraries(logput logpool ${ExtraLibs})
 add_executable(logtail tools/logtail.c)
 target_link_libraries(logtail logpool ${ExtraLibs})
 
-add_executable(example1 example/example1.c)
-target_link_libraries(example1 logpool ${ExtraLibs})
-
-add_executable(cpuemu example/cpuemu.c)
-target_link_libraries(cpuemu logpool ${ExtraLibs})
-add_executable(cpuwatch example/cpuwatch.c)
-target_link_libraries(cpuwatch logpool ${ExtraLibs})
+#add_executable(example1 example/example1.c)
+#target_link_libraries(example1 logpool ${ExtraLibs})
+#
+#add_executable(cpuemu example/cpuemu.c)
+#target_link_libraries(cpuemu logpool ${ExtraLibs})
+#add_executable(cpuwatch example/cpuwatch.c)
+#target_link_libraries(cpuwatch logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})
@@ -260,7 +260,7 @@ install(TARGETS logpool
 install(DIRECTORY include/ DESTINATION include/logpool
 		FILES_MATCHING
 		PATTERN "*.h"
-		PATTERN ".svn" EXCLUDE
+		PATTERN ".git" EXCLUDE
 		)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/message.idl.data.h DESTINATION include/logpool)

@@ -1,8 +1,9 @@
 K.import("konoha.bytes");
 K.import("posix.file");
+K.import("konoha");
 
 void f() {
-    System.fopen("hoge", "r");
+    FILE file = System.fopen("hoge", "r");
 }
 
 f();

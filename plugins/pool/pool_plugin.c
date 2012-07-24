@@ -1,8 +1,8 @@
 #include "pool_plugin.h"
 #include "array.h"
 #include "protocol.h"
-#include "konoha2/konoha2.h"
-#include "konoha2/sugar.h"
+#include "minikonoha/minikonoha.h"
+#include "minikonoha/sugar.h"
 #if 1
 #include "llcache.h"
 #endif
@@ -111,7 +111,7 @@ DEF_ARRAY_OP(conn_t);
 #define USE_KONOHA 1
 struct pool_list {
 #if USE_KONOHA
-    konoha_t konoha;
+    KonohaContext *konoha;
     memcached_st *mc;
 #else
     llcache_t *mc;
@@ -146,8 +146,8 @@ void pool_exec(struct Log *log, int logsize, struct pool_list *plist)
 }
 
 typedef pool_plugin_t *(*fpool_plugin_init)(struct bufferevent *bev);
-void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
-pool_plugin_t *konoha_plugin_get(konoha_t konoha, memcached_st *mc, char *buf, size_t len, void *req);
+void konoha_plugin_init(KonohaContextVar **kctxp, memcached_st **mcp);
+pool_plugin_t *konoha_plugin_get(KonohaContext *kctx, memcached_st *mc, char *buf, size_t len, void *req);
 
 void pool_add(struct Procedure *q, struct bufferevent *bev, struct pool_list *l)
 {
@@ -183,12 +183,12 @@ void pool_delete_connection(struct pool_list *l, struct bufferevent *bev)
     }
 }
 
-extern void konoha_plugin_init(konoha_t *konohap, memcached_st **mcp);
+extern void konoha_plugin_init(KonohaContextVar **konohap, memcached_st **mcp);
 struct pool_list * pool_new(void)
 {
     struct pool_list *l = malloc(sizeof(struct pool_list));
 #if USE_KONOHA
-    konoha_plugin_init(&l->konoha, &l->mc);
+    konoha_plugin_init((KonohaContextVar**)&l->konoha, &l->mc);
 #else
     l->mc = llcache_new("127.0.0.1", 11211);
 #endif

@@ -104,6 +104,7 @@ static void io_thread_start(struct io *io)
 
 static int io_tracer_write(struct io *io, const void *data, uint32_t nbyte)
 {
+    fprintf(stderr, "io=%p, bev=%p, data=%p, %d\n", io, io->bev, data, nbyte);
     if (bufferevent_write(io->bev, data, nbyte) != 0) {
         fprintf(stderr, "write error, v=('%p', %u)\n", data, nbyte);
         return IO_FAILED;
