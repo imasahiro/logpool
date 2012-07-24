@@ -47,7 +47,7 @@ static inline void logpool_context_switch(struct logpool *ctx, void *conn)
 void logpool_format_flush(struct logpool *ctx);
 
 #define LOGPOOL_DEBUG 1
-#define LOGPOOL_DEBUG_LEVEL 0
+#define LOGPOOL_DEBUG_LEVEL 1
 #define debug_print(level, ...) do {\
     if (level >= LOGPOOL_DEBUG_LEVEL) {\
         if (LOGPOOL_DEBUG) {\

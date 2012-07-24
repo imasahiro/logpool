@@ -219,11 +219,11 @@ target_link_libraries(logtail logpool ${ExtraLibs})
 
 #add_executable(example1 example/example1.c)
 #target_link_libraries(example1 logpool ${ExtraLibs})
-#
-#add_executable(cpuemu example/cpuemu.c)
-#target_link_libraries(cpuemu logpool ${ExtraLibs})
-#add_executable(cpuwatch example/cpuwatch.c)
-#target_link_libraries(cpuwatch logpool ${ExtraLibs})
+
+add_executable(cpuemu example/cpuemu.c)
+target_link_libraries(cpuemu logpool ${ExtraLibs})
+add_executable(cpuwatch example/cpuwatch.c)
+target_link_libraries(cpuwatch logpool ${ExtraLibs})
 
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})

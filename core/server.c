@@ -49,7 +49,9 @@ static void server_read_callback(struct bufferevent *bev, void *ctx)
             pool_add((struct Procedure*) log, bev, io->pool);
             break;
         case LOGPOOL_EVENT_WRITE:
+#if LOGPOOL_DEBUG > 1
             log_dump(stderr, "W ", (struct Log *) log, "\n", 0);
+#endif
             pool_exec((struct Log *) log, log_size, io->pool);
             break;
         case LOGPOOL_EVENT_QUIT:
