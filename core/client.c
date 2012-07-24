@@ -68,10 +68,10 @@ static int io_client_init(struct io *io, char *host, int port, int ev_mode)
         return IO_FAILED;
     }
 
-    struct timeval tv;
-    tv.tv_sec = 10;
-    tv.tv_usec = 0;
-    bufferevent_set_timeouts(bev, NULL, &tv);
+    //struct timeval tv;
+    //tv.tv_sec = 10;
+    //tv.tv_usec = 0;
+    //bufferevent_set_timeouts(bev, NULL, &tv);
 
     io_thread_start(io);
     return IO_OK;

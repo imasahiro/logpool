@@ -68,12 +68,11 @@ static int io_tracer_init(struct io *io, char *host, int port, int ev_mode)
         io->bev = NULL;
         return IO_FAILED;
     }
-    //bufferevent_setwatermark(bev, ev_mode, 1024/2, 1024);
 
-    struct timeval tv;
-    tv.tv_sec = 20;
-    tv.tv_usec = 0;
-    bufferevent_set_timeouts(bev, &tv, NULL);
+    //struct timeval tv;
+    //tv.tv_sec = 20;
+    //tv.tv_usec = 0;
+    //bufferevent_set_timeouts(bev, &tv, NULL);
 
     io->bev = bev;
     io_thread_start(io);

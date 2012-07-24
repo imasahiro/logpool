@@ -65,6 +65,13 @@ static void *logpool_io_init(logpool_t *logpool, logpool_param_t *p)
     return cast(void *, lp);
 }
 
+static void logpool_io_close(logpool_t *logpool)
+{
+    struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
+    io_close(lp->io);
+    logpool_string_close(logpool);
+}
+
 static void logpool_io_flush(logpool_t *logpool, void **args __UNUSED__)
 {
     struct io_plugin *lp = cast(struct io_plugin *, logpool->connection);
@@ -126,7 +133,7 @@ struct logapi STREAM_API = {
     logpool_io_delim,
     logpool_io_flush,
     logpool_io_init,
-    logpool_string_close,
+    logpool_io_close,
     logpool_default_priority
 };
 
