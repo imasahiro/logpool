@@ -45,7 +45,7 @@ static void client_cb_write(struct bufferevent *bev, void *ctx)
     debug_print(0, "write_cb");
 }
 
-static void io_thread_start(struct io *io);
+static void client_thread_start(struct io *io);
 static int io_client_init(struct io *io, char *host, int port, int ev_mode)
 {
     struct event_base *base = event_base_new();
@@ -73,11 +73,11 @@ static int io_client_init(struct io *io, char *host, int port, int ev_mode)
     //tv.tv_usec = 0;
     //bufferevent_set_timeouts(bev, NULL, &tv);
 
-    io_thread_start(io);
+    client_thread_start(io);
     return IO_OK;
 }
 
-static void *io_thread_main(void *args)
+static void *client_thread_main(void *args)
 {
     struct io *io = (struct io *) args;
     assert(io);
@@ -91,9 +91,9 @@ static void *io_thread_main(void *args)
     return 0;
 }
 
-static void io_thread_start(struct io *io)
+static void client_thread_start(struct io *io)
 {
-    pthread_create(&io->thread, NULL, io_thread_main, io);
+    pthread_create(&io->thread, NULL, client_thread_main, io);
     while (io->flags & IO_MODE_THREAD) {
         mfence();
     }

@@ -28,9 +28,9 @@ struct pool_list;
 struct chunk_stream;
 struct bufferevent;
 
+struct io_api;
 struct io {
-    io_cb f_read;
-    io_cb f_write;
+    const struct io_api *api;
     uint32_t flags;
     uint32_t host;
     struct bufferevent *bev;
@@ -38,7 +38,7 @@ struct io {
     struct event_base *base;
     struct chunk_stream *cs; // use this at client
     pthread_t thread;
-    int (*f_close)(struct io *io);
+    pthread_mutex_t lock;
 };
 
 struct io_api {

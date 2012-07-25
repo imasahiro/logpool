@@ -51,13 +51,18 @@ static void tracer_cb_write(struct bufferevent *bev, void *ctx)
     //debug_print(0, "write_cb");
 }
 
-static void io_thread_start(struct io *io);
+static void trace_thread_start(struct io *io);
 static int io_tracer_init(struct io *io, char *host, int port, int ev_mode)
 {
     struct event_base *base = event_base_new();
     struct evdns_base *dns_base;
     struct bufferevent *bev;
-    bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE|BEV_OPT_THREADSAFE);
+    bev = bufferevent_socket_new(base, -1,
+            BEV_OPT_CLOSE_ON_FREE|BEV_OPT_THREADSAFE);
+    if (!bev) {
+        fprintf(stderr, "Error constructing bufferevent\n");
+        return IO_FAILED;
+    }
     bufferevent_setcb(bev, tracer_cb_read, tracer_cb_write, tracer_cb_event, base);
 
     bufferevent_enable(bev, ev_mode);
@@ -75,30 +80,36 @@ static int io_tracer_init(struct io *io, char *host, int port, int ev_mode)
     //bufferevent_set_timeouts(bev, &tv, NULL);
 
     io->bev = bev;
-    io_thread_start(io);
+    trace_thread_start(io);
     return IO_OK;
 }
 
-static void *io_thread_main(void *args)
+static void *trace_thread_main(void *args)
 {
     struct io *io = (struct io *) args;
-    assert(io);
-    //fprintf(stderr, "%s start\n", __func__);
+    fprintf(stderr, "%s start\n", __func__);
     io->flags |= IO_MODE_THREAD;
     mfence();
+    assert(io && io->bev);
+    pthread_mutex_unlock(&io->lock);
     event_base_dispatch(bufferevent_get_base(io->bev));
     io->flags ^= IO_MODE_THREAD;
-    //fprintf(stderr, "%s exit\n", __func__);
+    fprintf(stderr, "%s exit\n", __func__);
     mfence();
     return 0;
 }
 
-static void io_thread_start(struct io *io)
+static void trace_thread_start(struct io *io)
 {
-    pthread_create(&io->thread, NULL, io_thread_main, io);
-    while (io->flags & IO_MODE_THREAD) {
-        mfence();
+    pthread_mutex_lock(&io->lock);
+    pthread_create(&io->thread, NULL, trace_thread_main, io);
+    while (1) {
+        if (pthread_mutex_trylock(&io->lock) == 0) {
+            pthread_mutex_unlock(&io->lock);
+            break;
+        }
     }
+    fprintf(stderr, "thread started\n");
 }
 
 static int io_tracer_write(struct io *io, const void *data, uint32_t nbyte)

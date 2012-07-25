@@ -9,7 +9,6 @@
 
 #if 1
 static const char query_script[] = "K.import(\"logpool\");\n"
-"K.import(\"sugar\");\n"
 "K.import(\"konoha.assignment\");\n"
 "\n"
 "PoolPlugin initPlugin(Object ev) {\n"
